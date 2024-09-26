@@ -1,4 +1,4 @@
-/src/main/java/com/holochainapps/volla_holochain_admin/generated
+/src/main/java/com/holochainapps/mobile_conductor_admin/generated
 /src/main/jniLibs/**/*.so
 /src/main/assets/tauri.conf.json
 /tauri.build.gradle.kts

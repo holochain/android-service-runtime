@@ -15,10 +15,10 @@ val tauriProperties = Properties().apply {
 
 android {
     compileSdk = 34
-    namespace = "com.holochainapps.volla_holochain_admin"
+    namespace = "com.holochainapps.mobile_conductor_admin"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "com.holochainapps.volla_holochain_admin"
+        applicationId = "com.holochainapps.mobile_conductor_admin"
         minSdk = 24
         targetSdk = 34
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
