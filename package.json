@@ -1,0 +1,39 @@
+{
+	"name": "mobile-conductor-admin",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"tauri": "tauri",
+		"lint": "eslint . && prettier --check .",
+		"format": "prettier --write ."
+	},
+	"dependencies": {
+		"@holochain/client": "0.17.1",
+		"@msgpack/msgpack": "2.8.0",
+		"@tauri-apps/api": "^2.0.0-alpha.11",
+		"lodash": "^4.17.21",
+		"tauri-plugin-holochain-foreground-service-api": "link:../p2p-shipyard/crates/tauri-plugin-holochain-foreground-service",
+		"uuid": "^10.0.0"
+	},
+	"devDependencies": {
+		"@sveltejs/vite-plugin-svelte": "^1.0.1",
+		"@tailwindcss/typography": "^0.5.15",
+		"@tauri-apps/cli": "^2.0.0-alpha.17",
+		"@types/eslint": "^9.6.0",
+		"autoprefixer": "^10.4.20",
+		"daisyui": "^4.12.10",
+		"eslint": "^9.7.0",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-svelte": "^2.36.0",
+		"globals": "^15.0.0",
+		"prettier": "^3.3.2",
+		"prettier-plugin-svelte": "^3.2.5",
+		"svelte": "^3.49.0",
+		"tailwindcss": "^3.4.9",
+		"vite": "^3.0.2"
+	}
+}
