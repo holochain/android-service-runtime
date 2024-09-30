@@ -1,6 +1,11 @@
 <script lang="ts">
+	import { onMount } from "svelte";
   import BaseInstalledAppCard from "../components/BaseInstalledAppCard.svelte";
   import { installedApps, loadingLoadInstalledApps, loadingToggleEnableApp, loadInstalledApps, toggleEnableApp } from "../stores/holochain";
+
+  onMount(() => {
+    loadInstalledApps();
+  });
 </script>
 
 <div class="flex justify-between items-center mx-4">
