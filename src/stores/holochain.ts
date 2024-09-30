@@ -49,8 +49,8 @@ export const installBundledApp = async (key: string) => {
     });
     addToast(`Installed app "${key}"`, "success");
   } catch(e) {
-    console.error(`Error installing app ${e}`, "error");
-    addToast(`Error installing app ${e}`, "error");
+    console.error(`Error installing app`, e);
+    addToast(`Error installing app ${e.message}`, "error");
   }
   loadingInstallBundledApp.update((t) => { delete t[key]; return t;});
 };
@@ -64,8 +64,8 @@ export const loadUninstallApp = async (appId: string) => {
     await loadInstalledAppsInner();
     addToast(`Uninstalled app "${appId}"`, "success");
   } catch(e) {
-    console.error(`Error uninstalling app ${e}`, "error");
-    addToast(`Error uninstalling app ${e}`, "error");
+    console.error(`Error uninstalling app`, e);
+    addToast(`Error uninstalling app ${e.message}`, "error");
   }
   loadingUninstallApp.update((t) => { delete t[appId]; return t; });
 }
@@ -81,7 +81,7 @@ export const toggleEnableApp = async (appInfo: AppInfo) => {
     await loadInstalledAppsInner()
   } catch(e) {
     console.error("Error enabling/disabling app", e);
-    addToast(`Error enabling/disabling down app ${e}`, "error");
+    addToast(`Error enabling/disabling down app ${e.message}`, "error");
   }
   loadingToggleEnableApp.update((t) => ({...t, [appInfo.installedAppId]: undefined}));
 };
@@ -101,7 +101,7 @@ export const toggleLaunch = async () => {
     }
   } catch(e) {
     console.error("Error launching/shuttingdown app", e);
-    addToast(`Error launching/shutting down app ${e}`, "error");
+    addToast(`Error launching/shutting down app ${e.message}`, "error");
   }
   loadingLaunch.set(false);
 }
