@@ -35,7 +35,6 @@ const loadInstalledAppsInner = async () => {
 };
 
 export const installBundledApp = async (key: string) => {
-  console.log('installBundledApp', key)
   loadingInstallBundledApp.update((t) => ({...t, [key]: true}));
   await tick();
   await repaint();
