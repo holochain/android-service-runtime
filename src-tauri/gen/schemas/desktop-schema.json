@@ -1622,6 +1622,11 @@
           "const": "holochain-foreground-service:allow-install-app"
         },
         {
+          "description": "Enables the is_app_installed command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-foreground-service:allow-is-app-installed"
+        },
+        {
           "description": "Enables the launch command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-foreground-service:allow-launch"
@@ -1685,6 +1690,11 @@
           "description": "Denies the install_app command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-foreground-service:deny-install-app"
+        },
+        {
+          "description": "Denies the is_app_installed command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-foreground-service:deny-is-app-installed"
         },
         {
           "description": "Denies the launch command without any pre-configured scope.",
