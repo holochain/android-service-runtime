@@ -1589,147 +1589,147 @@
         {
           "description": "Default permissions for the plugin",
           "type": "string",
-          "const": "holochain-foreground-service:default"
+          "const": "holochain-service:default"
         },
         {
           "description": "Enables the app_websocket_auth command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-app-websocket-auth"
+          "const": "holochain-service:allow-app-websocket-auth"
         },
         {
           "description": "Enables the create_app_websocket command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-create-app-websocket"
+          "const": "holochain-service:allow-create-app-websocket"
         },
         {
           "description": "Enables the disable_app command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-disable-app"
+          "const": "holochain-service:allow-disable-app"
         },
         {
           "description": "Enables the enable_app command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-enable-app"
+          "const": "holochain-service:allow-enable-app"
         },
         {
           "description": "Enables the get_admin_port command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-get-admin-port"
+          "const": "holochain-service:allow-get-admin-port"
         },
         {
           "description": "Enables the install_app command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-install-app"
+          "const": "holochain-service:allow-install-app"
         },
         {
           "description": "Enables the is_app_installed command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-is-app-installed"
+          "const": "holochain-service:allow-is-app-installed"
         },
         {
           "description": "Enables the launch command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-launch"
+          "const": "holochain-service:allow-launch"
         },
         {
           "description": "Enables the list_installed_apps command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-list-installed-apps"
+          "const": "holochain-service:allow-list-installed-apps"
         },
         {
           "description": "Enables the shutdown command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-shutdown"
+          "const": "holochain-service:allow-shutdown"
         },
         {
           "description": "Enables the sign_zome_call command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-sign-zome-call"
+          "const": "holochain-service:allow-sign-zome-call"
         },
         {
           "description": "Enables the start command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-start"
+          "const": "holochain-service:allow-start"
         },
         {
           "description": "Enables the stop command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-stop"
+          "const": "holochain-service:allow-stop"
         },
         {
           "description": "Enables the uninstall_app command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:allow-uninstall-app"
+          "const": "holochain-service:allow-uninstall-app"
         },
         {
           "description": "Denies the app_websocket_auth command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-app-websocket-auth"
+          "const": "holochain-service:deny-app-websocket-auth"
         },
         {
           "description": "Denies the create_app_websocket command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-create-app-websocket"
+          "const": "holochain-service:deny-create-app-websocket"
         },
         {
           "description": "Denies the disable_app command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-disable-app"
+          "const": "holochain-service:deny-disable-app"
         },
         {
           "description": "Denies the enable_app command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-enable-app"
+          "const": "holochain-service:deny-enable-app"
         },
         {
           "description": "Denies the get_admin_port command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-get-admin-port"
+          "const": "holochain-service:deny-get-admin-port"
         },
         {
           "description": "Denies the install_app command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-install-app"
+          "const": "holochain-service:deny-install-app"
         },
         {
           "description": "Denies the is_app_installed command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-is-app-installed"
+          "const": "holochain-service:deny-is-app-installed"
         },
         {
           "description": "Denies the launch command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-launch"
+          "const": "holochain-service:deny-launch"
         },
         {
           "description": "Denies the list_installed_apps command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-list-installed-apps"
+          "const": "holochain-service:deny-list-installed-apps"
         },
         {
           "description": "Denies the shutdown command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-shutdown"
+          "const": "holochain-service:deny-shutdown"
         },
         {
           "description": "Denies the sign_zome_call command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-sign-zome-call"
+          "const": "holochain-service:deny-sign-zome-call"
         },
         {
           "description": "Denies the start command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-start"
+          "const": "holochain-service:deny-start"
         },
         {
           "description": "Denies the stop command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-stop"
+          "const": "holochain-service:deny-stop"
         },
         {
           "description": "Denies the uninstall_app command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-foreground-service:deny-uninstall-app"
+          "const": "holochain-service:deny-uninstall-app"
         }
       ]
     },

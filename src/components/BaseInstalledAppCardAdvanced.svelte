@@ -1,6 +1,6 @@
 <script lang="ts">
   import { encodeHashToBase64 } from "@holochain/client";
-  import { type AppInfo } from "tauri-plugin-holochain-foreground-service-api";
+  import { type AppInfo } from "tauri-plugin-holochain-service-api";
   import BaseLabelled from "./BaseLabelled.svelte";
 	import BaseLoadingButton from "./BaseLoadingButton.svelte";
 	import { loadingUninstallApp, loadUninstallApp } from "../stores/holochain";

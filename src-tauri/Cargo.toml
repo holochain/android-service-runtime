@@ -15,8 +15,8 @@ crate-type = ["staticlib", "cdylib", "lib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-rc", default-features = false , features = [] }
+tauri-build = { version = "2.0.3", default-features = false , features = [] }
 
 [dependencies]
-tauri = { version = "2.0.0-rc", features = ["unstable"] }
-tauri-plugin-holochain-foreground-service = { path = "../../p2p-shipyard/crates/tauri-plugin-holochain-foreground-service" }
+tauri = { version = "2.1.1", features = ["unstable"] }
+tauri-plugin-holochain-service = { git = "https://github.com/mattyg/p2p-shipyard.git", branch = "feat/foreground-service", package = "tauri-plugin-holochain-service" }

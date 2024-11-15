@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import { type AppInfo } from "tauri-plugin-holochain-foreground-service-api";
+  import { type AppInfo } from "tauri-plugin-holochain-service-api";
   import BaseLabelled from "./BaseLabelled.svelte";
   import BaseInstalledAppCardAdvanced from "./BaseInstalledAppCardAdvanced.svelte";
 	import BaseLoadingToggle from './BaseLoadingToggle.svelte';

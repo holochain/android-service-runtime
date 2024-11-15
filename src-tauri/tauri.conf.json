@@ -1,7 +1,7 @@
 {
   "productName": "mobile-conductor-admin",
   "version": "0.1.0",
-  "identifier": "com.holochainapps.mobile-conductor-admin",
+  "identifier": "com.holochain-apps.mobile-conductor-admin",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build",

@@ -7,6 +7,6 @@
   ],
   "permissions": [
     "core:default",
-    "holochain-foreground-service:default"
+    "holochain-service:default"
   ]
 }

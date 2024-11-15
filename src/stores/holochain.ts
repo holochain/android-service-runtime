@@ -1,5 +1,5 @@
 import { writable, get, derived } from 'svelte/store';
-import { launch, shutdown, getAdminPort, installApp, enableApp, disableApp, uninstallApp, listInstalledApps, type AppInfo } from "tauri-plugin-holochain-foreground-service-api";
+import { launch, shutdown, getAdminPort, installApp, enableApp, disableApp, uninstallApp, listInstalledApps, type AppInfo } from "tauri-plugin-holochain-service-api";
 import { v7 as uuidv7 } from 'uuid';
 import { sortBy } from 'lodash';
 import { BUNDLED_APPS } from "../config";

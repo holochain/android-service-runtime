@@ -20,9 +20,9 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
-      tauri-plugin-holochain-foreground-service-api:
-        specifier: link:../p2p-shipyard/crates/tauri-plugin-holochain-foreground-service
-        version: link:../p2p-shipyard/crates/tauri-plugin-holochain-foreground-service
+      tauri-plugin-holochain-service-api:
+        specifier: link:../p2p-shipyard/crates/tauri-plugin-holochain-service
+        version: link:../p2p-shipyard/crates/tauri-plugin-holochain-service
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
