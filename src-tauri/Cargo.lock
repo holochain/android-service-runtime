@@ -3136,7 +3136,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-holochain-service"
 version = "0.1.0"
-source = "git+https://github.com/mattyg/p2p-shipyard.git?branch=feat/foreground-service#b32ed20f7a2276c09ddadf3efc425414fcc20ceb"
+source = "git+https://github.com/mattyg/p2p-shipyard.git?branch=feat/foreground-service#9363cb0a00649be2bba7a4e21d4c1bac672fdd40"
 dependencies = [
  "serde",
  "tauri",
