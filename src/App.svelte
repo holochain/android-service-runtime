@@ -1,7 +1,6 @@
 <script lang="ts">
   import './app.css';
   import Status from './pages/Status.svelte';
-  import Library from './pages/Library.svelte';
   import MyApps from './pages/MyApps.svelte';
   import Toasts from './components/Toasts.svelte';
   import { loadAdminPort } from './stores/holochain';
@@ -11,7 +10,6 @@
   let tabs = [
     {text: "Status", component: Status},
     {text: "My Apps", component: MyApps},
-    {text: "Library", component: Library}
   ];
 
   loadAdminPort();
