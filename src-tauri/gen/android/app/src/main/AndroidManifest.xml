@@ -10,6 +10,17 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.mobile_conductor_admin"
         android:usesCleartextTraffic="${usesCleartextTraffic}">
+
+        <provider
+          android:name="androidx.core.content.FileProvider"
+          android:authorities="${applicationId}.fileprovider"
+          android:exported="false"
+          android:grantUriPermissions="true">
+          <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_paths" />
+        </provider>
+        <!-- Include in App Grid or System Settings. AUTO-GENERATED. DO NOT REMOVE. -->
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:launchMode="singleTask"
@@ -23,15 +34,6 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <provider
-          android:name="androidx.core.content.FileProvider"
-          android:authorities="${applicationId}.fileprovider"
-          android:exported="false"
-          android:grantUriPermissions="true">
-          <meta-data
-            android:name="android.support.FILE_PROVIDER_PATHS"
-            android:resource="@xml/file_paths" />
-        </provider>
+        <!-- Include in App Grid or System Settings. AUTO-GENERATED. DO NOT REMOVE. -->
     </application>
 </manifest>

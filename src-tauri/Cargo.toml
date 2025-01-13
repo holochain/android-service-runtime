@@ -16,7 +16,14 @@ crate-type = ["staticlib", "cdylib", "lib"]
 
 [build-dependencies]
 tauri-build = { version = "2.0.3", default-features = false , features = [] }
+tauri-plugin = "2.0.4"
 
 [dependencies]
 tauri = { version = "2.1.1", features = ["unstable"] }
 tauri-plugin-holochain-service = { git = "https://github.com/mattyg/p2p-shipyard.git", branch = "feat/foreground-service", package = "tauri-plugin-holochain-service" }
+
+[features]
+default = []
+
+# Should app be visible via the Android System Settings page, instead of the app grid?
+system_settings = []
