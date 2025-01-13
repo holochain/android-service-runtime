@@ -19,11 +19,14 @@
   </button>
 </div>
 
-{#each $installedApps as appInfo}
-  <BaseInstalledAppCard 
-    {appInfo} 
-    loadingToggleEnable={$loadingToggleEnableApp[appInfo.installedAppId]}
-    on:toggleEnable={() => toggleEnableApp(appInfo)}
-  />
-{/each}
-
+{#if $installedApps.length > 0}
+  {#each $installedApps as appInfo}
+    <BaseInstalledAppCard 
+      {appInfo} 
+      loadingToggleEnable={$loadingToggleEnableApp[appInfo.installedAppId]}
+      on:toggleEnable={() => toggleEnableApp(appInfo)}
+    />
+  {/each} 
+{:else}
+ <p class="text-center">No apps installed.</p>
+{/if}
