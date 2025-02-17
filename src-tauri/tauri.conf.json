@@ -1,7 +1,7 @@
 {
-  "productName": "mobile-conductor-admin",
+  "productName": "android-service-runtime",
   "version": "0.1.0",
-  "identifier": "com.holochain-apps.mobile-conductor-admin",
+  "identifier": "com.holochain-apps.android-service-runtime",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build",

@@ -1,5 +1,5 @@
 [package]
-name = "mobile-conductor-admin"
+name = "android-service-runtime"
 version = "0.1.0"
 description = "Volla Holochain Admin"
 authors = ["you"]

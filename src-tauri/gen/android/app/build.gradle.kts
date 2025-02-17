@@ -20,11 +20,11 @@ keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
     compileSdk = 34
-    namespace = "com.holochain_apps.mobile_conductor_admin"
+    namespace = "com.holochain_apps.android_service_runtime"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "true"
-        applicationId = "com.holochain_apps.mobile_conductor_admin"
-        minSdk = 24
+        applicationId = "com.holochain_apps.android_service_runtime"
+        minSdk = 27
         targetSdk = 34
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
@@ -43,7 +43,7 @@ android {
             isDebuggable = true
             isJniDebuggable = true
             isMinifyEnabled = false
-            packaging {                
+            packaging {
                 jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
                 jniLibs.keepDebugSymbols.add("*/armeabi-v7a/*.so")
                 jniLibs.keepDebugSymbols.add("*/x86/*.so")
@@ -51,7 +51,7 @@ android {
             }
         }
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))

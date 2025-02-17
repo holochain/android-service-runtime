@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.mobile_conductor_admin" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.android_service_runtime" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
     </style>
 </resources>

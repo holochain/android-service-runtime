@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">mobile-conductor-admin</string>
-    <string name="main_activity_title">mobile-conductor-admin</string>
-    <string name="main_activity_summary">mobile-conductor-admin</string>
+    <string name="app_name">android-service-runtime</string>
+    <string name="main_activity_title">android-service-runtime</string>
 </resources>

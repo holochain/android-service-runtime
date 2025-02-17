@@ -1,4 +1,4 @@
-#  mobile-conductor-admin
+#  android-service-runtime
 
 An Android app for managing a holochain conductor running as a foreground service.
 

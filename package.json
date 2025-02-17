@@ -1,5 +1,5 @@
 {
-	"name": "mobile-conductor-admin",
+	"name": "android-service-runtime",
 	"private": true,
 	"version": "0.1.0",
 	"type": "module",
@@ -9,7 +9,9 @@
 		"preview": "vite preview",
 		"tauri": "tauri",
 		"lint": "eslint . && prettier --check .",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"start:android": "tauri android dev",
+		"build:android": "tauri android build"
 	},
 	"dependencies": {
 		"@holochain/client": "0.17.1",
