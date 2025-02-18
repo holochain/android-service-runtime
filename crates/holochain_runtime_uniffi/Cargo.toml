@@ -1,0 +1,29 @@
+[package]
+name = "holochain_runtime_uniffi"
+version = "0.1.0"
+edition = "2021"
+
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+name = "holochain_runtime_uniffi"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+uniffi = { workspace = true, features = ["cli", "tokio" ] }
+holochain_runtime = { path = "../holochain_runtime", default-features = false }
+holochain_conductor_api = { workspace = true }
+holochain_types = { workspace = true }
+
+thiserror = { workspace = true }
+url2 = { workspace = true }
+log = { workspace = true }
+android_logger = { workspace = true }
+
+[build-dependencies]
+uniffi = { workspace = true, features = ["build"] }

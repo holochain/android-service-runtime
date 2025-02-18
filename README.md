@@ -1,15 +1,30 @@
-#  android-service-runtime
+# Holochain Android Runtime
 
-An Android app for managing a holochain conductor running as a foreground service.
+An Android app and Tauri plugins that provide an integrated approach for running Holochain apps on mobile devices. This includes:
+- An Android app for managing a system-wide Holochain conductor running as an [Android Foreground Service](https://developer.android.com/develop/background-work/services/fgs). The Foreground Service can run persistently, even when the app is closed, ensuring that you can be a reliable contributor to the peer-to-peer networks of your apps.
+- A Tauri plugin used by that Android app under-the-hood, for managing the system-wide Holochain conductor service.
+- A Tauri plugin for your p2p-shipyard scaffolded app, so that it uses the system-wide Holochain conductor service, rather than bundling its own conductor.
 
-## Build
 
-### Build as a Standalone User App
+> [!IMPORTANT]  
+> This project currently uses a 3rd party library [p2p-shipyard](https://github.com/darksoil-studio/p2p-shipyard) under-the-hood, which is licensed as [Source-Available](https://en.wikipedia.org/wiki/Source-available_software). To use it in your own project, you will need a [p2p-shipyard license](https://darksoil.studio/p2p-shipyard/license/license.html).
 
-By default, this will be built as a standard user app that only appears in the App Grid. 
+## Components
 
-### Build as a System App
+### android-service-runtime app
 
-To build as a system app that only appears in the Android System Settings page, use the feature flag `system_settings`.
+An Android app for managing a Holochain conductor running as a foreground service. Start & stop the Holochain service, view installed hApps, uninstall hApps.
 
-i.e. `npm run tauri build -- --features system_settings`
+Uses the [tauri-plugin-holochain-service](#tauri-plugin-holochain-service) under-the-hood to run a Holochain conductor as an android service.
+
+### holochain_runtime_uniffi
+
+A wrapper around p2p-shipyard's [holochain_runtime](https://github.com/darksoil-studio/p2p-shipyard/tree/main/crates/holochain_runtime) crate with simplified types, for auto-generating [FFI bindings](https://en.wikipedia.org/wiki/Foreign_function_interface) to facilitate usage of the crate in Kotlin code.
+
+### tauri-plugin-holochain-service
+
+A Tauri plugin for building Android apps that run a Holochain conductor as an [Foreground Service](https://developer.android.com/develop/background-work/services/fgs)
+
+### tauri-plugin-holochain-service-consumer
+
+A Tauri plugin for building Android apps that make use of the android-service-runtime Android app, instead of bundling their own conductor.

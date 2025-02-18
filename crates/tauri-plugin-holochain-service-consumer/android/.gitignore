@@ -1,0 +1,5 @@
+/build
+/.tauri
+.gradle
+
+src/main/jniLibs/
