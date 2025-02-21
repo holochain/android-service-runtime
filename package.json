@@ -1,15 +1,14 @@
 {
     "name": "android-service-runtime-dev",
     "scripts": {
-      "build": "npm run build:tauri-plugin-holochain-service && npm run build:tauri-plugin-holochain-service-consumer",
-      "build:tauri-plugin-holochain-service": "npm run build:holochain_runtime_uniffi && cd crates/tauri-plugin-holochain-service && npm run build",
-      "build:tauri-plugin-holochain-service-consumer": "cd crates/tauri-plugin-holochain-service-consumer && npm run build",
+      "build": "pnpm run build:tauri-plugin-holochain-service && pnpm run build:tauri-plugin-holochain-service-consumer",
+      "build:tauri-plugin-holochain-service": "pnpm run build:holochain_runtime_uniffi && cd crates/tauri-plugin-holochain-service && pnpm run build",
+      "build:tauri-plugin-holochain-service-consumer": "cd crates/tauri-plugin-holochain-service-consumer && pnpm run build",
       "build:holochain_runtime_uniffi": "cd crates/holochain_runtime_uniffi && ./scripts/build.sh",
-      "start": "cd examples/end-user-happ && nix develop --command bash -c \"npm run tauri dev\"",
-      "android:start": "cd examples/end-user-happ && nix develop .#androidDev --command bash -c \"npm run tauri android dev\""
+      "start": "cd examples/end-user-happ && nix develop --command bash -c \"pnpm run tauri dev\"",
+      "android:start": "cd examples/end-user-happ && nix develop .#androidDev --command bash -c \"pnpm run tauri android dev\""
     },
     "dependencies": {
-      "@tauri-apps/api": "^2.0.0",
       "tslib": "^2.7.0"
     }
 }

@@ -12,8 +12,8 @@
   "dependencies": {
     "@holochain/client": "0.17.1",
     "@msgpack/msgpack": "2.8.0",
-    "@tauri-apps/api": "^2.0.0-alpha.11",
-    "tauri-plugin-holochain-service-api": "link:../../"
+    "@tauri-apps/api": "^2.2.0",
+    "tauri-plugin-holochain-service-api": "link:../../crates/tauri-plugin-holochain-service"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^1.0.1",

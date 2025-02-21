@@ -1,5 +1,12 @@
 [workspace]
-members = ["crates/holochain_runtime_uniffi", "crates/tauri-plugin-holochain-service-consumer", "crates/tauri-plugin-holochain-service", "apps/android-service-runtime/src-tauri"]
+members = [
+    "crates/holochain_runtime_uniffi",
+    "crates/tauri-plugin-holochain-service",
+    "crates/tauri-plugin-holochain-service-consumer",
+    "apps/android-service-runtime/src-tauri",
+    "examples/service-app/src-tauri",
+    "examples/service-consumer-app/src-tauri"
+]
 resolver = "2"
 
 [workspace.dependencies]
