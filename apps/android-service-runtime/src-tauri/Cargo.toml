@@ -1,0 +1,29 @@
+[package]
+name = "android-service-runtime"
+version = "0.1.0"
+description = "Volla Holochain Admin"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2021"
+rust-version = "1.70"
+
+[lib]
+name = "tauri_app_lib"
+crate-type = ["staticlib", "cdylib", "lib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { workspace = true }
+tauri-plugin = { workspace = true }
+
+[dependencies]
+tauri = { workspace = true, features = ["unstable"] }
+tauri-plugin-holochain-service = { path = "../../../crates/tauri-plugin-holochain-service" }
+
+[features]
+default = []
+
+# Should app be visible via the Android System Settings page, instead of the app grid?
+system_settings = []

@@ -1,0 +1,17 @@
+# android-service-runtime app
+
+An Android app for managing a system-wide Holochain conductor running as an [Android Foreground Service](https://developer.android.com/develop/background-work/services/fgs).
+
+The Foreground Service can run persistently, even when the app is closed, ensuring that you can be a reliable contributor to the peer-to-peer networks of your apps.
+
+## Build
+
+### Build as a Standalone User App
+
+By default, this will be built as a standard user app that only appears in the App Grid. 
+
+### Build as a System App
+
+To build as a system app that only appears in the Android System Settings page, use the feature flag `system_settings`.
+
+i.e. `npm run tauri build -- --features system_settings`

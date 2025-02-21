@@ -1,0 +1,29 @@
+[workspace]
+members = [
+    "crates/holochain_runtime_uniffi",
+    "crates/tauri-plugin-holochain-service",
+    "crates/tauri-plugin-holochain-service-consumer",
+    "apps/android-service-runtime/src-tauri",
+    "examples/service-app/src-tauri",
+    "examples/service-consumer-app/src-tauri"
+]
+resolver = "2"
+
+[workspace.dependencies]
+holochain_runtime = { git = "https://github.com/mattyg/p2p-shipyard", branch = "feat/foreground-service", default-features = false }
+
+holochain_conductor_api = "0.4.1"
+holochain_types = "0.4.1"
+
+tauri = "2.2.5"
+tauri-plugin = "2.0.4"
+tauri-build = { version = "2.0.5", default-features = false }
+
+url2 = "0.0.6"
+log = "0.4.25"
+android_logger = "0.14.1"
+
+serde = "1.0"
+thiserror = "2.0.11"
+bytes = "1.9.0"
+uniffi = "0.28.1"
