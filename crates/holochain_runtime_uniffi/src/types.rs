@@ -1,7 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
 use holochain_conductor_api::{AppInfo, AppInfoStatus, CellInfo, ProvisionedCell, StemCell, ZomeCall};
-use holochain_types::{app::{DisabledAppReason, PausedAppReason}, dna::{hash_type::{Agent, Dna}, HoloHash}, prelude::{CapSecret, CellId, ClonedCell, DnaModifiers, ExternIO, FunctionName, Nonce256Bits, Timestamp, ZomeCallUnsigned, ZomeName}};
+use holochain_types::{app::{DisabledAppReason, PausedAppReason, RoleSettings}, dna::{hash_type::{Agent, Dna}, HoloHash}, prelude::{CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName, Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties, ZomeCallUnsigned, ZomeName}};
 use holochain_runtime::AppWebsocketAuth;
 
 #[derive(uniffi::Record)]
@@ -16,6 +16,12 @@ impl From<Duration> for DurationFFI {
       secs: value.as_secs(),
       nanos: value.subsec_nanos(),
     }
+  }
+}
+
+impl Into<Duration> for DurationFFI {
+  fn into(self) -> Duration {
+    Duration::from_nanos(self.secs * 1000 + self.nanos as u64)
   }
 }
 
@@ -34,6 +40,25 @@ impl From<DnaModifiers> for DnaModifiersFFI {
       properties: value.properties.bytes().to_owned(),
       origin_time: value.origin_time.0,
       quantum_time: value.quantum_time.into()
+    }
+  }
+}
+
+#[derive(uniffi::Record)]
+pub struct DnaModifiersOptFFI {
+  pub network_seed: Option<String>,
+  pub properties: Option<Vec<u8>>,
+  pub origin_time: Option<i64>,
+  pub quantum_time: Option<DurationFFI>,
+}
+
+impl Into<DnaModifiersOpt<YamlProperties>> for DnaModifiersOptFFI {
+  fn into(self) -> DnaModifiersOpt<YamlProperties> {
+    DnaModifiersOpt {
+      network_seed: self.network_seed,
+      properties: self.properties.map(|p| YamlProperties::try_from(SerializedBytes::from(UnsafeBytes::from(p))).unwrap()),
+      origin_time: self.origin_time.map(|o| Timestamp(o)),
+      quantum_time: self.quantum_time.map(|d| d.into()),
     }
   }
 }
@@ -303,5 +328,37 @@ impl From<ZomeCall> for ZomeCallFFI {
         nonce: value.nonce.into_inner().to_vec(),
         expires_at: value.expires_at.0
       }
+  }
+}
+
+#[derive(uniffi::Enum)]
+pub enum RoleSettingsFFI {
+    UseExisting {
+        cell_id: CellIdFFI,
+    },
+    Provisioned {
+        membrane_proof: Option<Vec<u8>>,
+        modifiers: Option<DnaModifiersOptFFI>,
+    },
+}
+
+impl Into<RoleSettings> for RoleSettingsFFI {
+  fn into(self) -> RoleSettings {
+    match self {
+      Self::UseExisting { cell_id } => {
+        RoleSettings::UseExisting { 
+          cell_id: cell_id.into()
+        }
+      },
+      Self::Provisioned {
+        membrane_proof,
+        modifiers
+      } => {
+        RoleSettings::Provisioned { 
+          membrane_proof: membrane_proof.map(|p| std::sync::Arc::new(SerializedBytes::from(UnsafeBytes::from(p)))),
+          modifiers: modifiers.map(|m| m.into())
+        }
+      }
+    }
   }
 }
