@@ -1,24 +1,24 @@
 [package]
-name = "holochain_runtime_uniffi"
+name = "holochain_runtime_types_uniffi"
 version = "0.1.0"
 edition = "2021"
 
 
 [lib]
-crate-type = ["cdylib", "staticlib"]
-name = "holochain_runtime_uniffi"
+crate-type = ["lib", "cdylib", "staticlib"]
+name = "holochain_runtime_types_uniffi"
 
 [[bin]]
 name = "uniffi-bindgen"
 path = "uniffi-bindgen.rs"
 
 [dependencies]
-holochain_runtime_types_uniffi = { path = "../holochain_runtime_types_uniffi" }
 uniffi = { workspace = true, features = ["cli", "tokio" ] }
 holochain_runtime = { workspace = true, default-features = false }
+holochain_conductor_api = { workspace = true }
 holochain_types = { workspace = true }
-log = { workspace = true }
-android_logger = { workspace = true }
+thiserror = { workspace = true }
+url2 = { workspace = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

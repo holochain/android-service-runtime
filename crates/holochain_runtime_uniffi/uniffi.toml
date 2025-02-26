@@ -2,6 +2,3 @@
 package_name = "uniffi.holochain_runtime_uniffi"
 cdylib_name = "holochain_runtime_uniffi"
 android = true
-
-[bindings.swift]
-cdylib_name = "holochain_runtime_uniffi"

@@ -20,14 +20,13 @@ pub enum HolochainRuntimeFFIError {
     IOError(String),
 
     #[error("Infallible: {0}")]
-    Infallible(String)
+    Infallible(String),
 }
 impl<T> From<PoisonError<T>> for HolochainRuntimeFFIError {
     fn from(_err: PoisonError<T>) -> Self {
         Self::PoisonError
     }
 }
-
 
 #[derive(uniffi::Error, thiserror::Error, Debug)]
 #[uniffi(flat_error)]
