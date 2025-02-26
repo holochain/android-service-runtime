@@ -1,19 +1,18 @@
 use crate::error::HolochainRuntimeFFIConfigError;
-use holochain_runtime::{HolochainRuntimeConfig, WANNetworkConfig, GossipArcClamp};
+use holochain_runtime::{GossipArcClamp, HolochainRuntimeConfig, WANNetworkConfig};
 use std::path::PathBuf;
 use std::str::FromStr;
 use url2::{Url2, Url2Error};
 
-
 #[derive(uniffi::Enum)]
 pub enum GossipArcClampFFI {
     Full,
-    Empty
+    Empty,
 }
 
-impl Into<GossipArcClamp> for GossipArcClampFFI {
-    fn into(self) -> GossipArcClamp {
-        match self {
+impl From<GossipArcClampFFI> for GossipArcClamp {
+    fn from(val: GossipArcClampFFI) -> Self {
+        match val {
             GossipArcClampFFI::Full => GossipArcClamp::Full,
             GossipArcClampFFI::Empty => GossipArcClamp::Empty,
         }
@@ -33,7 +32,7 @@ pub struct HolochainRuntimeFFIConfig {
 
     /// List of ICE server URLs
     ice_servers_urls: Vec<String>,
-    
+
     /// Force the conductor to always have a "full", or "empty" Gossip Arc for all DNAs.
     /// The Gossip Arc is the subsection of the DHT that you aim to store and serve to others.
     ///
@@ -44,9 +43,9 @@ pub struct HolochainRuntimeFFIConfig {
     /// unless they authored it.
     gossip_arc_clamp: Option<GossipArcClampFFI>,
 
-    /// Fallback to LAN only mode if the signal server configured in WANNetworkConfig can't be 
+    /// Fallback to LAN only mode if the signal server configured in WANNetworkConfig can't be
     /// reached at launch
-    fallback_to_lan_only: bool
+    fallback_to_lan_only: bool,
 }
 
 impl TryInto<HolochainRuntimeConfig> for HolochainRuntimeFFIConfig {
@@ -57,7 +56,11 @@ impl TryInto<HolochainRuntimeConfig> for HolochainRuntimeFFIConfig {
             wan_network_config: Some(WANNetworkConfig {
                 bootstrap_url: Url2::try_parse(self.bootstrap_url)?,
                 signal_url: Url2::try_parse(self.signal_url)?,
-                ice_servers_urls: self.ice_servers_urls.into_iter().map(|s| Url2::try_parse(s)).collect::<Result<Vec<Url2>, Url2Error>>()?,
+                ice_servers_urls: self
+                    .ice_servers_urls
+                    .into_iter()
+                    .map(Url2::try_parse)
+                    .collect::<Result<Vec<Url2>, Url2Error>>()?,
             }),
             admin_port: None,
             gossip_arc_clamp: self.gossip_arc_clamp.map(|c| c.into()),
