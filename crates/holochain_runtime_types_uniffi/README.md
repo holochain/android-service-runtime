@@ -1,6 +1,6 @@
-# holochain_runtime_uniffi
+# holochain_runtime_types_uniffi
 
-This crate is a wrapper around p2p-shipyard's `holochain_runtime`, with minimal functionality necessary to expose basic holochain management functions, for generating FFI bindings for those functions.
+This crate contains wrappers around types used in requests & responses of p2p-shipyard's `holochain_runtime`.
 
 It generates FFI bindings for Kotlin.
 
