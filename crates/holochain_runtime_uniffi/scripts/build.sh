@@ -1,17 +1,12 @@
 #/usr/bin/env bash
 
-cargo build --release
+cargo ndk --manifest-path ./Cargo.toml -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 \
+  -o ../tauri-plugin-holochain-service/android/src/main/jniLibs \
+  build --release
 
-cargo ndk -o ../tauri-plugin-holochain-service/android/src/main/jniLibs \
-  --manifest-path ./Cargo.toml \
-  -t arm64-v8a \
-  -t armeabi-v7a \
-  -t x86 \
-  -t x86_64 \
-  build \
-  --release
+cp ../../target/release/libholochain_runtime_uniffi.so ../tauri-plugin-holochain-service/android/src/main/jniLibs
 
 cargo run --bin uniffi-bindgen generate \
-  --library ../../target/release/libholochain_runtime_uniffi.so \
+  --library ../tauri-plugin-holochain-service/android/src/main/jniLibs \
   --language kotlin \
   --out-dir ../tauri-plugin-holochain-service/android/src/main/java/

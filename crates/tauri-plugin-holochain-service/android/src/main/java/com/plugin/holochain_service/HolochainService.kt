@@ -1,24 +1,27 @@
 package com.plugin.holochain_service
 
+import java.nio.ByteBuffer
 import android.util.Log
 import android.app.Service
-import android.app.ForegroundServiceStartNotAllowedException
-import android.os.Build
 import android.os.IBinder
-import androidx.core.app.NotificationCompat
 import android.content.Intent
-import uniffi.holochain_runtime_uniffi.HolochainRuntimeFfi
-import uniffi.holochain_runtime_uniffi.HolochainRuntimeFfiConfig
-import uniffi.holochain_runtime_uniffi.CellIdFfi
-import uniffi.holochain_runtime_uniffi.ZomeCallUnsignedFfi
-import uniffi.holochain_runtime_uniffi.GossipArcClampFfi
+import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.nio.ByteBuffer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import com.holochain_apps.holochain_service_common.HolochainRuntimeFfiConfig
+import com.holochain_apps.holochain_service_common.CellIdFfi
+import com.holochain_apps.holochain_service_common.ZomeCallUnsignedFfi
+import com.holochain_apps.holochain_service_common.GossipArcClampFfi
+import com.holochain_apps.holochain_service_common.InstallAppRequestAidl
+import com.holochain_apps.holochain_service_common.AppInfoFfiAidl
+import com.holochain_apps.holochain_service_common.AppInfoStatusFfiAidl
+import com.holochain_apps.holochain_service_common.AppWebsocketAuthFfiAidl
+import com.holochain_apps.holochain_service_common.SignZomeCallRequestAidl
+import com.holochain_apps.holochain_service_common.ZomeCallSignedFfiAidl
 
 class HolochainService : Service() {
     /// The uniffi-generated holochain runtime bindings
@@ -63,7 +66,7 @@ class HolochainService : Service() {
             
             // Call install app
             serviceScope.launch(Dispatchers.Default) {
-                runtime!!.installApp(request.appId, appBundleBytes, request.membraneProofs, request.agent, request.networkSeed)
+                runtime!!.installApp(request.appId, appBundleBytes, request.roleSettings, request.agent, request.networkSeed)
             }
         }
 
@@ -124,7 +127,7 @@ class HolochainService : Service() {
         override fun appWebsocketAuth(appId: String): AppWebsocketAuthFfiAidl {
             Log.d("IHolochainService", "appWebsocketAuth")
             return runBlocking {
-                val res = runtime?.appWebsocketAuth(appId)!!
+                val res = runtime!!.appWebsocketAuth(appId)
                 AppWebsocketAuthFfiAidl(res.appId, res.port.toInt(), res.token.toUByteArray())
             }
         }
@@ -133,7 +136,7 @@ class HolochainService : Service() {
         override fun signZomeCall(request: SignZomeCallRequestAidl): ZomeCallSignedFfiAidl {
             Log.d("IHolochainService", "signZomeCall")
             return runBlocking {
-                val res = runtime?.signZomeCall(ZomeCallUnsignedFfi(
+                val res = runtime!!.signZomeCall(ZomeCallUnsignedFfi(
                     request.provenance,
                     CellIdFfi(
                         request.cellIdDnaHash,
@@ -145,7 +148,7 @@ class HolochainService : Service() {
                     request.payload,
                     request.nonce,
                     request.expiresAt,
-                ))!!
+                ))
                 
                 ZomeCallSignedFfiAidl(
                     res.cellId.dnaHash,

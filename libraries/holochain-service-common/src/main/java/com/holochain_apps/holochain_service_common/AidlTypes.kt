@@ -1,16 +1,15 @@
-package com.plugin.holochain_service
+package com.holochain_apps.holochain_service_common
 
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 import android.os.Parcelable
 import android.os.SharedMemory
-import uniffi.holochain_runtime_uniffi.CellInfoFfi
 
 @Parcelize
 data class InstallAppRequestAidl(
   val appId: String,
   val appBundleSharedMemory: SharedMemory,
-  val membraneProofs: Map<String, ByteArray>,
+  val roleSettings: Map<String, @RawValue RoleSettingsFfi>,
   val agent: ByteArray?,
   val networkSeed: String?,
 ): Parcelable
@@ -24,7 +23,7 @@ data class AppInfoStatusFfiAidl(
 @Parcelize
 data class AppInfoFfiAidl(
   val installedAppId: String,
-  val cellInfo: @RawValue Map<String, List<CellInfoFfi>>,
+  val cellInfo: Map<String, List<@RawValue CellInfoFfi>>,
   val status: AppInfoStatusFfiAidl,
   val agentPubKey: ByteArray,
 ): Parcelable

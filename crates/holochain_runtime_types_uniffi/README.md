@@ -12,6 +12,11 @@ It generates FFI bindings for Kotlin.
 
 ## Development
 
+### Adding Types
+When adding new types to this crate that will be used in FFI-exposed interfaces in `holochain_runtime_uniffi` crate, you will also need to add the type to the [UDL file](../holochain_runtime_uniffi/src/holochain_runtime_uniffi.udl) in `holochain_runtime_uniffi`.
+
+See [Uniffi Docs](https://mozilla.github.io/uniffi-rs/latest/udl/external_types.html) for more info on including external types.
+
 ### Gotchas!!!
 - Enum variants cannot have the same name as other types (i.e. Error enum variants cannot match other error types)
 - Generated types may have different casing. For example kotlin types use TitleCase

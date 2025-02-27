@@ -10,6 +10,8 @@ import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
+import com.holochain_apps.holochain_service_common.HolochainServiceClient
+import com.holochain_apps.holochain_service_common.SignZomeCallRequestAidl
 
 @TauriPlugin
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {

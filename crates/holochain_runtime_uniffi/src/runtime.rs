@@ -1,8 +1,7 @@
 use android_logger::Config;
 use holochain_runtime::{vec_to_locked, HolochainRuntime};
-use holochain_runtime_types_uniffi::config::HolochainRuntimeFFIConfig;
-use holochain_runtime_types_uniffi::error::HolochainRuntimeFFIError;
-use holochain_runtime_types_uniffi::types::{
+use holochain_runtime_types_uniffi::{
+    HolochainRuntimeFFIConfig, HolochainRuntimeFFIError,
     AppInfoFFI, AppWebsocketAuthFFI, RoleSettingsFFI, ZomeCallFFI, ZomeCallUnsignedFFI,
 };
 use holochain_types::{

@@ -1,4 +1,4 @@
 [bindings.kotlin]
-package_name = "uniffi.holochain_runtime_uniffi"
+package_name = "com.plugin.holochain_service"
 cdylib_name = "holochain_runtime_uniffi"
 android = true

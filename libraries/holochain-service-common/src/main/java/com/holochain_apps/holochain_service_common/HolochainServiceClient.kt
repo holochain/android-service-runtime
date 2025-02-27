@@ -1,4 +1,4 @@
-package com.plugin.holochain_service
+package com.holochain_apps.holochain_service_common
 
 import android.app.Activity
 import android.content.Intent

@@ -1,0 +1,9 @@
+build
+.tauri
+.gradle
+gradle
+.kotlin
+.idea
+
+src/main/jniLibs/
+src/main/res/raw/

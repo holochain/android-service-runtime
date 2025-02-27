@@ -1,5 +1,9 @@
 uniffi::setup_scaffolding!();
 
-pub mod config;
-pub mod error;
-pub mod types;
+mod config;
+mod error;
+mod types;
+
+pub use config::*;
+pub use error::*;
+pub use types::*;

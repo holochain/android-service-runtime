@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.holochain_runtime_uniffi
+package com.holochain_apps.holochain_service_common
 
 // Common helper code.
 //
@@ -17,24 +17,18 @@ package uniffi.holochain_runtime_uniffi
 // compile the Rust component. The easiest way to ensure this is to bundle the Kotlin
 // helpers directly inline like we're doing here.
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.sun.jna.Callback
 import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
 import com.sun.jna.ptr.*
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.coroutines.resume
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -71,7 +65,7 @@ open class RustBuffer : Structure() {
         internal fun alloc(size: ULong = 0UL) =
             uniffiRustCall { status ->
                 // Note: need to convert the size to a `Long` value to make this work with JVM.
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rustbuffer_alloc(size.toLong(), status)
+                UniffiLib.INSTANCE.ffi_holochain_runtime_types_uniffi_rustbuffer_alloc(size.toLong(), status)
             }.also {
                 if (it.data == null) {
                     throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=$size)")
@@ -92,7 +86,7 @@ open class RustBuffer : Structure() {
 
         internal fun free(buf: RustBuffer.ByValue) =
             uniffiRustCall { status ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rustbuffer_free(buf, status)
+                UniffiLib.INSTANCE.ffi_holochain_runtime_types_uniffi_rustbuffer_free(buf, status)
             }
     }
 
@@ -407,7 +401,7 @@ private fun findLibraryName(componentName: String): String {
     if (libOverride != null) {
         return libOverride
     }
-    return "holochain_runtime_uniffi"
+    return "holochain_runtime_types_uniffi"
 }
 
 private inline fun <reified Lib : Library> loadIndirect(componentName: String): Lib =
@@ -755,421 +749,302 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
     )
 }
 
+// For large crates we prevent `MethodTooLargeException` (see #2340)
+// N.B. the name of the extension is very misleading, since it is
+// rather `InterfaceTooLargeException`, caused by too many methods
+// in the interface for large crates.
+//
+// By splitting the otherwise huge interface into two parts
+// * UniffiLib
+// * IntegrityCheckingUniffiLib (this)
+// we allow for ~2x as many methods in the UniffiLib interface.
+//
+// The `ffi_uniffi_contract_version` method and all checksum methods are put
+// into `IntegrityCheckingUniffiLib` and these methods are called only once,
+// when the library is loaded.
+internal interface IntegrityCheckingUniffiLib : Library {
+    // Integrity check functions only
+    fun ffi_holochain_runtime_types_uniffi_uniffi_contract_version(): Int
+}
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
-
 internal interface UniffiLib : Library {
     companion object {
         internal val INSTANCE: UniffiLib by lazy {
-            loadIndirect<UniffiLib>(componentName = "holochain_runtime_uniffi")
-                .also { lib: UniffiLib ->
+            val componentName = "holochain_runtime_types_uniffi"
+            // For large crates we prevent `MethodTooLargeException` (see #2340)
+            // N.B. the name of the extension is very misleading, since it is
+            // rather `InterfaceTooLargeException`, caused by too many methods
+            // in the interface for large crates.
+            //
+            // By splitting the otherwise huge interface into two parts
+            // * UniffiLib (this)
+            // * IntegrityCheckingUniffiLib
+            // And all checksum methods are put into `IntegrityCheckingUniffiLib`
+            // we allow for ~2x as many methods in the UniffiLib interface.
+            //
+            // Thus we first load the library with `loadIndirect` as `IntegrityCheckingUniffiLib`
+            // so that we can (optionally!) call `uniffiCheckApiChecksums`...
+            loadIndirect<IntegrityCheckingUniffiLib>(componentName)
+                .also { lib: IntegrityCheckingUniffiLib ->
                     uniffiCheckContractApiVersion(lib)
                     uniffiCheckApiChecksums(lib)
                 }
-        }
-
-        // The Cleaner for the whole library
-        internal val CLEANER: UniffiCleaner by lazy {
-            UniffiCleaner.create()
+            // ... and then we load the library as `UniffiLib`
+            // N.B. we cannot use `loadIndirect` once and then try to cast it to `UniffiLib`
+            // => results in `java.lang.ClassCastException: com.sun.proxy.$Proxy cannot be cast to ...`
+            // error. So we must call `loadIndirect` twice. For crates large enough
+            // to trigger this issue, the performance impact is negligible, running on
+            // a macOS M1 machine the `loadIndirect` call takes ~50ms.
+            val lib = loadIndirect<UniffiLib>(componentName)
+            // No need to check the contract version and checksums, since
+            // we already did that with `IntegrityCheckingUniffiLib` above.
+            // Loading of library with integrity check done.
+            lib
         }
     }
 
-    fun uniffi_holochain_runtime_uniffi_fn_clone_holochainruntimeffi(
-        `ptr`: Pointer,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Pointer
-
-    fun uniffi_holochain_runtime_uniffi_fn_free_holochainruntimeffi(
-        `ptr`: Pointer,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Unit
-
-    fun uniffi_holochain_runtime_uniffi_fn_constructor_holochainruntimeffi_launch(
-        `passphrase`: RustBuffer.ByValue,
-        `config`: RustBuffer.ByValue,
-    ): Long
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_app_websocket_auth(
-        `ptr`: Pointer,
-        `appId`: RustBuffer.ByValue,
-    ): Long
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_disable_app(
-        `ptr`: Pointer,
-        `appId`: RustBuffer.ByValue,
-    ): Long
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_enable_app(
-        `ptr`: Pointer,
-        `appId`: RustBuffer.ByValue,
-    ): Long
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_get_admin_port(
-        `ptr`: Pointer,
-        uniffi_out_err: UniffiRustCallStatus,
-    ): Short
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_install_app(
-        `ptr`: Pointer,
-        `appId`: RustBuffer.ByValue,
-        `appBundleBytes`: RustBuffer.ByValue,
-        `membraneProofs`: RustBuffer.ByValue,
-        `agent`: RustBuffer.ByValue,
-        `networkSeed`: RustBuffer.ByValue,
-    ): Long
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_is_app_installed(
-        `ptr`: Pointer,
-        `installedAppId`: RustBuffer.ByValue,
-    ): Long
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_list_installed_apps(`ptr`: Pointer): Long
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_shutdown(`ptr`: Pointer): Long
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_sign_zome_call(
-        `ptr`: Pointer,
-        `zomeCallUnsigned`: RustBuffer.ByValue,
-    ): Long
-
-    fun uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_uninstall_app(
-        `ptr`: Pointer,
-        `appId`: RustBuffer.ByValue,
-    ): Long
-
-    fun ffi_holochain_runtime_uniffi_rustbuffer_alloc(
+    // FFI functions
+    fun ffi_holochain_runtime_types_uniffi_rustbuffer_alloc(
         `size`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
 
-    fun ffi_holochain_runtime_uniffi_rustbuffer_from_bytes(
+    fun ffi_holochain_runtime_types_uniffi_rustbuffer_from_bytes(
         `bytes`: ForeignBytes.ByValue,
         uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
 
-    fun ffi_holochain_runtime_uniffi_rustbuffer_free(
+    fun ffi_holochain_runtime_types_uniffi_rustbuffer_free(
         `buf`: RustBuffer.ByValue,
         uniffi_out_err: UniffiRustCallStatus,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rustbuffer_reserve(
+    fun ffi_holochain_runtime_types_uniffi_rustbuffer_reserve(
         `buf`: RustBuffer.ByValue,
         `additional`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_u8(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_u8(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_u8(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_u8(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_u8(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_u8(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_u8(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_u8(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Byte
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_i8(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_i8(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_i8(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_i8(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_i8(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_i8(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_i8(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_i8(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Byte
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_u16(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_u16(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_u16(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_u16(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_u16(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_u16(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_u16(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_u16(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Short
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_i16(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_i16(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_i16(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_i16(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_i16(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_i16(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_i16(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_i16(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Short
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_u32(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_u32(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_u32(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_u32(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_u32(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_u32(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_u32(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_u32(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Int
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_i32(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_i32(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_i32(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_i32(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_i32(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_i32(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_i32(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_i32(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Int
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_u64(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_u64(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_u64(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_u64(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_u64(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_u64(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_u64(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_u64(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Long
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_i64(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_i64(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_i64(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_i64(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_i64(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_i64(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_i64(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_i64(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Long
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_f32(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_f32(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_f32(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_f32(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_f32(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_f32(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_f32(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_f32(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Float
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_f64(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_f64(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_f64(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_f64(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_f64(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_f64(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_f64(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_f64(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Double
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_pointer(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_pointer(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_pointer(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_pointer(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_pointer(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_pointer(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_pointer(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_pointer(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Pointer
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_rust_buffer(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_rust_buffer(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_rust_buffer(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_rust_buffer(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_rust_buffer(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_rust_buffer(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_rust_buffer(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_rust_buffer(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
 
-    fun ffi_holochain_runtime_uniffi_rust_future_poll_void(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_poll_void(
         `handle`: Long,
         `callback`: UniffiRustFutureContinuationCallback,
         `callbackData`: Long,
     ): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_cancel_void(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_cancel_void(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_free_void(`handle`: Long): Unit
+    fun ffi_holochain_runtime_types_uniffi_rust_future_free_void(`handle`: Long): Unit
 
-    fun ffi_holochain_runtime_uniffi_rust_future_complete_void(
+    fun ffi_holochain_runtime_types_uniffi_rust_future_complete_void(
         `handle`: Long,
         uniffi_out_err: UniffiRustCallStatus,
     ): Unit
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_app_websocket_auth(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_disable_app(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_enable_app(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_get_admin_port(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_install_app(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_is_app_installed(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_list_installed_apps(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_shutdown(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_sign_zome_call(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_uninstall_app(): Short
-
-    fun uniffi_holochain_runtime_uniffi_checksum_constructor_holochainruntimeffi_launch(): Short
-
-    fun ffi_holochain_runtime_uniffi_uniffi_contract_version(): Int
 }
 
-private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
+private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     // Get the bindings contract version from our ComponentInterface
-    val bindings_contract_version = 26
+    val bindings_contract_version = 29
     // Get the scaffolding contract version by calling the into the dylib
-    val scaffolding_contract_version = lib.ffi_holochain_runtime_uniffi_uniffi_contract_version()
+    val scaffolding_contract_version = lib.ffi_holochain_runtime_types_uniffi_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
 }
 
 @Suppress("UNUSED_PARAMETER")
-private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_app_websocket_auth() != 24842.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_disable_app() != 18754.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_enable_app() != 63861.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_get_admin_port() != 36662.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_install_app() != 38370.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_is_app_installed() != 47482.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_list_installed_apps() != 4295.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_shutdown() != 1579.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_sign_zome_call() != 24734.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_method_holochainruntimeffi_uninstall_app() != 5226.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_holochain_runtime_uniffi_checksum_constructor_holochainruntimeffi_launch() != 7032.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
+private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
+}
+
+/**
+ * @suppress
+ */
+public fun uniffiEnsureInitialized() {
+    UniffiLib.INSTANCE
 }
 
 // Async support
-// Async return type handlers
-
-internal const val UNIFFI_RUST_FUTURE_POLL_READY = 0.toByte()
-internal const val UNIFFI_RUST_FUTURE_POLL_MAYBE_READY = 1.toByte()
-
-internal val uniffiContinuationHandleMap = UniffiHandleMap<CancellableContinuation<Byte>>()
-
-// FFI type for Rust future continuations
-internal object uniffiRustFutureContinuationCallbackImpl : UniffiRustFutureContinuationCallback {
-    override fun callback(
-        data: Long,
-        pollResult: Byte,
-    ) {
-        uniffiContinuationHandleMap.remove(data).resume(pollResult)
-    }
-}
-
-internal suspend fun <T, F, E : kotlin.Exception> uniffiRustCallAsync(
-    rustFuture: Long,
-    pollFunc: (Long, UniffiRustFutureContinuationCallback, Long) -> Unit,
-    completeFunc: (Long, UniffiRustCallStatus) -> F,
-    freeFunc: (Long) -> Unit,
-    liftFunc: (F) -> T,
-    errorHandler: UniffiRustCallStatusErrorHandler<E>,
-): T {
-    try {
-        do {
-            val pollResult =
-                suspendCancellableCoroutine<Byte> { continuation ->
-                    pollFunc(
-                        rustFuture,
-                        uniffiRustFutureContinuationCallbackImpl,
-                        uniffiContinuationHandleMap.insert(continuation),
-                    )
-                }
-        } while (pollResult != UNIFFI_RUST_FUTURE_POLL_READY)
-
-        return liftFunc(
-            uniffiRustCallWithError(errorHandler, { status -> completeFunc(rustFuture, status) }),
-        )
-    } finally {
-        freeFunc(rustFuture)
-    }
-}
 
 // Public interface members begin here.
 
@@ -1397,677 +1272,6 @@ public object FfiConverterByteArray : FfiConverterRustBuffer<ByteArray> {
     }
 }
 
-// This template implements a class for working with a Rust struct via a Pointer/Arc<T>
-// to the live Rust struct on the other side of the FFI.
-//
-// Each instance implements core operations for working with the Rust `Arc<T>` and the
-// Kotlin Pointer to work with the live Rust struct on the other side of the FFI.
-//
-// There's some subtlety here, because we have to be careful not to operate on a Rust
-// struct after it has been dropped, and because we must expose a public API for freeing
-// theq Kotlin wrapper object in lieu of reliable finalizers. The core requirements are:
-//
-//   * Each instance holds an opaque pointer to the underlying Rust struct.
-//     Method calls need to read this pointer from the object's state and pass it in to
-//     the Rust FFI.
-//
-//   * When an instance is no longer needed, its pointer should be passed to a
-//     special destructor function provided by the Rust FFI, which will drop the
-//     underlying Rust struct.
-//
-//   * Given an instance, calling code is expected to call the special
-//     `destroy` method in order to free it after use, either by calling it explicitly
-//     or by using a higher-level helper like the `use` method. Failing to do so risks
-//     leaking the underlying Rust struct.
-//
-//   * We can't assume that calling code will do the right thing, and must be prepared
-//     to handle Kotlin method calls executing concurrently with or even after a call to
-//     `destroy`, and to handle multiple (possibly concurrent!) calls to `destroy`.
-//
-//   * We must never allow Rust code to operate on the underlying Rust struct after
-//     the destructor has been called, and must never call the destructor more than once.
-//     Doing so may trigger memory unsafety.
-//
-//   * To mitigate many of the risks of leaking memory and use-after-free unsafety, a `Cleaner`
-//     is implemented to call the destructor when the Kotlin object becomes unreachable.
-//     This is done in a background thread. This is not a panacea, and client code should be aware that
-//      1. the thread may starve if some there are objects that have poorly performing
-//     `drop` methods or do significant work in their `drop` methods.
-//      2. the thread is shared across the whole library. This can be tuned by using `android_cleaner = true`,
-//         or `android = true` in the [`kotlin` section of the `uniffi.toml` file](https://mozilla.github.io/uniffi-rs/kotlin/configuration.html).
-//
-// If we try to implement this with mutual exclusion on access to the pointer, there is the
-// possibility of a race between a method call and a concurrent call to `destroy`:
-//
-//    * Thread A starts a method call, reads the value of the pointer, but is interrupted
-//      before it can pass the pointer over the FFI to Rust.
-//    * Thread B calls `destroy` and frees the underlying Rust struct.
-//    * Thread A resumes, passing the already-read pointer value to Rust and triggering
-//      a use-after-free.
-//
-// One possible solution would be to use a `ReadWriteLock`, with each method call taking
-// a read lock (and thus allowed to run concurrently) and the special `destroy` method
-// taking a write lock (and thus blocking on live method calls). However, we aim not to
-// generate methods with any hidden blocking semantics, and a `destroy` method that might
-// block if called incorrectly seems to meet that bar.
-//
-// So, we achieve our goals by giving each instance an associated `AtomicLong` counter to track
-// the number of in-flight method calls, and an `AtomicBoolean` flag to indicate whether `destroy`
-// has been called. These are updated according to the following rules:
-//
-//    * The initial value of the counter is 1, indicating a live object with no in-flight calls.
-//      The initial value for the flag is false.
-//
-//    * At the start of each method call, we atomically check the counter.
-//      If it is 0 then the underlying Rust struct has already been destroyed and the call is aborted.
-//      If it is nonzero them we atomically increment it by 1 and proceed with the method call.
-//
-//    * At the end of each method call, we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-//    * When `destroy` is called, we atomically flip the flag from false to true.
-//      If the flag was already true we silently fail.
-//      Otherwise we atomically decrement and check the counter.
-//      If it has reached zero then we destroy the underlying Rust struct.
-//
-// Astute readers may observe that this all sounds very similar to the way that Rust's `Arc<T>` works,
-// and indeed it is, with the addition of a flag to guard against multiple calls to `destroy`.
-//
-// The overall effect is that the underlying Rust struct is destroyed only when `destroy` has been
-// called *and* all in-flight method calls have completed, avoiding violating any of the expectations
-// of the underlying Rust code.
-//
-// This makes a cleaner a better alternative to _not_ calling `destroy()` as
-// and when the object is finished with, but the abstraction is not perfect: if the Rust object's `drop`
-// method is slow, and/or there are many objects to cleanup, and it's on a low end Android device, then the cleaner
-// thread may be starved, and the app will leak memory.
-//
-// In this case, `destroy`ing manually may be a better solution.
-//
-// The cleaner can live side by side with the manual calling of `destroy`. In the order of responsiveness, uniffi objects
-// with Rust peers are reclaimed:
-//
-// 1. By calling the `destroy` method of the object, which calls `rustObject.free()`. If that doesn't happen:
-// 2. When the object becomes unreachable, AND the Cleaner thread gets to call `rustObject.free()`. If the thread is starved then:
-// 3. The memory is reclaimed when the process terminates.
-//
-// [1] https://stackoverflow.com/questions/24376768/can-java-finalize-an-object-when-it-is-still-in-scope/24380219
-//
-
-/**
- * The cleaner interface for Object finalization code to run.
- * This is the entry point to any implementation that we're using.
- *
- * The cleaner registers objects and returns cleanables, so now we are
- * defining a `UniffiCleaner` with a `UniffiClenaer.Cleanable` to abstract the
- * different implmentations available at compile time.
- *
- * @suppress
- */
-interface UniffiCleaner {
-    interface Cleanable {
-        fun clean()
-    }
-
-    fun register(
-        value: Any,
-        cleanUpTask: Runnable,
-    ): UniffiCleaner.Cleanable
-
-    companion object
-}
-
-// The fallback Jna cleaner, which is available for both Android, and the JVM.
-private class UniffiJnaCleaner : UniffiCleaner {
-    private val cleaner =
-        com.sun.jna.internal.Cleaner
-            .getCleaner()
-
-    override fun register(
-        value: Any,
-        cleanUpTask: Runnable,
-    ): UniffiCleaner.Cleanable = UniffiJnaCleanable(cleaner.register(value, cleanUpTask))
-}
-
-private class UniffiJnaCleanable(
-    private val cleanable: com.sun.jna.internal.Cleaner.Cleanable,
-) : UniffiCleaner.Cleanable {
-    override fun clean() = cleanable.clean()
-}
-
-// We decide at uniffi binding generation time whether we were
-// using Android or not.
-// There are further runtime checks to chose the correct implementation
-// of the cleaner.
-
-private fun UniffiCleaner.Companion.create(): UniffiCleaner =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-        AndroidSystemCleaner()
-    } else {
-        UniffiJnaCleaner()
-    }
-
-// The SystemCleaner, available from API Level 33.
-// Some API Level 33 OSes do not support using it, so we require API Level 34.
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-private class AndroidSystemCleaner : UniffiCleaner {
-    val cleaner = android.system.SystemCleaner.cleaner()
-
-    override fun register(
-        value: Any,
-        cleanUpTask: Runnable,
-    ): UniffiCleaner.Cleanable = AndroidSystemCleanable(cleaner.register(value, cleanUpTask))
-}
-
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-private class AndroidSystemCleanable(
-    private val cleanable: java.lang.ref.Cleaner.Cleanable,
-) : UniffiCleaner.Cleanable {
-    override fun clean() = cleanable.clean()
-}
-
-/**
- * Wrapper around HolochainRuntime with types that can be exposed to FFI.
- */
-public interface HolochainRuntimeFfiInterface {
-    /**
-     * Get or create an app websocket with an authentication for the given app id
-     */
-    suspend fun `appWebsocketAuth`(`appId`: kotlin.String): AppWebsocketAuthFfi
-
-    /**
-     * Disable an installed app
-     */
-    suspend fun `disableApp`(`appId`: kotlin.String)
-
-    /**
-     * Enable an installed app
-     */
-    suspend fun `enableApp`(`appId`: kotlin.String)
-
-    /**
-     * Get an admin port on the conductor
-     */
-    fun `getAdminPort`(): kotlin.UShort
-
-    /**
-     * Install an app
-     */
-    suspend fun `installApp`(
-        `appId`: kotlin.String,
-        `appBundleBytes`: kotlin.ByteArray,
-        `membraneProofs`: Map<kotlin.String, kotlin.ByteArray>?,
-        `agent`: kotlin.ByteArray?,
-        `networkSeed`: kotlin.String?,
-    )
-
-    /**
-     * Is an app with the given installed_app_id installed on the conductor
-     */
-    suspend fun `isAppInstalled`(`installedAppId`: kotlin.String): kotlin.Boolean
-
-    /**
-     * List apps installed on the conductor
-     */
-    suspend fun `listInstalledApps`(): List<AppInfoFfi>
-
-    /**
-     * Shutdown the holochain conductor
-     */
-    suspend fun `shutdown`()
-
-    /**
-     * Sign a zome call
-     */
-    suspend fun `signZomeCall`(`zomeCallUnsigned`: ZomeCallUnsignedFfi): ZomeCallFfi
-
-    /**
-     * Uninstall an app
-     */
-    suspend fun `uninstallApp`(`appId`: kotlin.String)
-
-    companion object
-}
-
-/**
- * Wrapper around HolochainRuntime with types that can be exposed to FFI.
- */
-open class HolochainRuntimeFfi :
-    Disposable,
-    AutoCloseable,
-    HolochainRuntimeFfiInterface {
-    constructor(pointer: Pointer) {
-        this.pointer = pointer
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    /**
-     * This constructor can be used to instantiate a fake object. Only used for tests. Any
-     * attempt to actually use an object constructed this way will fail as there is no
-     * connected Rust object.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    constructor(noPointer: NoPointer) {
-        this.pointer = null
-        this.cleanable = UniffiLib.CLEANER.register(this, UniffiCleanAction(pointer))
-    }
-
-    protected val pointer: Pointer?
-    protected val cleanable: UniffiCleaner.Cleanable
-
-    private val wasDestroyed = AtomicBoolean(false)
-    private val callCounter = AtomicLong(1)
-
-    override fun destroy() {
-        // Only allow a single call to this method.
-        // TODO: maybe we should log a warning if called more than once?
-        if (this.wasDestroyed.compareAndSet(false, true)) {
-            // This decrement always matches the initial count of 1 given at creation time.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    @Synchronized
-    override fun close() {
-        this.destroy()
-    }
-
-    internal inline fun <R> callWithPointer(block: (ptr: Pointer) -> R): R {
-        // Check and increment the call counter, to keep the object alive.
-        // This needs a compare-and-set retry loop in case of concurrent updates.
-        do {
-            val c = this.callCounter.get()
-            if (c == 0L) {
-                throw IllegalStateException("${this.javaClass.simpleName} object has already been destroyed")
-            }
-            if (c == Long.MAX_VALUE) {
-                throw IllegalStateException("${this.javaClass.simpleName} call counter would overflow")
-            }
-        } while (!this.callCounter.compareAndSet(c, c + 1L))
-        // Now we can safely do the method call without the pointer being freed concurrently.
-        try {
-            return block(this.uniffiClonePointer())
-        } finally {
-            // This decrement always matches the increment we performed above.
-            if (this.callCounter.decrementAndGet() == 0L) {
-                cleanable.clean()
-            }
-        }
-    }
-
-    // Use a static inner class instead of a closure so as not to accidentally
-    // capture `this` as part of the cleanable's action.
-    private class UniffiCleanAction(
-        private val pointer: Pointer?,
-    ) : Runnable {
-        override fun run() {
-            pointer?.let { ptr ->
-                uniffiRustCall { status ->
-                    UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_free_holochainruntimeffi(ptr, status)
-                }
-            }
-        }
-    }
-
-    fun uniffiClonePointer(): Pointer =
-        uniffiRustCall { status ->
-            UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_clone_holochainruntimeffi(pointer!!, status)
-        }
-
-    /**
-     * Get or create an app websocket with an authentication for the given app id
-     */
-    @Throws(HolochainRuntimeFfiException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `appWebsocketAuth`(`appId`: kotlin.String): AppWebsocketAuthFfi =
-        uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_app_websocket_auth(
-                    thisPtr,
-                    FfiConverterString.lower(`appId`),
-                )
-            },
-            {
-                    future,
-                    callback,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_rust_buffer(future, callback, continuation)
-            },
-            {
-                    future,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_rust_buffer(future, continuation)
-            },
-            { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_rust_buffer(future) },
-            // lift function
-            { FfiConverterTypeAppWebsocketAuthFFI.lift(it) },
-            // Error FFI converter
-            HolochainRuntimeFfiException.ErrorHandler,
-        )
-
-    /**
-     * Disable an installed app
-     */
-    @Throws(HolochainRuntimeFfiException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `disableApp`(`appId`: kotlin.String) =
-        uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_disable_app(
-                    thisPtr,
-                    FfiConverterString.lower(`appId`),
-                )
-            },
-            {
-                    future,
-                    callback,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_void(future, callback, continuation)
-            },
-            { future, continuation -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_void(future, continuation) },
-            { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_void(future) },
-            // lift function
-            { Unit },
-            // Error FFI converter
-            HolochainRuntimeFfiException.ErrorHandler,
-        )
-
-    /**
-     * Enable an installed app
-     */
-    @Throws(HolochainRuntimeFfiException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `enableApp`(`appId`: kotlin.String) =
-        uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_enable_app(
-                    thisPtr,
-                    FfiConverterString.lower(`appId`),
-                )
-            },
-            {
-                    future,
-                    callback,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_void(future, callback, continuation)
-            },
-            { future, continuation -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_void(future, continuation) },
-            { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_void(future) },
-            // lift function
-            { Unit },
-            // Error FFI converter
-            HolochainRuntimeFfiException.ErrorHandler,
-        )
-
-    /**
-     * Get an admin port on the conductor
-     */
-    override fun `getAdminPort`(): kotlin.UShort =
-        FfiConverterUShort.lift(
-            callWithPointer {
-                uniffiRustCall { _status ->
-                    UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_get_admin_port(
-                        it,
-                        _status,
-                    )
-                }
-            },
-        )
-
-    /**
-     * Install an app
-     */
-    @Throws(HolochainRuntimeFfiException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `installApp`(
-        `appId`: kotlin.String,
-        `appBundleBytes`: kotlin.ByteArray,
-        `membraneProofs`: Map<kotlin.String, kotlin.ByteArray>?,
-        `agent`: kotlin.ByteArray?,
-        `networkSeed`: kotlin.String?,
-    ) = uniffiRustCallAsync(
-        callWithPointer { thisPtr ->
-            UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_install_app(
-                thisPtr,
-                FfiConverterString.lower(`appId`),
-                FfiConverterByteArray.lower(`appBundleBytes`),
-                FfiConverterOptionalMapStringByteArray.lower(`membraneProofs`),
-                FfiConverterOptionalByteArray.lower(`agent`),
-                FfiConverterOptionalString.lower(`networkSeed`),
-            )
-        },
-        {
-                future,
-                callback,
-                continuation,
-            ->
-            UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_void(future, callback, continuation)
-        },
-        { future, continuation -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_void(future, continuation) },
-        { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_void(future) },
-        // lift function
-        { Unit },
-        // Error FFI converter
-        HolochainRuntimeFfiException.ErrorHandler,
-    )
-
-    /**
-     * Is an app with the given installed_app_id installed on the conductor
-     */
-    @Throws(HolochainRuntimeFfiException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `isAppInstalled`(`installedAppId`: kotlin.String): kotlin.Boolean =
-        uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_is_app_installed(
-                    thisPtr,
-                    FfiConverterString.lower(`installedAppId`),
-                )
-            },
-            {
-                    future,
-                    callback,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_i8(future, callback, continuation)
-            },
-            { future, continuation -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_i8(future, continuation) },
-            { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_i8(future) },
-            // lift function
-            { FfiConverterBoolean.lift(it) },
-            // Error FFI converter
-            HolochainRuntimeFfiException.ErrorHandler,
-        )
-
-    /**
-     * List apps installed on the conductor
-     */
-    @Throws(HolochainRuntimeFfiException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `listInstalledApps`(): List<AppInfoFfi> =
-        uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_list_installed_apps(
-                    thisPtr,
-                )
-            },
-            {
-                    future,
-                    callback,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_rust_buffer(future, callback, continuation)
-            },
-            {
-                    future,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_rust_buffer(future, continuation)
-            },
-            { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_rust_buffer(future) },
-            // lift function
-            { FfiConverterSequenceTypeAppInfoFFI.lift(it) },
-            // Error FFI converter
-            HolochainRuntimeFfiException.ErrorHandler,
-        )
-
-    /**
-     * Shutdown the holochain conductor
-     */
-    @Throws(HolochainRuntimeFfiException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `shutdown`() =
-        uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_shutdown(
-                    thisPtr,
-                )
-            },
-            {
-                    future,
-                    callback,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_void(future, callback, continuation)
-            },
-            { future, continuation -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_void(future, continuation) },
-            { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_void(future) },
-            // lift function
-            { Unit },
-            // Error FFI converter
-            HolochainRuntimeFfiException.ErrorHandler,
-        )
-
-    /**
-     * Sign a zome call
-     */
-    @Throws(HolochainRuntimeFfiException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `signZomeCall`(`zomeCallUnsigned`: ZomeCallUnsignedFfi): ZomeCallFfi =
-        uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_sign_zome_call(
-                    thisPtr,
-                    FfiConverterTypeZomeCallUnsignedFFI.lower(`zomeCallUnsigned`),
-                )
-            },
-            {
-                    future,
-                    callback,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_rust_buffer(future, callback, continuation)
-            },
-            {
-                    future,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_rust_buffer(future, continuation)
-            },
-            { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_rust_buffer(future) },
-            // lift function
-            { FfiConverterTypeZomeCallFFI.lift(it) },
-            // Error FFI converter
-            HolochainRuntimeFfiException.ErrorHandler,
-        )
-
-    /**
-     * Uninstall an app
-     */
-    @Throws(HolochainRuntimeFfiException::class)
-    @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-    override suspend fun `uninstallApp`(`appId`: kotlin.String) =
-        uniffiRustCallAsync(
-            callWithPointer { thisPtr ->
-                UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_method_holochainruntimeffi_uninstall_app(
-                    thisPtr,
-                    FfiConverterString.lower(`appId`),
-                )
-            },
-            {
-                    future,
-                    callback,
-                    continuation,
-                ->
-                UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_void(future, callback, continuation)
-            },
-            { future, continuation -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_void(future, continuation) },
-            { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_void(future) },
-            // lift function
-            { Unit },
-            // Error FFI converter
-            HolochainRuntimeFfiException.ErrorHandler,
-        )
-
-    companion object {
-        /**
-         * Start the holochain conductor
-         */
-        @Throws(HolochainRuntimeFfiException::class)
-        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-        suspend fun `launch`(
-            `passphrase`: kotlin.ByteArray,
-            `config`: HolochainRuntimeFfiConfig,
-        ): HolochainRuntimeFfi =
-            uniffiRustCallAsync(
-                UniffiLib.INSTANCE.uniffi_holochain_runtime_uniffi_fn_constructor_holochainruntimeffi_launch(
-                    FfiConverterByteArray.lower(`passphrase`),
-                    FfiConverterTypeHolochainRuntimeFFIConfig.lower(`config`),
-                ),
-                {
-                        future,
-                        callback,
-                        continuation,
-                    ->
-                    UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_poll_pointer(future, callback, continuation)
-                },
-                {
-                        future,
-                        continuation,
-                    ->
-                    UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_complete_pointer(future, continuation)
-                },
-                { future -> UniffiLib.INSTANCE.ffi_holochain_runtime_uniffi_rust_future_free_pointer(future) },
-                // lift function
-                { FfiConverterTypeHolochainRuntimeFFI.lift(it) },
-                // Error FFI converter
-                HolochainRuntimeFfiException.ErrorHandler,
-            )
-    }
-}
-
-/**
- * @suppress
- */
-public object FfiConverterTypeHolochainRuntimeFFI : FfiConverter<HolochainRuntimeFfi, Pointer> {
-    override fun lower(value: HolochainRuntimeFfi): Pointer = value.uniffiClonePointer()
-
-    override fun lift(value: Pointer): HolochainRuntimeFfi = HolochainRuntimeFfi(value)
-
-    override fun read(buf: ByteBuffer): HolochainRuntimeFfi {
-        // The Rust code always writes pointers as 8 bytes, and will
-        // fail to compile if they don't fit.
-        return lift(Pointer(buf.getLong()))
-    }
-
-    override fun allocationSize(value: HolochainRuntimeFfi) = 8UL
-
-    override fun write(
-        value: HolochainRuntimeFfi,
-        buf: ByteBuffer,
-    ) {
-        // The Rust code always expects pointers written as 8 bytes,
-        // and will fail to compile if they don't fit.
-        buf.putLong(Pointer.nativeValue(lower(value)))
-    }
-}
-
 data class AppInfoFfi(
     /**
      * The unique identifier for an installed app in this conductor
@@ -2264,6 +1468,46 @@ public object FfiConverterTypeDnaModifiersFFI : FfiConverterRustBuffer<DnaModifi
         FfiConverterByteArray.write(value.`properties`, buf)
         FfiConverterLong.write(value.`originTime`, buf)
         FfiConverterTypeDurationFFI.write(value.`quantumTime`, buf)
+    }
+}
+
+data class DnaModifiersOptFfi(
+    var `networkSeed`: kotlin.String?,
+    var `properties`: kotlin.ByteArray?,
+    var `originTime`: kotlin.Long?,
+    var `quantumTime`: DurationFfi?,
+) {
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeDnaModifiersOptFFI : FfiConverterRustBuffer<DnaModifiersOptFfi> {
+    override fun read(buf: ByteBuffer): DnaModifiersOptFfi =
+        DnaModifiersOptFfi(
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalByteArray.read(buf),
+            FfiConverterOptionalLong.read(buf),
+            FfiConverterOptionalTypeDurationFFI.read(buf),
+        )
+
+    override fun allocationSize(value: DnaModifiersOptFfi) =
+        (
+            FfiConverterOptionalString.allocationSize(value.`networkSeed`) +
+                FfiConverterOptionalByteArray.allocationSize(value.`properties`) +
+                FfiConverterOptionalLong.allocationSize(value.`originTime`) +
+                FfiConverterOptionalTypeDurationFFI.allocationSize(value.`quantumTime`)
+        )
+
+    override fun write(
+        value: DnaModifiersOptFfi,
+        buf: ByteBuffer,
+    ) {
+        FfiConverterOptionalString.write(value.`networkSeed`, buf)
+        FfiConverterOptionalByteArray.write(value.`properties`, buf)
+        FfiConverterOptionalLong.write(value.`originTime`, buf)
+        FfiConverterOptionalTypeDurationFFI.write(value.`quantumTime`, buf)
     }
 }
 
@@ -3114,6 +2358,112 @@ public object FfiConverterTypePausedAppReasonFFI : FfiConverterRustBuffer<Paused
     }
 }
 
+sealed class RoleSettingsFfi {
+    data class UseExisting(
+        val `cellId`: CellIdFfi,
+    ) : RoleSettingsFfi() {
+        companion object
+    }
+
+    data class Provisioned(
+        val `membraneProof`: kotlin.ByteArray?,
+        val `modifiers`: DnaModifiersOptFfi?,
+    ) : RoleSettingsFfi() {
+        companion object
+    }
+
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeRoleSettingsFFI : FfiConverterRustBuffer<RoleSettingsFfi> {
+    override fun read(buf: ByteBuffer): RoleSettingsFfi =
+        when (buf.getInt()) {
+            1 ->
+                RoleSettingsFfi.UseExisting(
+                    FfiConverterTypeCellIdFFI.read(buf),
+                )
+            2 ->
+                RoleSettingsFfi.Provisioned(
+                    FfiConverterOptionalByteArray.read(buf),
+                    FfiConverterOptionalTypeDnaModifiersOptFFI.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+
+    override fun allocationSize(value: RoleSettingsFfi) =
+        when (value) {
+            is RoleSettingsFfi.UseExisting -> {
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                (
+                    4UL +
+                        FfiConverterTypeCellIdFFI.allocationSize(value.`cellId`)
+                )
+            }
+            is RoleSettingsFfi.Provisioned -> {
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                (
+                    4UL +
+                        FfiConverterOptionalByteArray.allocationSize(value.`membraneProof`) +
+                        FfiConverterOptionalTypeDnaModifiersOptFFI.allocationSize(value.`modifiers`)
+                )
+            }
+        }
+
+    override fun write(
+        value: RoleSettingsFfi,
+        buf: ByteBuffer,
+    ) {
+        when (value) {
+            is RoleSettingsFfi.UseExisting -> {
+                buf.putInt(1)
+                FfiConverterTypeCellIdFFI.write(value.`cellId`, buf)
+                Unit
+            }
+            is RoleSettingsFfi.Provisioned -> {
+                buf.putInt(2)
+                FfiConverterOptionalByteArray.write(value.`membraneProof`, buf)
+                FfiConverterOptionalTypeDnaModifiersOptFFI.write(value.`modifiers`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalLong : FfiConverterRustBuffer<kotlin.Long?> {
+    override fun read(buf: ByteBuffer): kotlin.Long? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterLong.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.Long?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterLong.allocationSize(value)
+        }
+    }
+
+    override fun write(
+        value: kotlin.Long?,
+        buf: ByteBuffer,
+    ) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterLong.write(value, buf)
+        }
+    }
+}
+
 /**
  * @suppress
  */
@@ -3181,6 +2531,70 @@ public object FfiConverterOptionalByteArray : FfiConverterRustBuffer<kotlin.Byte
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeDnaModifiersOptFFI : FfiConverterRustBuffer<DnaModifiersOptFfi?> {
+    override fun read(buf: ByteBuffer): DnaModifiersOptFfi? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeDnaModifiersOptFFI.read(buf)
+    }
+
+    override fun allocationSize(value: DnaModifiersOptFfi?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeDnaModifiersOptFFI.allocationSize(value)
+        }
+    }
+
+    override fun write(
+        value: DnaModifiersOptFfi?,
+        buf: ByteBuffer,
+    ) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeDnaModifiersOptFFI.write(value, buf)
+        }
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalTypeDurationFFI : FfiConverterRustBuffer<DurationFfi?> {
+    override fun read(buf: ByteBuffer): DurationFfi? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeDurationFFI.read(buf)
+    }
+
+    override fun allocationSize(value: DurationFfi?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeDurationFFI.allocationSize(value)
+        }
+    }
+
+    override fun write(
+        value: DurationFfi?,
+        buf: ByteBuffer,
+    ) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeDurationFFI.write(value, buf)
+        }
+    }
+}
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeGossipArcClampFFI : FfiConverterRustBuffer<GossipArcClampFfi?> {
     override fun read(buf: ByteBuffer): GossipArcClampFfi? {
         if (buf.get().toInt() == 0) {
@@ -3206,38 +2620,6 @@ public object FfiConverterOptionalTypeGossipArcClampFFI : FfiConverterRustBuffer
         } else {
             buf.put(1)
             FfiConverterTypeGossipArcClampFFI.write(value, buf)
-        }
-    }
-}
-
-/**
- * @suppress
- */
-public object FfiConverterOptionalMapStringByteArray : FfiConverterRustBuffer<Map<kotlin.String, kotlin.ByteArray>?> {
-    override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.ByteArray>? {
-        if (buf.get().toInt() == 0) {
-            return null
-        }
-        return FfiConverterMapStringByteArray.read(buf)
-    }
-
-    override fun allocationSize(value: Map<kotlin.String, kotlin.ByteArray>?): ULong {
-        if (value == null) {
-            return 1UL
-        } else {
-            return 1UL + FfiConverterMapStringByteArray.allocationSize(value)
-        }
-    }
-
-    override fun write(
-        value: Map<kotlin.String, kotlin.ByteArray>?,
-        buf: ByteBuffer,
-    ) {
-        if (value == null) {
-            buf.put(0)
-        } else {
-            buf.put(1)
-            FfiConverterMapStringByteArray.write(value, buf)
         }
     }
 }
@@ -3273,34 +2655,6 @@ public object FfiConverterSequenceString : FfiConverterRustBuffer<List<kotlin.St
 /**
  * @suppress
  */
-public object FfiConverterSequenceTypeAppInfoFFI : FfiConverterRustBuffer<List<AppInfoFfi>> {
-    override fun read(buf: ByteBuffer): List<AppInfoFfi> {
-        val len = buf.getInt()
-        return List<AppInfoFfi>(len) {
-            FfiConverterTypeAppInfoFFI.read(buf)
-        }
-    }
-
-    override fun allocationSize(value: List<AppInfoFfi>): ULong {
-        val sizeForLength = 4UL
-        val sizeForItems = value.map { FfiConverterTypeAppInfoFFI.allocationSize(it) }.sum()
-        return sizeForLength + sizeForItems
-    }
-
-    override fun write(
-        value: List<AppInfoFfi>,
-        buf: ByteBuffer,
-    ) {
-        buf.putInt(value.size)
-        value.iterator().forEach {
-            FfiConverterTypeAppInfoFFI.write(it, buf)
-        }
-    }
-}
-
-/**
- * @suppress
- */
 public object FfiConverterSequenceTypeCellInfoFFI : FfiConverterRustBuffer<List<CellInfoFfi>> {
     override fun read(buf: ByteBuffer): List<CellInfoFfi> {
         val len = buf.getInt()
@@ -3322,47 +2676,6 @@ public object FfiConverterSequenceTypeCellInfoFFI : FfiConverterRustBuffer<List<
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterTypeCellInfoFFI.write(it, buf)
-        }
-    }
-}
-
-/**
- * @suppress
- */
-public object FfiConverterMapStringByteArray : FfiConverterRustBuffer<Map<kotlin.String, kotlin.ByteArray>> {
-    override fun read(buf: ByteBuffer): Map<kotlin.String, kotlin.ByteArray> {
-        val len = buf.getInt()
-        return buildMap<kotlin.String, kotlin.ByteArray>(len) {
-            repeat(len) {
-                val k = FfiConverterString.read(buf)
-                val v = FfiConverterByteArray.read(buf)
-                this[k] = v
-            }
-        }
-    }
-
-    override fun allocationSize(value: Map<kotlin.String, kotlin.ByteArray>): ULong {
-        val spaceForMapSize = 4UL
-        val spaceForChildren =
-            value
-                .map { (k, v) ->
-                    FfiConverterString.allocationSize(k) +
-                        FfiConverterByteArray.allocationSize(v)
-                }.sum()
-        return spaceForMapSize + spaceForChildren
-    }
-
-    override fun write(
-        value: Map<kotlin.String, kotlin.ByteArray>,
-        buf: ByteBuffer,
-    ) {
-        buf.putInt(value.size)
-        // The parens on `(k, v)` here ensure we're calling the right method,
-        // which is important for compatibility with older android devices.
-        // Ref https://blog.danlew.net/2017/03/16/kotlin-puzzler-whose-line-is-it-anyways/
-        value.forEach { (k, v) ->
-            FfiConverterString.write(k, buf)
-            FfiConverterByteArray.write(v, buf)
         }
     }
 }

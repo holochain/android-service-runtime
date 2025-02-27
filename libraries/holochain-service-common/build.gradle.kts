@@ -1,10 +1,11 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.parcelize")
 }
 
 android {
-    namespace = "com.plugin.holochain_service"
+    namespace = "com.holochain_apps.holochain_service_common"
     compileSdk = 34
 
     defaultConfig {
@@ -36,9 +37,6 @@ android {
 }
 
 dependencies {
-    // Subprojects
-    implementation(project(":tauri-android"))
-    implementation(project(":holochain-service-common"))
     // Kotlin
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.appcompat:appcompat:1.6.0")
