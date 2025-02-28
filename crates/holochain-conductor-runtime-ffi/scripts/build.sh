@@ -12,6 +12,6 @@ cargo ndk -o ../tauri-plugin-holochain-service/android/src/main/jniLibs \
   --release
 
 cargo run --bin uniffi-bindgen generate \
-  --library ../../target/release/libholochain_runtime_uniffi.so \
+  --library ../../target/release/libholochain_conductor_runtime_ffi.so \
   --language kotlin \
   --out-dir ../tauri-plugin-holochain-service/android/src/main/java/

@@ -1,0 +1,19 @@
+[package]
+name = "holochain-conductor-runtime"
+version = "0.1.0"
+edition = "2021"
+
+
+[lib]
+crate-type = ["lib"]
+name = "holochain_conductor_runtime"
+
+
+[dependencies]
+holochain = { workspace = true }
+holochain_types = { workspace = true }
+kitsune_p2p_types = { workspace = true }
+sodoken = { workspace = true }
+url2 = { workspace = true }
+thiserror = { workspace = true }
+zeroize = { workspace = true }
