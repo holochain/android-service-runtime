@@ -9,7 +9,6 @@ parcelable ZomeCallSignedFfiAidl;
 
 interface IHolochainService {
     void shutdown();
-    int getAdminPort();
     void installApp(in InstallAppRequestAidl request);
     void uninstallApp(String appId);
     void enableApp(String appId);

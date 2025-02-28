@@ -43,10 +43,6 @@ export async function shutdown(): Promise<string | null> {
   return await invoke('plugin:holochain-service|shutdown');
 }
 
-export async function getAdminPort(): Promise<number | null> {
-  return await invoke<{port?: number}>('plugin:holochain-service|get_admin_port').then((r) => (r.port ? r.port : null));
-}
-
 export async function installApp(request: {
   appId: string,
   appBundleBytes: Uint8Array,

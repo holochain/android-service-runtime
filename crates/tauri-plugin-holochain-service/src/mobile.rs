@@ -37,10 +37,6 @@ impl<R: Runtime> HolochainService<R> {
         Ok(self.0.run_mobile_plugin("shutdown", Blank {})?)
     }
 
-    pub fn get_admin_port(&self) -> crate::Result<()> {
-        Ok(self.0.run_mobile_plugin("getAdminPort", Blank {})?)
-    }
-
     pub fn is_app_installed(&self, app_id: &str) -> crate::Result<bool> {
         let res: IsAppInstalledResponse = self.0.run_mobile_plugin(
             "isAppInstalled",

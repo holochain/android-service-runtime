@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { launch, shutdown, getAdminPort, installApp, listInstalledApps, appWebsocketAuth, uninstallApp, enableApp, disableApp, type AppInfo } from "tauri-plugin-holochain-service-api";
+  import { launch, shutdown, installApp, listInstalledApps, appWebsocketAuth, uninstallApp, enableApp, disableApp, type AppInfo } from "tauri-plugin-holochain-service-api";
   import Labelled from './Labelled.svelte';
   import happUrl from "./forum.happ?url";
   import { AppWebsocket } from "@holochain/client";
@@ -76,15 +76,8 @@
     }
   };
 
-  let interval = setInterval(async () => {
-    if(!adminPort) {
-      adminPort = await getAdminPort();
-    } else {
-      clearInterval(interval);
-    }
-  }, 500);
-
-  $: adminPort, loadInstalledApps();
+  loadInstalledApps();
+  
   $: installedApps, selectFirstInstalledApp();
   $: selectedAppId, loadAppWebsocketAuth();
   $: selectedAppWebsocketAuth, loadHolochainClient();
@@ -100,12 +93,6 @@
       <button on:click={launch}>Launch</button>
       <button on:click={shutdown}>Shutdown</button>
     </div>
-  </div>
-
-  <div class="my-4 flex-center">
-    <h2>Admin Port</h2>
-    <button on:click={getAdminPort}>Get Admin Port</button>
-    <pre>{adminPort}</pre>
   </div>
 
   <div class="my-4 flex-center">

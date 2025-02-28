@@ -32,12 +32,6 @@ impl RuntimeFfi {
         Ok(self.0.stop().await?)
     }
 
-    /// Get an admin port on the conductor
-    /// TODO: DELETE THIS
-    pub fn get_admin_port(&self) -> u16 {
-        12345
-    }
-
     /// List apps installed on the conductor
     pub async fn list_apps(&self) -> RuntimeResultFfi<Vec<AppInfoFfi>> {
         Ok(self.0.list_apps().await?.into_iter().map(|a| a.into()).collect())

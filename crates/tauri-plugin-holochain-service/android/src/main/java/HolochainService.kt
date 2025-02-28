@@ -35,16 +35,6 @@ class HolochainService : Service() {
     private val binder = object : IHolochainService.Stub() {
         private val TAG = "IHolochainService"
 
-        /// Get Current Admin Port
-        override fun getAdminPort(): Int {
-            Log.d(TAG, "getAdminPort")
-            if(runtimeAdminWebsocketPort is UShort) {
-                return runtimeAdminWebsocketPort!!.toInt()
-            } else {
-                return -1
-            }
-        }
-
         /// Stop the service
         override fun shutdown() {
             Log.d(TAG, "shutdown")
@@ -198,13 +188,6 @@ class HolochainService : Service() {
                 r
             }
             Log.d(TAG, "Holochain started successfully")
-
-            // Get admin port
-            this.runtimeAdminWebsocketPort = runBlocking {
-                var port: UShort? = runtime?.getAdminPort()
-                port     
-            }
-            Log.d(TAG, "Holochain admin port ${this.runtimeAdminWebsocketPort}")
         } catch (e: Exception) {
            Log.e(TAG, "Holochain failed to start $e")
         }

@@ -1,6 +1,5 @@
 import { writable, get, derived } from 'svelte/store';
-import { launch, shutdown, getAdminPort, installApp, enableApp, disableApp, uninstallApp, listInstalledApps, type AppInfo } from "tauri-plugin-holochain-service-api";
-import { v7 as uuidv7 } from 'uuid';
+import { launch, shutdown, enableApp, disableApp, uninstallApp, listInstalledApps, type AppInfo } from "tauri-plugin-holochain-service-api";
 import { sortBy } from 'lodash';
 import { addToast } from './toasts';
 import { tick } from 'svelte';
@@ -72,7 +71,6 @@ export const toggleLaunch = async () => {
   try {
     if(!get(adminPort)) {
       await launch();
-      await loadAdminPort();
     } else {
       await shutdown();
       adminPort.set(undefined);
@@ -83,24 +81,6 @@ export const toggleLaunch = async () => {
   }
   loadingLaunch.set(false);
 }
-
-
-export const loadAdminPort = async () => {
-  return new Promise<void>((resolve) => {
-    let interval = setInterval(async () => {
-      if(!get(adminPort)) {
-        const port = await getAdminPort();
-        if(port) {
-          adminPort.set(port);
-          resolve();
-        }
-      } else {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 1000);
-  });
-};
 
 adminPort.subscribe(($adminPort) => { 
   if($adminPort !== undefined) {

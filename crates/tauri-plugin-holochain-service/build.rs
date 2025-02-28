@@ -1,7 +1,6 @@
 const COMMANDS: &[&str] = &[
     "launch",
     "shutdown",
-    "get_admin_port",
     "install_app",
     "uninstall_app",
     "enable_app",

@@ -64,17 +64,6 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     }
 
     /**
-     *  Get the conductor admin websocket port
-     */
-    @Command
-    fun getAdminPort(invoke: Invoke) {
-        val res = this.holochainServiceClient.getAdminPort()
-        val obj = JSObject()
-        obj.put("port", res)
-        invoke.resolve(obj)
-    }
-
-    /**
      * Install an app into the conductor
      */
     @Command
