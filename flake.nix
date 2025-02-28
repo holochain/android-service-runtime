@@ -25,6 +25,10 @@
             inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev 
             inputs'.holonix.devShells.default
           ];
+
+          packages = [
+            pkgs.cargo-ndk
+          ];
         };
       };
     };

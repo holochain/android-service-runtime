@@ -1,7 +1,5 @@
 #/usr/bin/env bash
 
-cargo build --release
-
 cargo ndk -o ../tauri-plugin-holochain-service/android/src/main/jniLibs \
   --manifest-path ./Cargo.toml \
   -t arm64-v8a \

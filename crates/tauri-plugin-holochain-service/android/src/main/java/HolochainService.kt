@@ -7,11 +7,11 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import android.content.Intent
-import uniffi.holochain_runtime_uniffi.HolochainRuntimeFfi
-import uniffi.holochain_runtime_uniffi.HolochainRuntimeFfiConfig
-import uniffi.holochain_runtime_uniffi.CellIdFfi
-import uniffi.holochain_runtime_uniffi.ZomeCallUnsignedFfi
-import uniffi.holochain_runtime_uniffi.GossipArcClampFfi
+import uniffi.holochain_conductor_runtime_ffi.HolochainRuntimeFfi
+import uniffi.holochain_conductor_runtime_ffi.HolochainRuntimeFfiConfig
+import uniffi.holochain_conductor_runtime_ffi.CellIdFfi
+import uniffi.holochain_conductor_runtime_ffi.ZomeCallUnsignedFfi
+import uniffi.holochain_conductor_runtime_ffi.GossipArcClampFfi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
