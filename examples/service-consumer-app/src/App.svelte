@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { installApp, appWebsocketAuth, isAppInstalled } from "tauri-plugin-holochain-service-consumer-api";
+  import { installApp, ensureAppWebsocket, isAppInstalled } from "tauri-plugin-holochain-service-consumer-api";
   import Labelled from './Labelled.svelte';
   import happUrl from "./forum.happ?url";
   import { AppWebsocket } from "@holochain/client";
@@ -40,7 +40,7 @@
   };
 
   const createAppWebsocketAuth = async () => {
-    appWsAuth = await appWebsocketAuth(appId);
+    appWsAuth = await ensureAppWebsocket(appId);
     console.log("app websocket auth", appWsAuth);
   }
 

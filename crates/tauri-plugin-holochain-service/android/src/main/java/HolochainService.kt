@@ -111,10 +111,10 @@ class HolochainService : Service() {
         }
 
         /// Get or create an app websocket with an authenticated token
-        override fun appWebsocketAuth(appId: String): AppWebsocketAuthFfiAidl {
-            Log.d("IHolochainService", "appWebsocketAuth")
+        override fun ensureAppWebsocket(appId: String): AppWebsocketAuthFfiAidl {
+            Log.d("IHolochainService", "ensureAppWebsocket")
             return runBlocking {
-                val res = runtime?.appWebsocketAuth(appId)!!
+                val res = runtime?.ensureAppWebsocket(appId)!!
                 AppWebsocketAuthFfiAidl(res.appId, res.port.toInt(), res.token.toUByteArray())
             }
         }

@@ -15,6 +15,6 @@ interface IHolochainService {
     void disableApp(String appId);
     List<AppInfoFfiAidl> listInstalledApps();
     boolean isAppInstalled(String appId);
-    AppWebsocketAuthFfiAidl appWebsocketAuth(String appId);
+    AppWebsocketAuthFfiAidl ensureAppWebsocket(String appId);
     ZomeCallSignedFfiAidl signZomeCall(in SignZomeCallRequestAidl request);
 }

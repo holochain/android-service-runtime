@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { launch, shutdown, installApp, listInstalledApps, appWebsocketAuth, uninstallApp, enableApp, disableApp, type AppInfo } from "tauri-plugin-holochain-service-api";
+  import { launch, shutdown, installApp, listInstalledApps, ensureAppWebsocket, uninstallApp, enableApp, disableApp, type AppInfo } from "tauri-plugin-holochain-service-api";
   import Labelled from './Labelled.svelte';
   import happUrl from "./forum.happ?url";
   import { AppWebsocket } from "@holochain/client";
@@ -30,7 +30,7 @@
     });
   const loadAppWebsocketAuth = async () => {
     if(!selectedAppId) return;
-    selectedAppWebsocketAuth = await appWebsocketAuth(selectedAppId);
+    selectedAppWebsocketAuth = await ensureAppWebsocket(selectedAppId);
   }
   const callZomeCreatePost = async () => {
     if(!appWs) throw Error("No AppWebsocket connected");

@@ -89,8 +89,8 @@ class HolochainServiceClient(private val activity: Activity) {
     }
 
     /// Get or create an app websocket with authentication token
-    fun appWebsocketAuth(appId: String): AppWebsocketAuthFfiAidl {
-        return this.mService!!.appWebsocketAuth(appId)
+    fun ensureAppWebsocket(appId: String): AppWebsocketAuthFfiAidl {
+        return this.mService!!.ensureAppWebsocket(appId)
     }
 
     fun signZomeCall(args: SignZomeCallRequestAidl): ZomeCallSignedFfiAidl {

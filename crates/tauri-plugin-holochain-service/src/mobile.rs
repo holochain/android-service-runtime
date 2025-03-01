@@ -52,10 +52,10 @@ impl<R: Runtime> HolochainService<R> {
         Ok(self.0.run_mobile_plugin("installApp", payload)?)
     }
 
-    pub fn app_websocket_auth(&self, app_id: String) -> crate::Result<AppWebsocketAuthResponse> {
+    pub fn ensure_app_websocket(&self, app_id: String) -> crate::Result<AppWebsocketAuthResponse> {
         Ok(self
             .0
-            .run_mobile_plugin("appWebsocketAuth", AppIdRequestArgs { app_id })?)
+            .run_mobile_plugin("ensureAppWebsocket", AppIdRequestArgs { app_id })?)
     }
 
     pub fn sign_zome_call(

@@ -1,7 +1,7 @@
 const COMMANDS: &[&str] = &[
     "install_app",
     "is_app_installed",
-    "app_websocket_auth",
+    "ensure_app_websocket",
     "sign_zome_call",
 ];
 

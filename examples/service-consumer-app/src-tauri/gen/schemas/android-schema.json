@@ -1712,7 +1712,7 @@
           "const": "holochain-service-consumer:default"
         },
         {
-          "description": "Enables the app_websocket_auth command without any pre-configured scope.",
+          "description": "Enables the ensure_app_websocket command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service-consumer:allow-app-websocket-auth"
         },
@@ -1732,7 +1732,7 @@
           "const": "holochain-service-consumer:allow-sign-zome-call"
         },
         {
-          "description": "Denies the app_websocket_auth command without any pre-configured scope.",
+          "description": "Denies the ensure_app_websocket command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service-consumer:deny-app-websocket-auth"
         },

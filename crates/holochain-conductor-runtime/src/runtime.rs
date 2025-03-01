@@ -13,6 +13,7 @@ use holochain_types::websocket::AllowedOrigins;
 use std::collections::HashMap;
 use std::sync::{RwLock, Arc};
 
+/// An app websocket port with an authentication token
 #[derive(Clone, Debug)]
 pub struct AppWebsocket {
     pub authentication: AppAuthenticationTokenIssued,

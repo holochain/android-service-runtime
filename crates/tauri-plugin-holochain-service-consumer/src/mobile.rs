@@ -45,9 +45,9 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
         Ok(self.0.run_mobile_plugin("installApp", payload)?)
     }
 
-    pub fn app_websocket_auth(&self, app_id: &str) -> crate::Result<AppWebsocketAuthResponse> {
+    pub fn ensure_app_websocket(&self, app_id: &str) -> crate::Result<AppWebsocketAuthResponse> {
         Ok(self.0.run_mobile_plugin(
-            "appWebsocketAuth",
+            "ensureAppWebsocket",
             AppIdRequestArgs {
                 app_id: app_id.to_string(),
             },
