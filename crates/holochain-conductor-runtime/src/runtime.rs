@@ -224,10 +224,14 @@ impl Runtime {
 mod test {
     use super::*;
     use holochain::conductor::api::AppInfoStatus;
+    use holochain::conductor::api::CellInfo::Provisioned;
+    use holochain::conductor::api::ProvisionedCell;
     use holochain::conductor::config::KeystoreConfig;
     use holochain_types::prelude::AppBundle;
     use holochain_types::prelude::AppBundleSource;
     use holochain_types::prelude::DisabledAppReason;
+    use holochain_types::prelude::Nonce256Bits;
+    use holochain_types::prelude::Timestamp;
     use kitsune_p2p_types::config::TransportConfig;
     use tempfile::TempDir;
     use url2::Url2;
@@ -235,22 +239,7 @@ mod test {
 
     const HAPP_FIXTURE: &[u8] = include_bytes!("../fixtures/forum.happ");
 
-    async fn new_runtime() -> Runtime {
-        let tmp_dir = TempDir::new().unwrap();
-        let tmp_dir_path = tmp_dir.path().to_path_buf();
-        Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
-            RuntimeConfig {
-                data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-            },
-        )
-        .await
-        .unwrap()
-    }
-
-    async fn install_happ_fixture(runtime: Runtime, app_id: &str) {
+    async fn install_happ_fixture(runtime: Runtime, app_id: &str) -> AppInfo {
         runtime
             .install_app(InstallAppPayload {
                 source: AppBundleSource::Bundle(AppBundle::decode(HAPP_FIXTURE).unwrap()),
@@ -262,7 +251,7 @@ mod test {
                 allow_throwaway_random_agent_key: false,
             })
             .await
-            .unwrap();
+            .unwrap()
     }
 
     #[tokio::test(flavor = "multi_thread")]
@@ -505,20 +494,39 @@ mod test {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn sign_zome_call() {
-        let _runtime = new_runtime().await;
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().to_path_buf();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+            },
+        )
+        .await
+        .unwrap();
 
-        // TODO
-        // let res = runtime.sign_zome_call(ZomeCallUnsigned {
-        //     provenance: a1.clone(),
-        //     cell_id: CellId::new(dna.clone(), a2.clone()),
-        //     zome_name: zome_name.clone(),
-        //     fn_name: fn_name.clone(),
-        //     cap_secret,
-        //     payload: payload.clone(),
-        //     nonce,
-        //     expires_at,
-        // }).await;
-        // assert!(res.is_ok())
+        let app_info = install_happ_fixture(runtime.clone(), "my-app-1").await;
+        let Provisioned(ProvisionedCell { cell_id, .. }) =
+            app_info.cell_info.get("forum").unwrap().first().unwrap()
+        else {
+            panic!("App Info has no CellId")
+        };
+
+        let res = runtime
+            .sign_zome_call(ZomeCallUnsigned {
+                provenance: cell_id.agent_pubkey().clone(),
+                cell_id: cell_id.clone(),
+                zome_name: "forum".into(),
+                fn_name: "get_all_posts".into(),
+                cap_secret: None,
+                payload: vec![].into(),
+                nonce: Nonce256Bits::from([0; 32]),
+                expires_at: Timestamp(Timestamp::now().as_micros() + 100000),
+            })
+            .await;
+        assert!(res.is_ok())
     }
 
     #[tokio::test(flavor = "multi_thread")]
