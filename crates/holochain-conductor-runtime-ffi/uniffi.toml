@@ -1,0 +1,7 @@
+[bindings.kotlin]
+package_name = "uniffi.holochain_conductor_runtime_ffi"
+cdylib_name = "holochain_conductor_runtime_ffi"
+android = true
+
+[bindings.swift]
+cdylib_name = "holochain_conductor_runtime_ffi"

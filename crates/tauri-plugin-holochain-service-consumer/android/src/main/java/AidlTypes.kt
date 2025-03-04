@@ -4,7 +4,7 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 import android.os.Parcelable
 import android.os.SharedMemory
-import uniffi.holochain_runtime_uniffi.CellInfoFfi
+import uniffi.holochain_conductor_runtime_ffi.CellInfoFfi
 
 @Parcelize
 data class InstallAppRequestAidl(

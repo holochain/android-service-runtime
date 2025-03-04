@@ -7,11 +7,11 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import android.content.Intent
-import uniffi.holochain_runtime_uniffi.HolochainRuntimeFfi
-import uniffi.holochain_runtime_uniffi.HolochainRuntimeFfiConfig
-import uniffi.holochain_runtime_uniffi.CellIdFfi
-import uniffi.holochain_runtime_uniffi.ZomeCallUnsignedFfi
-import uniffi.holochain_runtime_uniffi.GossipArcClampFfi
+import uniffi.holochain_conductor_runtime_ffi.HolochainRuntimeFfi
+import uniffi.holochain_conductor_runtime_ffi.HolochainRuntimeFfiConfig
+import uniffi.holochain_conductor_runtime_ffi.CellIdFfi
+import uniffi.holochain_conductor_runtime_ffi.ZomeCallUnsignedFfi
+import uniffi.holochain_conductor_runtime_ffi.GossipArcClampFfi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,16 +34,6 @@ class HolochainService : Service() {
     @OptIn(DelicateCoroutinesApi::class, ExperimentalUnsignedTypes::class)
     private val binder = object : IHolochainService.Stub() {
         private val TAG = "IHolochainService"
-
-        /// Get Current Admin Port
-        override fun getAdminPort(): Int {
-            Log.d(TAG, "getAdminPort")
-            if(runtimeAdminWebsocketPort is UShort) {
-                return runtimeAdminWebsocketPort!!.toInt()
-            } else {
-                return -1
-            }
-        }
 
         /// Stop the service
         override fun shutdown() {
@@ -121,10 +111,10 @@ class HolochainService : Service() {
         }
 
         /// Get or create an app websocket with an authenticated token
-        override fun appWebsocketAuth(appId: String): AppWebsocketAuthFfiAidl {
-            Log.d("IHolochainService", "appWebsocketAuth")
+        override fun ensureAppWebsocket(appId: String): AppWebsocketAuthFfiAidl {
+            Log.d("IHolochainService", "ensureAppWebsocket")
             return runBlocking {
-                val res = runtime?.appWebsocketAuth(appId)!!
+                val res = runtime?.ensureAppWebsocket(appId)!!
                 AppWebsocketAuthFfiAidl(res.appId, res.port.toInt(), res.token.toUByteArray())
             }
         }
@@ -198,13 +188,6 @@ class HolochainService : Service() {
                 r
             }
             Log.d(TAG, "Holochain started successfully")
-
-            // Get admin port
-            this.runtimeAdminWebsocketPort = runBlocking {
-                var port: UShort? = runtime?.getAdminPort()
-                port     
-            }
-            Log.d(TAG, "Holochain admin port ${this.runtimeAdminWebsocketPort}")
         } catch (e: Exception) {
            Log.e(TAG, "Holochain failed to start $e")
         }

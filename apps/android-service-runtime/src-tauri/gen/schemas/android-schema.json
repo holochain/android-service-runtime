@@ -1712,7 +1712,7 @@
           "const": "holochain-service:default"
         },
         {
-          "description": "Enables the app_websocket_auth command without any pre-configured scope.",
+          "description": "Enables the ensure_app_websocket command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:allow-app-websocket-auth"
         },
@@ -1767,7 +1767,7 @@
           "const": "holochain-service:allow-uninstall-app"
         },
         {
-          "description": "Denies the app_websocket_auth command without any pre-configured scope.",
+          "description": "Denies the ensure_app_websocket command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-app-websocket-auth"
         },

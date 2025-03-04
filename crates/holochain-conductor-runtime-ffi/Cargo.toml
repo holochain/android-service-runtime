@@ -1,12 +1,12 @@
 [package]
-name = "holochain_runtime_uniffi"
+name = "holochain-conductor-runtime-ffi"
 version = "0.1.0"
 edition = "2021"
 
 
 [lib]
 crate-type = ["cdylib", "staticlib"]
-name = "holochain_runtime_uniffi"
+name = "holochain_conductor_runtime_ffi"
 
 [[bin]]
 name = "uniffi-bindgen"
@@ -16,7 +16,7 @@ path = "uniffi-bindgen.rs"
 
 [dependencies]
 uniffi = { workspace = true, features = ["cli", "tokio" ] }
-holochain_runtime = { workspace = true, default-features = false }
+holochain-conductor-runtime = { path = "../holochain-conductor-runtime" }
 holochain_conductor_api = { workspace = true }
 holochain_types = { workspace = true }
 
@@ -27,3 +27,8 @@ android_logger = { workspace = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
+uuid = { workspace = true }
