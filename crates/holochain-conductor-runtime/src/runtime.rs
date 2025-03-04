@@ -587,4 +587,24 @@ mod test {
             app_websocket.authentication.token
         );
     }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_api_err_bad_response() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().to_path_buf();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let res = runtime.enable_app("non-existant-app-1".into()).await;
+        assert!(res.is_err());
+        assert!(matches!(res, Err(RuntimeError::AdminApiBadResponse { .. })))
+    }
 }
