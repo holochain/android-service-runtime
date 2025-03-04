@@ -16,13 +16,13 @@ An Android app for managing a Holochain conductor running as a foreground servic
 
 Uses the [tauri-plugin-holochain-service](#tauri-plugin-holochain-service) under-the-hood to run a Holochain conductor as an android service.
 
-### holochain_conductor_runtime
+### holochain-conductor-runtime
 
 A slim wrapper around holochain Conductor with calls wrapping *some* AdminInterfaceApi requests. It currently only implements calls for the requests needed in this project.
 
-### holochain_conductor_runtime_ffi
+### holochain-conductor-runtime-ffi
 
-A wrapper around [holochain_conductor_runtime](#holochain_concuctor_runtime) with types compatible with Uniffi-generated FFI bindings, to facilitate usage of the crate in Kotlin code.
+A wrapper around [holochain-conductor-runtime](#holochain-conductor-runtime) with types compatible with Uniffi-generated FFI bindings, to facilitate usage of the crate in Kotlin code.
 
 ### tauri-plugin-holochain-service
 
