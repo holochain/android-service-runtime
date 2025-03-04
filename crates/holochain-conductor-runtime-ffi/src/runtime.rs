@@ -18,11 +18,7 @@ impl RuntimeFfi {
     ) -> RuntimeResultFfi<Self> {
         let passphrase_locked = passphrase.map(move_to_locked_mem).transpose()?;
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
-        let runtime = Runtime::new(
-            passphrase_locked,
-            runtime_config.try_into()?,
-        )
-        .await?;
+        let runtime = Runtime::new(passphrase_locked, runtime_config.try_into()?).await?;
 
         Ok(Self(runtime))
     }
@@ -34,7 +30,13 @@ impl RuntimeFfi {
 
     /// List apps installed on the conductor
     pub async fn list_apps(&self) -> RuntimeResultFfi<Vec<AppInfoFfi>> {
-        Ok(self.0.list_apps().await?.into_iter().map(|a| a.into()).collect())
+        Ok(self
+            .0
+            .list_apps()
+            .await?
+            .into_iter()
+            .map(|a| a.into())
+            .collect())
     }
 
     /// Is an app with the given installed_app_id installed on the conductor
@@ -67,11 +69,7 @@ impl RuntimeFfi {
         &self,
         installed_app_id: String,
     ) -> RuntimeResultFfi<AppWebsocketFfi> {
-        Ok(self
-            .0
-            .ensure_app_websocket(installed_app_id)
-            .await?
-            .into())
+        Ok(self.0.ensure_app_websocket(installed_app_id).await?.into())
     }
 
     /// Sign a zome call

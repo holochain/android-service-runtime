@@ -3,6 +3,8 @@ use kitsune_p2p_types::config::{KitsuneP2pConfig, TransportConfig};
 use std::path::PathBuf;
 use url2::Url2;
 
+pub const DEVICE_SEED_LAIR_TAG: &str = "device-seed";
+
 #[derive(Clone, Debug)]
 pub struct RuntimeConfig {
     /// Path where conductor data is stored
@@ -20,12 +22,9 @@ impl From<RuntimeConfig> for ConductorConfig {
         let mut conductor_config = ConductorConfig::default();
         let mut kitsune_config = KitsuneP2pConfig::default();
 
+        conductor_config.device_seed_lair_tag = Some(DEVICE_SEED_LAIR_TAG.to_string());
         conductor_config.data_root_path = Some(val.data_root_path.clone().into());
-        conductor_config.keystore = KeystoreConfig::LairServerInProc {
-            lair_root: Some(
-                PathBuf::from_iter([val.data_root_path, "lair-keystore".into()]).into(),
-            ),
-        };
+        conductor_config.keystore = KeystoreConfig::LairServerInProc { lair_root: None };
         kitsune_config.bootstrap_service = Some(val.bootstrap_url);
         kitsune_config.transport_pool.push(TransportConfig::WebRTC {
             signal_url: val.signal_url.into(),

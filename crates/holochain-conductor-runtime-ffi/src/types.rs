@@ -1,8 +1,10 @@
 use std::{collections::HashMap, time::Duration};
 
 use holochain_conductor_api::{
-    AppInfo, AppInfoStatus, CellInfo, ProvisionedCell, StemCell, ZomeCall, AppAuthenticationTokenIssued
+    AppAuthenticationTokenIssued, AppInfo, AppInfoStatus, CellInfo, ProvisionedCell, StemCell,
+    ZomeCall,
 };
+use holochain_conductor_runtime::AppWebsocket;
 use holochain_types::{
     app::{
         AppBundle, AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload,
@@ -18,7 +20,6 @@ use holochain_types::{
         ZomeName,
     },
 };
-use holochain_conductor_runtime::AppWebsocket;
 
 #[derive(uniffi::Record)]
 pub struct DurationFfi {
@@ -241,9 +242,7 @@ impl From<AppInfo> for AppInfoFfi {
     }
 }
 
-
-#[derive(uniffi::Record)]
-#[derive(Clone, Debug)]
+#[derive(uniffi::Record, Clone, Debug)]
 pub struct AppAuthenticationTokenIssuedFfi {
     pub token: Vec<u8>,
     pub expires_at: Option<i64>,
@@ -258,8 +257,7 @@ impl From<AppAuthenticationTokenIssued> for AppAuthenticationTokenIssuedFfi {
     }
 }
 
-#[derive(uniffi::Record)]
-#[derive(Clone, Debug)]
+#[derive(uniffi::Record, Clone, Debug)]
 pub struct AppWebsocketFfi {
     pub authentication: AppAuthenticationTokenIssuedFfi,
     pub port: u16,
@@ -269,7 +267,7 @@ impl From<AppWebsocket> for AppWebsocketFfi {
     fn from(value: AppWebsocket) -> Self {
         Self {
             authentication: value.authentication.into(),
-            port: value.port
+            port: value.port,
         }
     }
 }
@@ -328,8 +326,7 @@ impl From<ZomeCallUnsigned> for ZomeCallUnsignedFfi {
 impl From<ZomeCallUnsignedFfi> for ZomeCallUnsigned {
     fn from(val: ZomeCallUnsignedFfi) -> Self {
         let nonce: [u8; 32] = val.nonce.as_slice().try_into().unwrap();
-        let cap_secret: Option<[u8; 64]> =
-            val.cap_secret.map(|s| s.as_slice().try_into().unwrap());
+        let cap_secret: Option<[u8; 64]> = val.cap_secret.map(|s| s.as_slice().try_into().unwrap());
 
         ZomeCallUnsigned {
             provenance: HoloHash::<Agent>::from_raw_39(val.provenance).unwrap(),

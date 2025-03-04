@@ -12,7 +12,7 @@ pub enum RuntimeErrorFfi {
     Config(#[from] RuntimeConfigErrorFfi),
 
     #[error(transparent)]
-    DecodeAppBundle(#[from] AppBundleError)
+    DecodeAppBundle(#[from] AppBundleError),
 }
 
 #[derive(uniffi::Error, thiserror::Error, Debug)]
