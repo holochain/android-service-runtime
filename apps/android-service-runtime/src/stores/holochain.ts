@@ -10,7 +10,7 @@ function repaint() {
   );
 }
 
-export const adminPort = writable<number>();
+export const isRunning = writable<boolean>(false);
 export const installedApps = writable<AppInfo[]>([]);
 export const loadingLoadInstalledApps = writable<boolean>(false);
 export const loadingToggleEnableApp = writable<{ [key: string]: boolean}>({});
@@ -69,23 +69,17 @@ export const toggleLaunch = async () => {
   await repaint();
   
   try {
-    if(!get(adminPort)) {
+    if(!get(isRunning)) {
       await launch();
+      await loadInstalledApps();
+      isRunning.set(true);
     } else {
       await shutdown();
-      adminPort.set(undefined);
+      isRunning.set(false);
     }
   } catch(e) {
-    console.error("Error launching/shuttingdown app", e);
-    addToast(`Error launching/shutting down app ${e.message}`, "error");
+    console.error("Error launching/shutting down conductor", e);
+    addToast(`Error launching/shutting down conductor ${e.message}`, "error");
   }
   loadingLaunch.set(false);
 }
-
-adminPort.subscribe(($adminPort) => { 
-  if($adminPort !== undefined) {
-    loadInstalledApps();
-  }
-});
-
-export const isRunning = derived(adminPort, ($adminPort) => $adminPort !== undefined);
