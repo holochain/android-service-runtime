@@ -356,7 +356,7 @@ mod test {
 
         let res = runtime
             .install_app(InstallAppPayload {
-                source: AppBundleSource::Path("fixtures/forum.happ".into()),
+                source: AppBundleSource::Bundle(AppBundle::decode(HAPP_FIXTURE).unwrap()),
                 agent_key: None,
                 installed_app_id: Some("my-app-1".into()),
                 network_seed: Some(Uuid::new_v4().to_string()),

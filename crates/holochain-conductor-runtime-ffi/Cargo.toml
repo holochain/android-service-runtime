@@ -27,3 +27,8 @@ android_logger = { workspace = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["test-util"] }
+uuid = { workspace = true }

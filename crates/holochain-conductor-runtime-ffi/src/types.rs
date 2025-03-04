@@ -156,7 +156,7 @@ impl From<CellInfo> for CellInfoFfi {
     }
 }
 
-#[derive(uniffi::Enum)]
+#[derive(uniffi::Enum, Eq, PartialEq, Debug)]
 pub enum PausedAppReasonFfi {
     Error(String),
 }
@@ -169,7 +169,7 @@ impl From<PausedAppReason> for PausedAppReasonFfi {
     }
 }
 
-#[derive(uniffi::Enum)]
+#[derive(uniffi::Enum, Eq, PartialEq, Debug)]
 pub enum DisabledAppReasonFfi {
     NeverStarted,
     NotStartedAfterProvidingMemproofs,
@@ -192,7 +192,7 @@ impl From<DisabledAppReason> for DisabledAppReasonFfi {
     }
 }
 
-#[derive(uniffi::Enum)]
+#[derive(uniffi::Enum, Eq, PartialEq, Debug)]
 pub enum AppInfoStatusFfi {
     Paused { reason: PausedAppReasonFfi },
     Disabled { reason: DisabledAppReasonFfi },
@@ -272,7 +272,7 @@ impl From<AppWebsocket> for AppWebsocketFfi {
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Clone)]
 pub struct CellIdFfi {
     pub dna_hash: Vec<u8>,
     pub agent_pub_key: Vec<u8>,

@@ -6,18 +6,19 @@ use holochain_conductor_runtime::{move_to_locked_mem, Runtime};
 use log::LevelFilter;
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
-#[derive(uniffi::Object)]
+#[derive(uniffi::Object, Clone)]
 pub struct RuntimeFfi(Runtime);
 
 #[uniffi::export(async_runtime = "tokio")]
 impl RuntimeFfi {
     #[uniffi::constructor]
     pub async fn new(
-        passphrase: Option<Vec<u8>>,
+        passphrase: Vec<u8>,
         runtime_config: RuntimeConfigFfi,
     ) -> RuntimeResultFfi<Self> {
-        let passphrase_locked = passphrase.map(move_to_locked_mem).transpose()?;
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
+
+        let passphrase_locked = move_to_locked_mem(passphrase)?;
         let runtime = Runtime::new(passphrase_locked, runtime_config.try_into()?).await?;
 
         Ok(Self(runtime))
@@ -86,4 +87,324 @@ impl RuntimeFfi {
 }
 
 #[cfg(test)]
-mod test {}
+mod test {
+    use super::*;
+    use crate::types::*;
+    use crate::error::*;
+    use crate::config::*;
+    use tempfile::TempDir;
+    use uuid::Uuid;
+    use std::collections::HashMap;
+    use std::time::SystemTime;
+    use std::time::UNIX_EPOCH;
+
+    const HAPP_FIXTURE: &[u8] = include_bytes!("../fixtures/forum.happ");
+
+    async fn install_happ_fixture(runtime: RuntimeFfi, app_id: &str) -> AppInfoFfi {
+        runtime
+            .install_app(InstallAppPayloadFfi {
+                source: HAPP_FIXTURE.to_vec(),
+                installed_app_id: Some(app_id.into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+            })
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_new_runtime() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+
+        let bootstrap_url = "https://bootstrap.holo.host".to_string();
+        let signal_url = "wss://sbd.holo.host".to_string();
+
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: bootstrap_url.clone(),
+                signal_url: signal_url.clone(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let res = runtime.list_apps().await;
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_stop() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+
+        runtime.stop().await.unwrap();
+
+        let res = runtime.list_apps().await;
+        assert!(res.is_err());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_install_app() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let res = runtime
+            .install_app(InstallAppPayloadFfi {
+                source: HAPP_FIXTURE.to_vec(),
+                installed_app_id: Some("my-app-1".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+            })
+            .await;
+        assert!(res.is_ok());
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 1);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_uninstall_app() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+        install_happ_fixture(runtime.clone(), "my-app-1").await;
+
+        let res = runtime.uninstall_app("my-app-1".into()).await;
+        assert!(res.is_ok());
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 0);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_enable_app() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+        install_happ_fixture(runtime.clone(), "my-app-1").await;
+
+        let res = runtime.enable_app("my-app-1".into()).await;
+        assert!(res.is_ok());
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 1);
+        assert_eq!(apps.first().unwrap().status, AppInfoStatusFfi::Running);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_disable_app() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+        install_happ_fixture(runtime.clone(), "my-app-1").await;
+        runtime.enable_app("my-app-1".into()).await.unwrap();
+
+        runtime.disable_app("my-app-1".into()).await.unwrap();
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 1);
+        assert!(matches!(
+            apps.first().unwrap().status,
+            AppInfoStatusFfi::Disabled {
+                reason: DisabledAppReasonFfi::User
+            }
+        ));
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_list_apps() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+        install_happ_fixture(runtime.clone(), "my-app-1").await;
+        install_happ_fixture(runtime.clone(), "my-app-2").await;
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 2);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_is_app_installed() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let is_installed = runtime.is_app_installed("my-app-1".into()).await.unwrap();
+        assert!(!is_installed);
+
+        install_happ_fixture(runtime.clone(), "my-app-1").await;
+
+        let is_installed = runtime.is_app_installed("my-app-1".into()).await.unwrap();
+        assert!(is_installed);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_zome_call() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let app_info = install_happ_fixture(runtime.clone(), "my-app-1").await;
+        let CellInfoFfi::Provisioned(ProvisionedCellFfi { cell_id, .. }) =
+            app_info.cell_info.get("forum").unwrap().first().unwrap()
+        else {
+            panic!("App Info has no CellId")
+        };
+
+        let res = runtime
+            .sign_zome_call(ZomeCallUnsignedFfi {
+                provenance: cell_id.agent_pub_key.clone(),
+                cell_id: cell_id.clone(),
+                zome_name: "forum".into(),
+                fn_name: "get_all_posts".into(),
+                cap_secret: None,
+                payload: vec![].into(),
+                nonce: [0; 32].to_vec(),
+                expires_at: i64::try_from(SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_micros() + 100000).unwrap(),
+            })
+            .await;
+        assert!(res.is_ok())
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_ensure_app_websocket() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+
+        // An app only gets one app ws
+        let app_websocket = runtime
+            .ensure_app_websocket("my-app-1".into())
+            .await
+            .unwrap();
+        let app_websocket_2 = runtime
+            .ensure_app_websocket("my-app-1".into())
+            .await
+            .unwrap();
+        assert_eq!(app_websocket.port, app_websocket_2.port);
+        assert_eq!(
+            app_websocket.authentication.token,
+            app_websocket_2.authentication.token
+        );
+
+        // Different apps get different ports and tokens
+        let app_websocket_4 = runtime
+            .ensure_app_websocket("my-app-2".into())
+            .await
+            .unwrap();
+        assert_ne!(app_websocket_4.port, app_websocket.port);
+        assert_ne!(
+            app_websocket_4.authentication.token,
+            app_websocket.authentication.token
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_api_err_bad_response() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::new(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let res = runtime.enable_app("non-existant-app-1".into()).await;
+        assert!(res.is_err());
+        assert!(matches!(res, Err(RuntimeErrorFfi::Runtime { .. })))
+    }
+}
