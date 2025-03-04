@@ -1,4 +1,4 @@
-use crate::RuntimeResult;
+use crate::{RuntimeError, RuntimeResult};
 use sodoken::{BufRead, BufWrite};
 use zeroize::Zeroize;
 
@@ -8,7 +8,7 @@ pub fn move_to_locked_mem(mut bytes_tmp: Vec<u8>) -> RuntimeResult<BufRead> {
     match BufWrite::new_mem_locked(bytes_tmp.len()) {
         Err(e) => {
             bytes_tmp.zeroize();
-            Err(e.into())
+            Err(RuntimeError::MoveToLockedMem(e))
         }
         Ok(p) => {
             {

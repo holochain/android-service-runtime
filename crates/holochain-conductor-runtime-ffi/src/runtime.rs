@@ -84,3 +84,6 @@ impl RuntimeFfi {
             .into())
     }
 }
+
+#[cfg(test)]
+mod test {}

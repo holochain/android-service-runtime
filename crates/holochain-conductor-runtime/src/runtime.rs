@@ -49,7 +49,8 @@ impl Runtime {
                 .keystore()
                 .lair_client()
                 .new_seed(DEVICE_SEED_LAIR_TAG.into(), None, true)
-                .await?;
+                .await
+                .map_err(RuntimeError::Lair)?;
         }
 
         Ok(Self {
@@ -144,10 +145,9 @@ impl Runtime {
         &self,
         zome_call_unsigned: ZomeCallUnsigned,
     ) -> RuntimeResult<ZomeCall> {
-        Ok(
-            ZomeCall::try_from_unsigned_zome_call(self.conductor.keystore(), zome_call_unsigned)
-                .await?,
-        )
+        ZomeCall::try_from_unsigned_zome_call(self.conductor.keystore(), zome_call_unsigned)
+                .await
+                .map_err(RuntimeError::Lair)
     }
 
     pub async fn ensure_app_websocket(

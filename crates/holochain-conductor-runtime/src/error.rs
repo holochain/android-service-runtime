@@ -1,6 +1,6 @@
 use holochain::{
     conductor::{api::AdminResponse, error::ConductorError, interface::error::InterfaceError},
-    prelude::{CellId, SerializedBytesError},
+    prelude::CellId,
 };
 use kitsune_p2p_types::dependencies::lair_keystore_api::dependencies::one_err::OneErr;
 use thiserror::Error;
@@ -9,9 +9,6 @@ use thiserror::Error;
 pub enum RuntimeError {
     #[error(transparent)]
     Conductor(#[from] ConductorError),
-
-    #[error("Conductor is not initialized")]
-    ConductorNotInitialized,
 
     #[error("Failed to shutdown conductor {0}")]
     ConductorShutdown(String),
@@ -25,11 +22,11 @@ pub enum RuntimeError {
     #[error("Admin Api Bad Response: {0:?}")]
     AdminApiBadResponse(AdminResponse),
 
-    #[error(transparent)]
-    SerializeZomeCall(#[from] SerializedBytesError),
+    #[error("Move to Locked Memory Error")]
+    MoveToLockedMem(OneErr),
 
-    #[error(transparent)]
-    MoveToMemLocked(#[from] OneErr),
+    #[error("Lair Error")]
+    Lair(OneErr),
 }
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;
