@@ -13,13 +13,13 @@ name = "uniffi-bindgen"
 path = "uniffi-bindgen.rs"
 
 [dependencies]
-holochain_runtime_types_uniffi = { path = "../holochain_runtime_types_uniffi" }
-uniffi = { workspace = true, features = ["cli", "tokio" ] }
 holochain-conductor-runtime = { path = "../holochain-conductor-runtime" }
+holochain-conductor-runtime-types-ffi = { path = "../holochain-conductor-runtime-types-ffi" }
 holochain_conductor_api = { workspace = true }
 holochain_types = { workspace = true }
 log = { workspace = true }
 android_logger = { workspace = true }
+uniffi = { workspace = true, features = ["cli", "tokio" ] }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

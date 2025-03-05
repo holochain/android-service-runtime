@@ -5,6 +5,6 @@ cargo ndk --manifest-path ./Cargo.toml -t arm64-v8a -t armeabi-v7a -t x86 -t x86
   build --release
 
 cargo run --bin uniffi-bindgen generate \
-  --library ../../target/release/libholochain_runtime_types_uniffi.so \
+  --library ../../target/release/libholochain_conductor_runtime_types_ffi.so \
   --out-dir ../../libraries/holochain-service-common/src/main/java/ \
   --language kotlin

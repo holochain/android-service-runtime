@@ -1,8 +1,6 @@
-use crate::error::RuntimeResultFfi;
-use crate::types::{AppInfoFfi, InstallAppPayloadFfi, ZomeCallFfi, ZomeCallUnsignedFfi};
-use crate::{config::RuntimeConfigFfi, types::AppWebsocketFfi};
 use android_logger::Config;
 use holochain_conductor_runtime::{move_to_locked_mem, Runtime};
+use holochain_conductor_runtime_types_ffi::*;
 use log::{debug, LevelFilter};
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
@@ -100,9 +98,6 @@ impl RuntimeFfi {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::config::*;
-    use crate::error::*;
-    use crate::types::*;
     use std::collections::HashMap;
     use std::time::SystemTime;
     use std::time::UNIX_EPOCH;

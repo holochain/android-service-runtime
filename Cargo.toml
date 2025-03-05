@@ -2,6 +2,7 @@
 members = [
     "crates/holochain-conductor-runtime",
     "crates/holochain-conductor-runtime-ffi",
+    "crates/holochain-conductor-runtime-types-ffi",
     "crates/tauri-plugin-holochain-service",
     "crates/tauri-plugin-holochain-service-consumer",
     "apps/android-service-runtime/src-tauri",
@@ -10,7 +11,6 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-holochain_runtime = { git = "https://github.com/mattyg/p2p-shipyard", branch = "feat/foreground-service", default-features = false }
 holochain = "0.4.1"
 holochain_conductor_api = "0.4.1"
 holochain_types = "0.4.1"
