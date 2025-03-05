@@ -146,8 +146,8 @@ impl Runtime {
         zome_call_unsigned: ZomeCallUnsigned,
     ) -> RuntimeResult<ZomeCall> {
         ZomeCall::try_from_unsigned_zome_call(self.conductor.keystore(), zome_call_unsigned)
-                .await
-                .map_err(RuntimeError::Lair)
+            .await
+            .map_err(RuntimeError::Lair)
     }
 
     pub async fn ensure_app_websocket(
