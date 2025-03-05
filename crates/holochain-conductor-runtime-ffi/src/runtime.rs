@@ -89,14 +89,14 @@ impl RuntimeFfi {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::types::*;
-    use crate::error::*;
     use crate::config::*;
-    use tempfile::TempDir;
-    use uuid::Uuid;
+    use crate::error::*;
+    use crate::types::*;
     use std::collections::HashMap;
     use std::time::SystemTime;
     use std::time::UNIX_EPOCH;
+    use tempfile::TempDir;
+    use uuid::Uuid;
 
     const HAPP_FIXTURE: &[u8] = include_bytes!("../fixtures/forum.happ");
 
@@ -337,10 +337,14 @@ mod test {
                 cap_secret: None,
                 payload: vec![].into(),
                 nonce: [0; 32].to_vec(),
-                expires_at: i64::try_from(SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap()
-                    .as_micros() + 100000).unwrap(),
+                expires_at: i64::try_from(
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_micros()
+                        + 100000,
+                )
+                .unwrap(),
             })
             .await;
         assert!(res.is_ok())
