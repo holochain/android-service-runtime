@@ -3,7 +3,7 @@ use crate::types::{AppInfoFfi, InstallAppPayloadFfi, ZomeCallFfi, ZomeCallUnsign
 use crate::{config::RuntimeConfigFfi, types::AppWebsocketFfi};
 use android_logger::Config;
 use holochain_conductor_runtime::{move_to_locked_mem, Runtime};
-use log::LevelFilter;
+use log::{debug, LevelFilter};
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
 #[derive(uniffi::Object, Clone)]
@@ -17,6 +17,7 @@ impl RuntimeFfi {
         runtime_config: RuntimeConfigFfi,
     ) -> RuntimeResultFfi<Self> {
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
+        debug!("RuntimeFfi::new");
 
         let passphrase_locked = move_to_locked_mem(passphrase)?;
         let runtime = Runtime::new(passphrase_locked, runtime_config.try_into()?).await?;
@@ -26,11 +27,14 @@ impl RuntimeFfi {
 
     /// Shutdown the holochain conductor
     pub async fn stop(&self) -> RuntimeResultFfi<()> {
+        debug!("RuntimeFfi::stop");
         Ok(self.0.stop().await?)
     }
 
     /// List apps installed on the conductor
     pub async fn list_apps(&self) -> RuntimeResultFfi<Vec<AppInfoFfi>> {
+        debug!("RuntimeFfi::list_apps");
+
         Ok(self
             .0
             .list_apps()
@@ -42,26 +46,31 @@ impl RuntimeFfi {
 
     /// Is an app with the given installed_app_id installed on the conductor
     pub async fn is_app_installed(&self, installed_app_id: String) -> RuntimeResultFfi<bool> {
+        debug!("RuntimeFfi::is_app_installed");
         Ok(self.0.is_app_installed(installed_app_id).await?)
     }
 
     /// Install an app
     pub async fn install_app(&self, payload: InstallAppPayloadFfi) -> RuntimeResultFfi<AppInfoFfi> {
+        debug!("RuntimeFfi::install_app");
         Ok(self.0.install_app(payload.try_into()?).await?.into())
     }
 
     /// Uninstall an app
     pub async fn uninstall_app(&self, installed_app_id: String) -> RuntimeResultFfi<()> {
+        debug!("RuntimeFfi::uninstall_app");
         Ok(self.0.uninstall_app(installed_app_id).await?)
     }
 
     /// Enable an installed app
     pub async fn enable_app(&self, installed_app_id: String) -> RuntimeResultFfi<AppInfoFfi> {
+        debug!("RuntimeFfi::enable_app");
         Ok(self.0.enable_app(installed_app_id).await?.into())
     }
 
     /// Disable an installed app
     pub async fn disable_app(&self, installed_app_id: String) -> RuntimeResultFfi<()> {
+        debug!("RuntimeFfi::disable_app");
         Ok(self.0.disable_app(installed_app_id).await?)
     }
 
@@ -70,6 +79,7 @@ impl RuntimeFfi {
         &self,
         installed_app_id: String,
     ) -> RuntimeResultFfi<AppWebsocketFfi> {
+        debug!("RuntimeFfi::ensure_app_websocket");
         Ok(self.0.ensure_app_websocket(installed_app_id).await?.into())
     }
 
@@ -78,6 +88,7 @@ impl RuntimeFfi {
         &self,
         zome_call_unsigned: ZomeCallUnsignedFfi,
     ) -> RuntimeResultFfi<ZomeCallFfi> {
+        debug!("RuntimeFfi::sign_zome_call");
         Ok(self
             .0
             .sign_zome_call(zome_call_unsigned.into())
