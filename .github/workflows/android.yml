@@ -20,8 +20,6 @@ jobs:
             cargo-target: aarch64-linux-android
           - ndk-name: x86_64
             cargo-target: x86_64-linux-android
-          - ndk-name: armv7
-            cargo-target: armv7-linux-androideabi
         android-api-level: [29, 33]
         android-ndk-version: ["26.0.10792818"]
     steps:
