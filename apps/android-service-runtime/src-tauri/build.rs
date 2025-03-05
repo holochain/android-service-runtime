@@ -1,7 +1,7 @@
 fn main() {
-  let res = tauri_build::build();
+    let res = tauri_build::build();
 
-  #[cfg(feature="system_settings")]
+    #[cfg(feature="system_settings")]
   tauri_plugin::mobile::update_android_manifest(
     "Include in App Grid or System Settings",
     "application",
@@ -22,7 +22,7 @@ r#"<activity
   )
   .expect("Failed to update AndroidManifest.xml");
 
-  #[cfg(not(feature="system_settings"))]
+    #[cfg(not(feature="system_settings"))]
   tauri_plugin::mobile::update_android_manifest(
     "Include in App Grid or System Settings",
     "application",
@@ -42,5 +42,5 @@ r#"<activity
   )
   .expect("Failed to update AndroidManifest.xml");
 
-  res
+    res
 }

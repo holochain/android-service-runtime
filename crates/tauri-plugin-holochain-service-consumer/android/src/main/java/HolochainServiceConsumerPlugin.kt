@@ -107,14 +107,14 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     // Call the mobile-conductor-admin to get an authorized app web socket,
     //  then inject the magic config into the webview.
     @Command
-    fun appWebsocketAuth(invoke: Invoke) {
+    fun ensureAppWebsocket(invoke: Invoke) {
         val args = invoke.parseArgs(AppIdRequestArgs::class.java)
         
         // Bind to running service
         this.bindInternal();
 
         // Create app websocket with authentication token
-        val res = this.mService?.appWebsocketAuth(args.appId)
+        val res = this.mService?.ensureAppWebsocket(args.appId)
 
         // Inject launcher env into web view
         this.injectHolochainClientEnv(args.appId, res!!.port, res!!.token)      

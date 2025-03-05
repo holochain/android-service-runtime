@@ -29,7 +29,6 @@
           packages = [
             pkgs.cargo-ndk
           ];
-
         };
       };
     };

@@ -42,11 +42,6 @@ class HolochainServiceClient(private val activity: Activity) {
         this.mService!!.shutdown()
     }
 
-    /// Get the holochain conductor admin websocket port
-    fun getAdminPort(): Int {
-        return this.mService!!.getAdminPort()
-    }
-
     /// Install a happ into conductor
     fun installApp(args: InstallAppRequestArgs) {
         // Write appBundleBytes to shared memory
@@ -94,8 +89,8 @@ class HolochainServiceClient(private val activity: Activity) {
     }
 
     /// Get or create an app websocket with authentication token
-    fun appWebsocketAuth(appId: String): AppWebsocketAuthFfiAidl {
-        return this.mService!!.appWebsocketAuth(appId)
+    fun ensureAppWebsocket(appId: String): AppWebsocketAuthFfiAidl {
+        return this.mService!!.ensureAppWebsocket(appId)
     }
 
     fun signZomeCall(args: SignZomeCallRequestAidl): ZomeCallSignedFfiAidl {

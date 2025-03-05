@@ -61,7 +61,7 @@ async function setupApp(appId: string, appBundleBytes: number[], networkSeed: st
   }
   
   // Setup app websocket
-  const { port, token } = await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|app_websocket_auth', { appId });
+  const { port, token } = await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|ensure_app_websocket', { appId });
 
   // Inject magic configuration variables used by @holochain/client 
   injectHolochainClientEnv(appId, port, token);

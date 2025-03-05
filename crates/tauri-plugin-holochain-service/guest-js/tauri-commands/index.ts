@@ -43,10 +43,6 @@ export async function shutdown(): Promise<string | null> {
   return await invoke('plugin:holochain-service|shutdown');
 }
 
-export async function getAdminPort(): Promise<number | null> {
-  return await invoke<{port?: number}>('plugin:holochain-service|get_admin_port').then((r) => (r.port ? r.port : null));
-}
-
 export async function installApp(request: {
   appId: string,
   appBundleBytes: Uint8Array,
@@ -77,6 +73,6 @@ export async function isAppInstalled(appId: string): Promise<boolean> {
   return await invoke<{installed: boolean}>('plugin:holochain-service|is_app_installed').then((r) => (r.installed));
 }
 
-export async function appWebsocketAuth(appId: string): Promise<{appId: string, port: number, token: Uint8Array} | null> {
-  return await invoke<{appWebsocketAuth: {appId: string, port: number, token: Uint8Array}}>('plugin:holochain-service|app_websocket_auth', { appId }).then((r) => (r.appWebsocketAuth ? r.appWebsocketAuth : null));
+export async function ensureAppWebsocket(appId: string): Promise<{appId: string, port: number, token: Uint8Array} | null> {
+  return await invoke<{ensureAppWebsocket: {appId: string, port: number, token: Uint8Array}}>('plugin:holochain-service|ensure_app_websocket', { appId }).then((r) => (r.ensureAppWebsocket ? r.ensureAppWebsocket : null));
 }

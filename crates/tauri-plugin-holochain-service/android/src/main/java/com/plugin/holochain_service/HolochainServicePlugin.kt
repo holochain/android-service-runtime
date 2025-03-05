@@ -66,17 +66,6 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     }
 
     /**
-     *  Get the conductor admin websocket port
-     */
-    @Command
-    fun getAdminPort(invoke: Invoke) {
-        val res = this.holochainServiceClient.getAdminPort()
-        val obj = JSObject()
-        obj.put("port", res)
-        invoke.resolve(obj)
-    }
-
-    /**
      * Install an app into the conductor
      */
     @Command
@@ -145,15 +134,15 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
      */
     @OptIn(ExperimentalUnsignedTypes::class)
     @Command
-    fun appWebsocketAuth(invoke: Invoke) {
+    fun ensureAppWebsocket(invoke: Invoke) {
         val args = invoke.parseArgs(AppIdRequestArgs::class.java)
-        val res = this.holochainServiceClient.appWebsocketAuth(args.appId)
+        val res = this.holochainServiceClient.ensureAppWebsocket(args.appId)
 
         // Inject launcher env into web view
         this.injectHolochainClientEnv(args.appId, res.port, res.token)
         
         val obj = JSObject() 
-        obj.put("appWebsocketAuth", res.toJSObject())
+        obj.put("ensureAppWebsocket", res.toJSObject())
         invoke.resolve(obj)       
     }
 

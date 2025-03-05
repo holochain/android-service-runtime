@@ -1,6 +1,5 @@
 import { writable, get, derived } from 'svelte/store';
-import { launch, shutdown, getAdminPort, installApp, enableApp, disableApp, uninstallApp, listInstalledApps, type AppInfo } from "tauri-plugin-holochain-service-api";
-import { v7 as uuidv7 } from 'uuid';
+import { launch, shutdown, enableApp, disableApp, uninstallApp, listInstalledApps, type AppInfo } from "tauri-plugin-holochain-service-api";
 import { sortBy } from 'lodash';
 import { addToast } from './toasts';
 import { tick } from 'svelte';
@@ -11,7 +10,7 @@ function repaint() {
   );
 }
 
-export const adminPort = writable<number>();
+export const isRunning = writable<boolean>(false);
 export const installedApps = writable<AppInfo[]>([]);
 export const loadingLoadInstalledApps = writable<boolean>(false);
 export const loadingToggleEnableApp = writable<{ [key: string]: boolean}>({});
@@ -70,42 +69,17 @@ export const toggleLaunch = async () => {
   await repaint();
   
   try {
-    if(!get(adminPort)) {
+    if(!get(isRunning)) {
       await launch();
-      await loadAdminPort();
+      await loadInstalledApps();
+      isRunning.set(true);
     } else {
       await shutdown();
-      adminPort.set(undefined);
+      isRunning.set(false);
     }
   } catch(e) {
-    console.error("Error launching/shuttingdown app", e);
-    addToast(`Error launching/shutting down app ${e.message}`, "error");
+    console.error("Error launching/shutting down conductor", e);
+    addToast(`Error launching/shutting down conductor ${e.message}`, "error");
   }
   loadingLaunch.set(false);
 }
-
-
-export const loadAdminPort = async () => {
-  return new Promise<void>((resolve) => {
-    let interval = setInterval(async () => {
-      if(!get(adminPort)) {
-        const port = await getAdminPort();
-        if(port) {
-          adminPort.set(port);
-          resolve();
-        }
-      } else {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 1000);
-  });
-};
-
-adminPort.subscribe(($adminPort) => { 
-  if($adminPort !== undefined) {
-    loadInstalledApps();
-  }
-});
-
-export const isRunning = derived(adminPort, ($adminPort) => $adminPort !== undefined);

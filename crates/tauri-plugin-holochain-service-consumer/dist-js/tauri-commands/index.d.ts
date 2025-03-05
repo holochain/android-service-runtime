@@ -6,7 +6,7 @@ export declare function installApp(request: {
     networkSeed: String;
 }): Promise<null>;
 export declare function isAppInstalled(appId: string): Promise<boolean>;
-export declare function appWebsocketAuth(appId: string): Promise<{
+export declare function ensureAppWebsocket(appId: string): Promise<{
     appId: string;
     port: number;
     token: Uint8Array;

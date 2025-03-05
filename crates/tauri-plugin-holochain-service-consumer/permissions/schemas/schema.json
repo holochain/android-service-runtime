@@ -295,12 +295,12 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the app_websocket_auth command without any pre-configured scope.",
+          "description": "Enables the ensure_app_websocket command without any pre-configured scope.",
           "type": "string",
           "const": "allow-app-websocket-auth"
         },
         {
-          "description": "Denies the app_websocket_auth command without any pre-configured scope.",
+          "description": "Denies the ensure_app_websocket command without any pre-configured scope.",
           "type": "string",
           "const": "deny-app-websocket-auth"
         },
