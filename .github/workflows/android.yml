@@ -20,7 +20,7 @@ jobs:
             cargo-target: aarch64-linux-android
           - ndk-name: x86_64
             cargo-target: x86_64-linux-android
-        android-api-level: [29, 33]
+        android-api-level: [29]
         android-ndk-version: ["26.0.10792818"]
     steps:
       - name: Checkout
