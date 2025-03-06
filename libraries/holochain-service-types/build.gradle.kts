@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.holochain_apps.holochain_service_common"
+    namespace = "com.holochain_apps.holochain_service_types"
     compileSdk = 34
 
     defaultConfig {

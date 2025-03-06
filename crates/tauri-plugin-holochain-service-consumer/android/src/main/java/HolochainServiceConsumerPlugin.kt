@@ -21,9 +21,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.delay
 import java.io.File
 import android.net.Uri;
-import com.plugin.holochain_service.IHolochainService
-import com.plugin.holochain_service.InstallAppRequestAidl
-import com.plugin.holochain_service.SignZomeCallRequestAidl
+import com.holochain_apps.holochain_service_types.IHolochainService
+import com.holochain_apps.holochain_service_types.InstallAppRequestAidl
+import com.holochain_apps.holochain_service_types.SignZomeCallRequestAidl
 import android.os.SharedMemory
 import java.nio.ByteBuffer
 

@@ -3,3 +3,4 @@
 .gradle
 
 src/main/jniLibs/
+src/main/*_ffi.kt

@@ -30,5 +30,5 @@ dependencyResolutionManagement {
 include ':tauri-android'
 project(':tauri-android').projectDir = new File('./.tauri/tauri-api')
 
-include ':holochain-service-common'
-project(':holochain-service-common').projectDir = new File('../../../libraries/holochain-service-common')
+include ':holochain-service-types'
+project(':holochain-service-types').projectDir = new File('../../../libraries/holochain-service-types')

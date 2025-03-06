@@ -1,4 +1,4 @@
-package com.holochain_apps.holochain_service_common;
+package com.holochain_apps.holochain_service_types;
 
 parcelable InstallAppRequestAidl;
 parcelable ListInstalledAppsResponse;
