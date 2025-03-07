@@ -4,11 +4,11 @@
 import { encode } from '@msgpack/msgpack';
 import { type CallZomeRequest, type CallZomeRequestSigned } from '@holochain/client';
 
-function injectHolochainClientEnv(appId: String, appWebsocketPort: number, appToken: Uint8Array) {
+function injectHolochainClientEnv(installedAppId: String, port: number, token: Uint8Array) {
   (window as any).__HC_LAUNCHER_ENV__ = {
-    APP_INTERFACE_PORT: appWebsocketPort,
-    INSTALLED_APP_ID: appId,
-    APP_INTERFACE_TOKEN: appToken
+    INSTALLED_APP_ID: installedAppId,
+    APP_INTERFACE_PORT: port,
+    APP_INTERFACE_TOKEN: token
   };
 
   (window as any).__HC_ZOME_CALL_SIGNER__ = {
@@ -19,8 +19,7 @@ function injectHolochainClientEnv(appId: String, appWebsocketPort: number, appTo
 
         const zomeCallUnsigned = {
             provenance: request.provenance,
-            cellIdDnaHash: request.cell_id[0],
-            cellIdAgentPubKey: request.cell_id[1],
+            cellId: request.cell_id,
             zomeName: request.zome_name,
             fnName: request.fn_name,
             capSecret: null,

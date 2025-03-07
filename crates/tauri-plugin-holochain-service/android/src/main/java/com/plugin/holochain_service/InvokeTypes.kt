@@ -1,34 +1,54 @@
 package com.plugin.holochain_service
 
 import app.tauri.annotation.InvokeArg
+import com.holochain_apps.holochain_service_types.CellIdFfi
+import com.holochain_apps.holochain_service_types.InstallAppPayloadFfi
+import com.holochain_apps.holochain_service_types.RoleSettingsFfi
+import com.holochain_apps.holochain_service_types.ZomeCallUnsignedFfi
 
 @InvokeArg
-class HolochainArgs {
+class InstallAppPayloadFfiInvokeArg {
+    lateinit var source: ByteArray
+    lateinit var installedAppId: String
+    lateinit var networkSeed: String
+    lateinit var roleSettings: Map<String, RoleSettingsFfi>
+}
+
+fun InstallAppPayloadFfiInvokeArg.toFfi(): InstallAppPayloadFfi {
+    return InstallAppPayloadFfi(
+        this.source,
+        this.installedAppId,
+        this.networkSeed,
+        this.roleSettings,
+    )
 }
 
 @InvokeArg
-class InstallAppRequestArgs {
-    lateinit var appId: String
-    lateinit var appBundleBytes: ByteArray
-    lateinit var membraneProofs: Map<String, ByteArray>
-    var agent: ByteArray? = null
-    var networkSeed: String? = null
+class AppIdInvokeArg {
+    lateinit var installedAppId: String
 }
 
 @InvokeArg
-class AppIdRequestArgs {
-    lateinit var appId: String
-}
-
-@InvokeArg
-class SignZomeCallRequestArgs {
+class ZomeCallUnsignedFfiInvokeArg {
     lateinit var provenance: ByteArray
-    lateinit var cellIdDnaHash: ByteArray
-    lateinit var cellIdAgentPubKey: ByteArray
+    lateinit var cellId: CellIdFfi
     lateinit var zomeName: String
     lateinit var fnName: String
     var capSecret: ByteArray? = null
     lateinit var payload: ByteArray
     lateinit var nonce: ByteArray
     var expiresAt: Long = 0L
+}
+
+fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi {
+    return ZomeCallUnsignedFfi(
+        this.provenance,
+        this.cellId,
+        this.zomeName,
+        this.fnName,
+        this.capSecret,
+        this.payload,
+        this.nonce,
+        this.expiresAt
+    )
 }

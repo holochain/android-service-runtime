@@ -1,35 +1,28 @@
 package com.plugin.holochain_service
 
-import java.nio.ByteBuffer
 import android.util.Log
 import android.app.Service
 import android.os.IBinder
 import android.content.Intent
+import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
-import com.holochain_apps.holochain_service_types.HolochainRuntimeFfiConfig
-import com.holochain_apps.holochain_service_types.CellIdFfi
-import com.holochain_apps.holochain_service_types.ZomeCallUnsignedFfi
-import com.holochain_apps.holochain_service_types.GossipArcClampFfi
-import com.holochain_apps.holochain_service_types.InstallAppRequestAidl
-import com.holochain_apps.holochain_service_types.AppInfoFfiAidl
-import com.holochain_apps.holochain_service_types.AppInfoStatusFfiAidl
-import com.holochain_apps.holochain_service_types.AppWebsocketAuthFfiAidl
-import com.holochain_apps.holochain_service_types.SignZomeCallRequestAidl
-import com.holochain_apps.holochain_service_types.ZomeCallSignedFfiAidl
+import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
+import com.holochain_apps.holochain_service_types.IHolochainService
+import com.holochain_apps.holochain_service_types.RuntimeConfigFfi
+import com.holochain_apps.holochain_service_types.AppInfoFfiParcel
+import com.holochain_apps.holochain_service_types.AppWebsocketFfiParcel
+import com.holochain_apps.holochain_service_types.InstallAppPayloadFfiParcel
+import com.holochain_apps.holochain_service_types.ZomeCallUnsignedFfiParcel
+import com.holochain_apps.holochain_service_types.ZomeCallFfiParcel
+import com.holochain_apps.holochain_service_types.fromParcel
 
 class HolochainService : Service() {
     /// The uniffi-generated holochain runtime bindings
-    public var runtime: HolochainRuntimeFfi? = null
+    public var runtime: RuntimeFfi? = null
 
     /// Holochain conductor admin websocket port
     public var runtimeAdminWebsocketPort: UShort? = null
-    private val supervisorJob = SupervisorJob()
-    private val serviceScope = CoroutineScope(supervisorJob)
     private val TAG = "HolochainService"
 
     /// The IPC receiver that other activities can call into
@@ -37,120 +30,84 @@ class HolochainService : Service() {
     private val binder = object : IHolochainService.Stub() {
         private val TAG = "IHolochainService"
 
-        /// Stop the service
-        override fun shutdown() {
+        /// Stop the conductor
+        override fun stop() {
             Log.d(TAG, "shutdown")
             stopForeground()
         }
         
         /// Install an app
         override fun installApp(
-            request: InstallAppRequestAidl
-        ) {
+            request: InstallAppPayloadFfiParcel
+        ): AppInfoFfiParcel {
             Log.d(TAG, "installApp")
-
-            // Read appBundle bytes from shared memory
-            val appBundleBuffer: ByteBuffer = request.appBundleSharedMemory.mapReadOnly()
-            val appBundleBytes: ByteArray = appBundleBuffer.toByteArray()
-            
-            // Call install app
-            serviceScope.launch(Dispatchers.Default) {
-                runtime!!.installApp(request.appId, appBundleBytes, request.roleSettings, request.agent, request.networkSeed)
+            return runBlocking {
+                AppInfoFfiParcel(runtime!!.installApp(request.fromParcel()))
             }
         }
 
         /// Uninstall an app
         override fun uninstallApp(
-            appId: String
+            installedAppId: String
         ) {
             Log.d(TAG, "uninstallApp")
-            serviceScope.launch(Dispatchers.Default) {
-                runtime!!.uninstallApp(appId)
+            return runBlocking {
+                runtime!!.uninstallApp(installedAppId)
             }
         }
 
         /// Enable an installed app
         override fun enableApp(
-            appId: String
-        ) {
+            installedAppId: String
+        ): AppInfoFfiParcel {
             Log.d(TAG, "enableApp")
-            serviceScope.launch(Dispatchers.Default) {
-                runtime!!.enableApp(appId)
+            return runBlocking {
+                AppInfoFfiParcel(runtime!!.enableApp(installedAppId))
             }
         }
 
         /// Disable an installed app
         override fun disableApp(
-            appId: String
+            installedAppId: String
         ) {
             Log.d(TAG, "disableApp")
-            serviceScope.launch(Dispatchers.Default) {
-                runtime!!.disableApp(appId)
+            return runBlocking {
+                runtime!!.disableApp(installedAppId)
             }
         }
 
         /// List installed apps
-        override fun listInstalledApps(): List<AppInfoFfiAidl> {
-            Log.d(TAG, "listInstalledApps")
+        override fun listApps(): List<AppInfoFfiParcel> {
+            Log.d(TAG, "listApps")
             return runBlocking {
-                runtime!!.listInstalledApps().map {
-                    AppInfoFfiAidl(
-                        it.installedAppId,
-                        it.cellInfo,
-                        AppInfoStatusFfiAidl(it.status::class.simpleName!!),
-                        it.agentPubKey
-                    )
+                runtime!!.listApps().map {
+                    AppInfoFfiParcel(it)
                 }
             }
         }
 
         /// Is app installed
-        override fun isAppInstalled(appId: String): Boolean {
+        override fun isAppInstalled(installedAppId: String): Boolean {
             Log.d(TAG, "isAppInstalled")
             return runBlocking {
-                runtime!!.isAppInstalled(appId)
+                runtime!!.isAppInstalled(installedAppId)
             }
         }
 
         /// Get or create an app websocket with an authenticated token
-        override fun ensureAppWebsocket(appId: String): AppWebsocketAuthFfiAidl {
+        override fun ensureAppWebsocket(installedAppId: String): AppWebsocketFfiParcel {
             Log.d("IHolochainService", "ensureAppWebsocket")
             return runBlocking {
-                val res = runtime?.ensureAppWebsocket(appId)!!
-                AppWebsocketAuthFfiAidl(res.appId, res.port.toInt(), res.token.toUByteArray())
+                AppWebsocketFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!)
             }
         }
 
         /// Sign a zome call
-        override fun signZomeCall(request: SignZomeCallRequestAidl): ZomeCallSignedFfiAidl {
+        override fun signZomeCall(req: ZomeCallUnsignedFfiParcel): ZomeCallFfiParcel {
             Log.d("IHolochainService", "signZomeCall")
             return runBlocking {
-                val res = runtime!!.signZomeCall(ZomeCallUnsignedFfi(
-                    request.provenance,
-                    CellIdFfi(
-                        request.cellIdDnaHash,
-                        request.cellIdAgentPubKey,
-                    ),
-                    request.zomeName,
-                    request.fnName,
-                    request.capSecret,
-                    request.payload,
-                    request.nonce,
-                    request.expiresAt,
-                ))
-                
-                ZomeCallSignedFfiAidl(
-                    res.cellId.dnaHash,
-                    res.cellId.agentPubKey,
-                    res.zomeName,
-                    res.fnName,
-                    res.payload,
-                    res.capSecret,
-                    res.provenance,
-                    res.signature,
-                    res.nonce,
-                    res.expiresAt,
-                )
+                val res = runtime!!.signZomeCall(req.inner)
+                ZomeCallFfiParcel(res)
             }
         }
     }
@@ -162,7 +119,6 @@ class HolochainService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        supervisorJob.cancel()
     }
 
     override fun onBind(intent: Intent?): IBinder = binder
@@ -176,18 +132,14 @@ class HolochainService : Service() {
             startForeground(1, notification)
 
             // Start holochain conductor
-            val password = byteArrayOf(0x48, 101, 108, 108, 111)
-            val config = HolochainRuntimeFfiConfig(
+            val passphrase = byteArrayOf(0x48, 101, 108, 108, 111)
+            val config = RuntimeConfigFfi(
+                getFilesDir().toString(),
                 "https://bootstrap-0.infra.holochain.org",
                 "wss://sbd.holo.host",
-                getFilesDir().toString(),
-                listOf<String>("stun:stun-0.main.infra.holo.host:443", "stun:stun-1.main.infra.holo.host:443"),
-                GossipArcClampFfi.FULL,
-                true
             );
             this.runtime = runBlocking {
-                var r: HolochainRuntimeFfi = HolochainRuntimeFfi.launch(password, config)
-                r
+                RuntimeFfi.start(passphrase, config)
             }
             Log.d(TAG, "Holochain started successfully")
         } catch (e: Exception) {
@@ -198,12 +150,8 @@ class HolochainService : Service() {
 
     fun stopForeground() {
         // Shutdown conductor
-        val job = serviceScope.launch(Dispatchers.Default) {
-            runtime?.shutdown()
-        }
-
         runBlocking {
-            job.join()
+            runtime?.stop()
 
             runtime = null
             runtimeAdminWebsocketPort = null

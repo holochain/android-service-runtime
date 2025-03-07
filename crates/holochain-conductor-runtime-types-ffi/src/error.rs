@@ -8,6 +8,9 @@ pub enum RuntimeErrorFfi {
     #[error(transparent)]
     Runtime(#[from] RuntimeError),
 
+    #[error("Runtime is not started")]
+    RuntimeNotStarted,
+
     #[error(transparent)]
     Config(#[from] RuntimeConfigErrorFfi),
 

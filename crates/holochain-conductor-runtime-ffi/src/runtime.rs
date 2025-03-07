@@ -10,17 +10,17 @@ pub struct RuntimeFfi(Runtime);
 #[uniffi::export(async_runtime = "tokio")]
 impl RuntimeFfi {
     #[uniffi::constructor]
-    pub async fn new(
+    pub async fn start(
         passphrase: Vec<u8>,
         runtime_config: RuntimeConfigFfi,
-    ) -> RuntimeResultFfi<Self> {
+    ) -> Self {
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
         debug!("RuntimeFfi::new");
 
-        let passphrase_locked = move_to_locked_mem(passphrase)?;
-        let runtime = Runtime::new(passphrase_locked, runtime_config.try_into()?).await?;
+        let passphrase_locked = move_to_locked_mem(passphrase).expect("Failed to move password to locked memoery");
+        let runtime = Runtime::new(passphrase_locked, runtime_config.try_into().expect("Failed to parse config")).await.expect("Failed to start conductor");
 
-        Ok(Self(runtime))
+        Self(runtime)
     }
 
     /// Shutdown the holochain conductor

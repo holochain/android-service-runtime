@@ -1,3 +1,10 @@
+/// Helpers for converting to and from tauri's JSObject & JSArray types
+/// which are used to return values from tauri-invoked functions.
+///
+/// This file is *not* extracted into a standalone kotlin library
+/// because it depends on app.tauri.plugin,
+/// which is auto-generated during tauri plugin builds.
+
 package com.plugin.holochain_service
 
 import app.tauri.plugin.JSObject
