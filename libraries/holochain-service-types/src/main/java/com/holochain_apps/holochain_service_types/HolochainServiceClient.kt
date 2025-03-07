@@ -10,8 +10,8 @@ import android.util.Log
 
 class HolochainServiceClient(
     private val activity: Activity,
-    val serviceName: String = "com.plugin.holochain_service.HolochainService",
-    val servicePackageName: String = "com.holochain_apps.android_service_runtime"
+    private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
+    private val servicePackageName: String = "com.holochain_apps.android_service_runtime"
 ) {
     private var mService: IHolochainService? = null
     private val logTag = "HolochainServiceClient"
@@ -31,8 +31,8 @@ class HolochainServiceClient(
 
     /// Start the service
     fun connect() {
-        val intent = Intent(this.serviceName)
-        intent.setPackage(this.servicePackageName)
+        val intent = Intent()
+        intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
 
         this.activity.startForegroundService(intent)
         this.activity.bindService(intent, this.mConnection, Context.BIND_IMPORTANT)
