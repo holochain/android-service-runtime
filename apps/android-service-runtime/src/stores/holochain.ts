@@ -1,5 +1,5 @@
-import { writable, get, derived } from 'svelte/store';
-import { launch, shutdown, enableApp, disableApp, uninstallApp, listInstalledApps, type AppInfo } from "tauri-plugin-holochain-service-api";
+import { writable, get } from 'svelte/store';
+import { launch, shutdown, enableApp, disableApp, uninstallApp, listApps, type AppInfo } from "tauri-plugin-holochain-service-api";
 import { sortBy } from 'lodash';
 import { addToast } from './toasts';
 import { tick } from 'svelte';
@@ -24,7 +24,7 @@ export const loadInstalledApps = async () => {
 };
 const loadInstalledAppsInner = async () => {
   try {
-    installedApps.set(sortBy(await listInstalledApps(), 'installedAppId'));
+    installedApps.set(sortBy(await listApps(), 'installedAppId'));
   } catch(e) {
     console.error("Error fetching installed apps", e);
     addToast(`Error fetching installed apps ${e.message}`, "error");

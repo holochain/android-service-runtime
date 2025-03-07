@@ -1,7 +1,7 @@
 /// Helper functions to wrap tauri plugin commands
 
 import { invoke } from '@tauri-apps/api/core'
-import { RoleSettings } from '@holochain/client';
+import { type RoleSettings } from '@holochain/client';
 
 export async function installApp(request: {
   installedAppId: string,

@@ -4,8 +4,6 @@ use tauri::{
     AppHandle, Runtime,
 };
 
-use crate::types::*;
-
 #[cfg(target_os = "android")]
 const PLUGIN_IDENTIFIER: &str = "com.plugin.holochain_service";
 

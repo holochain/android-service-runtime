@@ -1,4 +1,3 @@
-use crate::types::*;
 use bytes::Bytes;
 use serde::de::DeserializeOwned;
 use std::ops::Deref;
@@ -47,7 +46,7 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
         network_seed: String,
     ) -> tauri::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
         let label = "main";
-        let mut window_builder =
+        let window_builder =
             WebviewWindowBuilder::new(self.0.app(), label, WebviewUrl::App("".into()))
                 .initialization_script(include_str!("../dist-js/holochain-env/index.min.js"))
                 // Workaround that runs the setup script after a brief delay, to wait for window.__TAURI_INTERNALS__ to be defined

@@ -3,7 +3,6 @@
   import Status from './pages/Status.svelte';
   import MyApps from './pages/MyApps.svelte';
   import Toasts from './components/Toasts.svelte';
-  import { loadAdminPort } from './stores/holochain';
 
   export let activeTab = 0;
 
@@ -11,8 +10,6 @@
     {text: "Status", component: Status},
     {text: "My Apps", component: MyApps},
   ];
-
-  loadAdminPort();
 </script>
 
 <nav class="navbar bg-base-100 border-b-2 border-gray-300 fixed top-0 z-50">

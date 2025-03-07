@@ -1712,7 +1712,7 @@
           "const": "holochain-service:default"
         },
         {
-          "description": "Enables the ensure_app_websocket command without any pre-configured scope.",
+          "description": "Enables the app_websocket_auth command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:allow-app-websocket-auth"
         },
@@ -1725,6 +1725,11 @@
           "description": "Enables the enable_app command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:allow-enable-app"
+        },
+        {
+          "description": "Enables the ensure_app_websocket command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:allow-ensure-app-websocket"
         },
         {
           "description": "Enables the get_admin_port command without any pre-configured scope.",
@@ -1767,7 +1772,7 @@
           "const": "holochain-service:allow-uninstall-app"
         },
         {
-          "description": "Denies the ensure_app_websocket command without any pre-configured scope.",
+          "description": "Denies the app_websocket_auth command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-app-websocket-auth"
         },
@@ -1780,6 +1785,11 @@
           "description": "Denies the enable_app command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-enable-app"
+        },
+        {
+          "description": "Denies the ensure_app_websocket command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:deny-ensure-app-websocket"
         },
         {
           "description": "Denies the get_admin_port command without any pre-configured scope.",

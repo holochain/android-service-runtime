@@ -5,25 +5,25 @@
   "description": "",
   "type": "module",
   "types": "./dist-js/index.d.ts",
-  "main": "./dist-js/index.cjs",
   "module": "./dist-js/index.js",
   "exports": {
     "types": "./dist-js/tauri-commands/index.d.ts",
-    "import": "./dist-js/tauri-commands/index.js",
-    "require": "./dist-js/tauri-commands/index.cjs"
+    "import": "./dist-js/tauri-commands/index.js"
   },
   "files": [
     "dist-js",
     "README.md"
   ],
   "scripts": {
-    "build": "pnpm run build:js:tauri-commands:cjs && pnpm run build:js:tauri-commands:esm && pnpm run build:js:holochain-env && rollup -c",
-    "build:js:tauri-commands:cjs": "tsc guest-js/tauri-commands/*.ts --outDir dist-js/tauri-commands/  --declaration --target es2021 --module commonjs && mv dist-js/tauri-commands/index.js dist-js/tauri-commands/indes.cjs",
-    "build:js:tauri-commands:esm": "tsc guest-js/tauri-commands/*.ts --outDir dist-js/tauri-commands/  --declaration --target es2021 --moduleResolution bundler --module esnext",
-    "build:js:holochain-env": "tsc guest-js/holochain-env/*.ts --outDir dist-js-tmp/holochain-env/ --target es2021 --moduleResolution bundler --module esnext --skipLibCheck true"
+    "build": "pnpm run build:js:tauri-commands:esm && pnpm run build:js:holochain-env && rollup -c",
+    "build:js:tauri-commands:esm": "tsc guest-js/tauri-commands/*.ts --outDir dist-js/tauri-commands/  --declaration --target es2021 --moduleResolution bundler --module esnext  --skipLibCheck true",
+    "build:js:holochain-env": "tsc guest-js/holochain-env/*.ts --outDir dist-js-tmp/holochain-env/ --target es2021 --moduleResolution bundler --module esnext --skipLibCheck true",
+    "prepublishOnly": "pnpm build",
+    "pretest": "pnpm build",
+    "prepare": "pnpm build"
   },
   "dependencies": {
-    "@holochain/client": "0.17.1",
+    "@holochain/client": "0.18.0",
     "@tauri-apps/api": ">=2.0.0-beta.6"
   },
   "devDependencies": {

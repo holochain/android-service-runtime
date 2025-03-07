@@ -295,14 +295,24 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "Enables the ensure_app_websocket command without any pre-configured scope.",
+          "description": "Enables the app_websocket_auth command without any pre-configured scope.",
           "type": "string",
           "const": "allow-app-websocket-auth"
         },
         {
-          "description": "Denies the ensure_app_websocket command without any pre-configured scope.",
+          "description": "Denies the app_websocket_auth command without any pre-configured scope.",
           "type": "string",
           "const": "deny-app-websocket-auth"
+        },
+        {
+          "description": "Enables the ensure_app_websocket command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-ensure-app-websocket"
+        },
+        {
+          "description": "Denies the ensure_app_websocket command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-ensure-app-websocket"
         },
         {
           "description": "Enables the install_app command without any pre-configured scope.",
