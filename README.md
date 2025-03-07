@@ -8,26 +8,39 @@ An Android app and Tauri plugins that provide an integrated approach for running
 > [!IMPORTANT]  
 > This project currently uses a 3rd party library [p2p-shipyard](https://github.com/darksoil-studio/p2p-shipyard) under-the-hood, which is licensed as [Source-Available](https://en.wikipedia.org/wiki/Source-available_software). To use it in your own project, you will need a [p2p-shipyard license](https://darksoil.studio/p2p-shipyard/license/license.html).
 
-## Components
+## Components (from highest level to lowest)
 
-### android-service-runtime app
+### Android Apps
+
+#### android-service-runtime
 
 An Android app for managing a Holochain conductor running as a foreground service. Start & stop the Holochain service, view installed hApps, uninstall hApps.
 
 Uses the [tauri-plugin-holochain-service](#tauri-plugin-holochain-service) under-the-hood to run a Holochain conductor as an android service.
 
-### holochain-conductor-runtime
+### Tauri Plugins
 
-A slim wrapper around holochain Conductor with calls wrapping *some* AdminInterfaceApi requests. It currently only implements calls for the requests needed in this project.
-
-### holochain-conductor-runtime-ffi
-
-A wrapper around [holochain-conductor-runtime](#holochain-conductor-runtime) with types compatible with Uniffi-generated FFI bindings, to facilitate usage of the crate in Kotlin code.
-
-### tauri-plugin-holochain-service
+#### tauri-plugin-holochain-service
 
 A Tauri plugin for building Android apps that run a Holochain conductor as an [Foreground Service](https://developer.android.com/develop/background-work/services/fgs)
 
-### tauri-plugin-holochain-service-consumer
+#### tauri-plugin-holochain-service-consumer
 
 A Tauri plugin for building Android apps that make use of the android-service-runtime Android app, instead of bundling their own conductor.
+
+### Kotlin Libraries
+
+#### holochain-service-types
+
+A Kotlin library containing a client class and types needed for connecting to the HolochainService in[tauri-plugin-holochain-service].
+
+### Rust Crates
+
+#### holochain-conductor-runtime
+
+A slim wrapper around holochain Conductor with calls wrapping *some* AdminInterfaceApi requests. It currently only implements calls for the requests needed in this project.
+
+#### holochain-conductor-runtime-ffi
+
+A wrapper around [holochain-conductor-runtime](#holochain-conductor-runtime) with types compatible with Uniffi-generated FFI bindings, to facilitate usage of the crate in Kotlin code.
+
