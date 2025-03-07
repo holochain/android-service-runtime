@@ -18,11 +18,3 @@ interface IHolochainService {
     AppWebsocketFfiParcel ensureAppWebsocket(String installedAppId);
     ZomeCallFfiParcel signZomeCall(in ZomeCallUnsignedFfiParcel request);
 }
-
-interface IHolochainCallbackService {
-    void installAppCallback(AppInfoFfiParcel response);
-    void enableAppCallback(AppInfoFfiParcel response);
-    void listAppsCallback(List<AppInfoFfiParcel> response);
-    void ensureAppWebsocket(AppWebsocketFfiParcel response);
-    void signZomeCall(ZomeCallFfiParcel response);
-}
