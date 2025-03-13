@@ -38,7 +38,7 @@ android {
 dependencies {
     // Subprojects
     implementation(project(":tauri-android"))
-    implementation(project(":holochain-service-types"))
+    implementation(files("${projectDir}/lib/holochain-service-types-release.aar"))
     // Kotlin
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.appcompat:appcompat:1.6.0")

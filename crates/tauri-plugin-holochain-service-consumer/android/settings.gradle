@@ -11,7 +11,7 @@ pluginManagement {
                     useVersion("8.8.0")
                     break
                 case "org.jetbrains.kotlin.android":
-                    useVersion("1.8.20")
+                    useVersion("2.1.10")
                     break
             }
         }
@@ -29,6 +29,3 @@ dependencyResolutionManagement {
 
 include ':tauri-android'
 project(':tauri-android').projectDir = new File('./.tauri/tauri-api')
-
-include ':holochain-service-types'
-project(':holochain-service-types').projectDir = new File('../../../libraries/holochain-service-types')
