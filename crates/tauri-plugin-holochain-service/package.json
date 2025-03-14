@@ -15,10 +15,10 @@
     "README.md"
   ],
   "scripts": {
-    "build": "pnpm run build:js:tauri-commands:esm && pnpm run build:js:holochain-env && rollup -c && pnpm run import:holochain-service-types && cargo build",
+    "build": "pnpm run build:js:tauri-commands:esm && pnpm run build:js:holochain-env && rollup -c && pnpm run import:holochain-service-client && cargo build",
     "build:js:tauri-commands:esm": "tsc guest-js/tauri-commands/*.ts --outDir dist-js/tauri-commands/  --declaration --target es2021 --moduleResolution bundler --module esnext",
     "build:js:holochain-env": "tsc guest-js/holochain-env/*.ts --outDir dist-js-tmp/holochain-env/ --target es2021 --moduleResolution bundler --module esnext --skipLibCheck true",
-    "import:holochain-service-types": "mkdir -p android/lib && cp ../../libraries/holochain-service-types/build/outputs/aar/holochain-service-types-release.aar android/lib/",
+    "import:holochain-service-client": "mkdir -p android/lib && cp ../../libraries/holochain-service-client/build/outputs/aar/holochain-service-client-release.aar android/lib/",
     "prepublishOnly": "pnpm build",
     "pretest": "pnpm build",
     "prepare": "pnpm build"

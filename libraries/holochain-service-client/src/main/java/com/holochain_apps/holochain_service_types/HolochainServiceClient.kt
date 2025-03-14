@@ -1,4 +1,4 @@
-package com.holochain_apps.holochain_service_types
+package com.holochain_apps.holochain_service_client
 
 import android.app.Activity
 import android.content.ServiceConnection

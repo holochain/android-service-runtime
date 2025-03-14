@@ -1,4 +1,4 @@
 [bindings.kotlin]
-package_name = "com.holochain_apps.holochain_service_types"
+package_name = "com.holochain_apps.holochain_service_client"
 cdylib_name = "holochain_conductor_runtime_types_ffi"
 android = true

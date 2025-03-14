@@ -1,4 +1,4 @@
-package com.holochain_apps.holochain_service_types
+package com.holochain_apps.holochain_service_client
 
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue

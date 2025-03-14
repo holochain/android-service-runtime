@@ -1,4 +1,4 @@
-# Holochain Service Types
+# Holochain Service Client
 
 A client library for calling the HolochainService which is exposed for IPC binding in the `android-service-runtime` Android app.
 
@@ -11,7 +11,7 @@ Add the library to your dependencies list in your project's `build.gradle.kts`
 ```kotlin
 dependencies {
     ...
-    implementation("io.github.mattyg.holochain-service-types:holochain-service-types:0.0.1")
+    implementation("io.github.mattyg.holochain-service-client:holochain-service-client:0.0.1")
 }
 ```
 

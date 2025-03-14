@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.holochain_apps.holochain_service_types"
+    namespace = "com.holochain_apps.holochain_service_client"
     compileSdk = 34
 
     defaultConfig {
@@ -47,11 +47,11 @@ mavenPublishing {
 
   signAllPublications()
 
-  coordinates("io.github.mattyg.holochain-service-types", "holochain-service-types", "0.0.1")
+  coordinates("io.github.mattyg.holochain-service-client", "holochain-service-client", "0.0.1")
 
   pom {
-    name.set("Holochain Service Types")
-    description.set("Client & Types for interacting with HolochainService provided by android-service-runtime app.")
+    name.set("Holochain Service Client")
+    description.set("Client for binding and making calls to the HolochainService provided by android-service-runtime app.")
     inceptionYear.set("2025")
     url.set("https://github.com/holochain/android-service-runtime/")
     licenses {
