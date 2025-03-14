@@ -1,7 +1,6 @@
 package com.holochain_apps.holochain_service_types;
 
 parcelable InstallAppPayloadFfiParcel;
-parcelable ListInstalledAppsResponse;
 parcelable AppInfoFfiParcel;
 parcelable AppWebsocketFfiParcel;
 parcelable ZomeCallUnsignedFfiParcel;
