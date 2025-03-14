@@ -1,7 +1,12 @@
+import java.util.Properties
+import java.io.FileInputStream
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.parcelize")
+    id("com.vanniktech.maven.publish") version("0.30.0")
 }
 
 android {
@@ -34,7 +39,43 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
 }
+
+mavenPublishing {
+  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+  signAllPublications()
+
+  coordinates("io.github.mattyg.holochain-service-types", "holochain-service-types", "0.0.1")
+
+  pom {
+    name.set("Holochain Service Types")
+    description.set("Client & Types for interacting with HolochainService provided by android-service-runtime app.")
+    inceptionYear.set("2025")
+    url.set("https://github.com/holochain/android-service-runtime/")
+    licenses {
+      license {
+        name.set("The Cryptographic Autonomy License version 1.0")
+        url.set("https://opensource.org/license/cal-1-0")
+        distribution.set("https://opensource.org/license/cal-1-0")
+      }
+    }
+    developers {
+      developer {
+        id.set("mattyg")
+        name.set("mattyg")
+        url.set("https://github.com/mattyg")
+      }
+    }
+    scm {
+      url.set("https://github.com/holochain/android-service-runtime/")
+      connection.set("scm:git:git://github.com/holochain/android-service-runtime.git")
+      developerConnection.set("scm:git:ssh://git@github.com/holochain/android-service-runtime.git")
+    }
+  }
+}
+
 
 dependencies {
     // Kotlin

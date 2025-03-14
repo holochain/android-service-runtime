@@ -1,0 +1,37 @@
+## For more details on how to configure your build environment visit
+# http://www.gradle.org/docs/current/userguide/build_environment.html
+#
+# Specifies the JVM arguments used for the daemon process.
+# The setting is particularly useful for tweaking memory settings.
+# Default value: -Xmx1024m -XX:MaxPermSize=256m
+# org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+#
+# When configured, Gradle will run in incubating parallel mode.
+# This option should only be used with decoupled projects. More details, visit
+# http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects
+# org.gradle.parallel=true
+#Fri Jan 31 14:25:29 MST 2025
+android.enableJetifier=true
+android.useAndroidX=true
+
+# GPG signing key
+
+# GPG Key Public Key ID
+# View your own Key Ids with the command: `gpg --list-keys --keyid-format=short`
+signing.keyId=
+
+# GPG Key password
+signing.password=
+
+# GPG Secret Keyring Path
+#
+# Generate this with the following command:
+# `gpg --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg`
+signing.secretKeyRingFile=
+
+# Sonatype Maven Central User Token Credentials
+#
+# These are NOT the credentials used to login,
+# they are the "User Token" credentials generated via https://central.sonatype.com/account 
+mavenCentralUsername=
+mavenCentralPassword=
