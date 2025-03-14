@@ -1,10 +1,10 @@
 package com.plugin.holochain_service_consumer
 
 import app.tauri.annotation.InvokeArg
-import com.holochain_apps.holochain_service_client.CellIdFfi
-import com.holochain_apps.holochain_service_client.InstallAppPayloadFfi
-import com.holochain_apps.holochain_service_client.RoleSettingsFfi
-import com.holochain_apps.holochain_service_client.ZomeCallUnsignedFfi
+import org.holochain.androidserviceruntime.holochain_service_client.CellIdFfi
+import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfi
+import org.holochain.androidserviceruntime.holochain_service_client.RoleSettingsFfi
+import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfi
 
 @InvokeArg
 class InstallAppPayloadFfiInvokeArg {

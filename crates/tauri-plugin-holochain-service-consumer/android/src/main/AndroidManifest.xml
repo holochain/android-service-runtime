@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <queries>
-    <package android:name="com.holochain_apps.mobile_conductor_admin" />
+    <package android:name="org.holochain.androidserviceruntime.app" />
   </queries>
 
   <application>

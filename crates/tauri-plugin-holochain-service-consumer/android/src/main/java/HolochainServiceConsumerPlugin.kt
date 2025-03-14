@@ -7,9 +7,9 @@ import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
-import com.holochain_apps.holochain_service_client.HolochainServiceClient
-import com.holochain_apps.holochain_service_client.ZomeCallUnsignedFfiParcel
-import com.holochain_apps.holochain_service_client.toParcel
+import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
+import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
+import org.holochain.androidserviceruntime.holochain_service_client.toParcel
 
 @TauriPlugin
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {

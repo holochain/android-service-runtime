@@ -1,4 +1,4 @@
-package com.holochain_apps.holochain_service_client
+package org.holochain.androidserviceruntime.holochain_service_client
 
 import android.app.Activity
 import android.content.ServiceConnection
@@ -11,7 +11,7 @@ import android.util.Log
 class HolochainServiceClient(
     private val activity: Activity,
     private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
-    private val servicePackageName: String = "com.holochain_apps.android_service_runtime"
+    private val servicePackageName: String = "org.holochain.androidserviceruntime"
 ) {
     private var mService: IHolochainService? = null
     private val logTag = "HolochainServiceClient"

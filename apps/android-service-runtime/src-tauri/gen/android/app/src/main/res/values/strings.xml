@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">android-service-runtime</string>
-    <string name="main_activity_title">android-service-runtime</string>
+    <string name="app_name">Holochain Service Runtime</string>
+    <string name="main_activity_title">Holochain Service Runtime</string>
 </resources>

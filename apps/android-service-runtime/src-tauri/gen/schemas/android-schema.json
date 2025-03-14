@@ -1752,6 +1752,11 @@
           "const": "holochain-service:allow-launch"
         },
         {
+          "description": "Enables the list_apps command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:allow-list-apps"
+        },
+        {
           "description": "Enables the list_installed_apps command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:allow-list-installed-apps"
@@ -1765,6 +1770,16 @@
           "description": "Enables the sign_zome_call command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:allow-sign-zome-call"
+        },
+        {
+          "description": "Enables the start command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:allow-start"
+        },
+        {
+          "description": "Enables the stop command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:allow-stop"
         },
         {
           "description": "Enables the uninstall_app command without any pre-configured scope.",
@@ -1812,6 +1827,11 @@
           "const": "holochain-service:deny-launch"
         },
         {
+          "description": "Denies the list_apps command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:deny-list-apps"
+        },
+        {
           "description": "Denies the list_installed_apps command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-list-installed-apps"
@@ -1825,6 +1845,16 @@
           "description": "Denies the sign_zome_call command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-sign-zome-call"
+        },
+        {
+          "description": "Denies the start command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:deny-start"
+        },
+        {
+          "description": "Denies the stop command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:deny-stop"
         },
         {
           "description": "Denies the uninstall_app command without any pre-configured scope.",

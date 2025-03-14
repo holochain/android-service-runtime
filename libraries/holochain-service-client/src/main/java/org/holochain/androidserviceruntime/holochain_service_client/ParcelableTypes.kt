@@ -1,4 +1,4 @@
-package com.holochain_apps.holochain_service_client
+package org.holochain.androidserviceruntime.holochain_service_client
 
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue

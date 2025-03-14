@@ -1,7 +1,7 @@
 {
-  "productName": "android-service-runtime",
+  "productName": "Holochain Service Runtime",
   "version": "0.1.0",
-  "identifier": "com.holochain-apps.android-service-runtime",
+  "identifier": "org.holochain.androidserviceruntime.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "beforeBuildCommand": "pnpm build",

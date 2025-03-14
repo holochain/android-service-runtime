@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.holochain_apps.holochain_service_client"
+    namespace = "org.holochain.androidserviceruntime.holochain_service_client"
     compileSdk = 34
 
     defaultConfig {
@@ -47,7 +47,7 @@ mavenPublishing {
 
   signAllPublications()
 
-  coordinates("io.github.mattyg.holochain-service-client", "holochain-service-client", "0.0.1")
+  coordinates("org.holochain.androidserviceruntime", "holochain-service-client", "0.0.2")
 
   pom {
     name.set("Holochain Service Client")

@@ -13,7 +13,8 @@
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
       "start:android-service-runtime": "pnpm run --dir apps/android-service-runtime start:android",
       "start": "cd examples/end-user-happ && nix develop --command bash -c \"pnpm run tauri dev\"",
-      "android:start": "cd examples/end-user-happ && nix develop .#androidDev --command bash -c \"pnpm run tauri android dev\""
+      "android:start": "cd examples/end-user-happ && nix develop .#androidDev --command bash -c \"pnpm run tauri android dev\"",
+      "publish:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew publish"
     },
     "dependencies": {
       "tslib": "^2.7.0"

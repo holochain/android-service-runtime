@@ -8,14 +8,14 @@ import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.DelicateCoroutinesApi
 import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
-import com.holochain_apps.holochain_service_client.IHolochainService
-import com.holochain_apps.holochain_service_client.RuntimeConfigFfi
-import com.holochain_apps.holochain_service_client.AppInfoFfiParcel
-import com.holochain_apps.holochain_service_client.AppWebsocketFfiParcel
-import com.holochain_apps.holochain_service_client.InstallAppPayloadFfiParcel
-import com.holochain_apps.holochain_service_client.ZomeCallUnsignedFfiParcel
-import com.holochain_apps.holochain_service_client.ZomeCallFfiParcel
-import com.holochain_apps.holochain_service_client.fromParcel
+import org.holochain.androidserviceruntime.holochain_service_client.IHolochainService
+import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
+import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
+import org.holochain.androidserviceruntime.holochain_service_client.AppWebsocketFfiParcel
+import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfiParcel
+import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
+import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallFfiParcel
+import org.holochain.androidserviceruntime.holochain_service_client.fromParcel
 
 class HolochainService : Service() {
     /// The uniffi-generated holochain runtime bindings

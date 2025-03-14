@@ -375,6 +375,16 @@
           "const": "deny-launch"
         },
         {
+          "description": "Enables the list_apps command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-list-apps"
+        },
+        {
+          "description": "Denies the list_apps command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-list-apps"
+        },
+        {
           "description": "Enables the list_installed_apps command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-installed-apps"
@@ -403,6 +413,26 @@
           "description": "Denies the sign_zome_call command without any pre-configured scope.",
           "type": "string",
           "const": "deny-sign-zome-call"
+        },
+        {
+          "description": "Enables the start command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-start"
+        },
+        {
+          "description": "Denies the start command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-start"
+        },
+        {
+          "description": "Enables the stop command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-stop"
+        },
+        {
+          "description": "Denies the stop command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-stop"
         },
         {
           "description": "Enables the uninstall_app command without any pre-configured scope.",
