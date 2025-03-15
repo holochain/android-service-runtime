@@ -1,5 +1,5 @@
 import { writable, get } from 'svelte/store';
-import { launch, shutdown, enableApp, disableApp, uninstallApp, listApps, type AppInfo } from "tauri-plugin-holochain-service-api";
+import { start, stop, enableApp, disableApp, uninstallApp, listApps, type AppInfo } from "tauri-plugin-holochain-service-api";
 import { sortBy } from 'lodash';
 import { addToast } from './toasts';
 import { tick } from 'svelte';
@@ -11,26 +11,25 @@ function repaint() {
 }
 
 export const isRunning = writable<boolean>(false);
-export const installedApps = writable<AppInfo[]>([]);
-export const loadingLoadInstalledApps = writable<boolean>(false);
+export const apps = writable<AppInfo[]>([]);
+export const loadingApps = writable<boolean>(false);
 export const loadingToggleEnableApp = writable<{ [key: string]: boolean}>({});
 export const loadingLaunch = writable<boolean>(false);
 export const loadingUninstallApp = writable<{[key: string]: boolean}>({});
 
-export const loadInstalledApps = async () => {
-  loadingLoadInstalledApps.set(true);
-  await loadInstalledAppsInner();
-  loadingLoadInstalledApps.set(false);
+export const loadApps = async () => {
+  loadingApps.set(true);
+  await loadAppsInner();
+  loadingApps.set(false);
 };
-const loadInstalledAppsInner = async () => {
+const loadAppsInner = async () => {
   try {
-    installedApps.set(sortBy(await listApps(), 'installedAppId'));
+    apps.set(sortBy(await listApps(), 'installedAppId'));
   } catch(e) {
     console.error("Error fetching installed apps", e);
     addToast(`Error fetching installed apps ${e.message}`, "error");
   }
 };
-
 
 export const loadUninstallApp = async (appId: string) => {
   loadingUninstallApp.update((t) => ({...t, [appId]: true}));
@@ -38,7 +37,7 @@ export const loadUninstallApp = async (appId: string) => {
   await repaint();
   try {
     await uninstallApp(appId);
-    await loadInstalledAppsInner();
+    await loadAppsInner();
     addToast(`Uninstalled app "${appId}"`, "success");
   } catch(e) {
     console.error(`Error uninstalling app`, e);
@@ -55,7 +54,7 @@ export const toggleEnableApp = async (appInfo: AppInfo) => {
     } else {
       await enableApp(appInfo.installedAppId)
     }
-    await loadInstalledAppsInner()
+    await loadAppsInner()
   } catch(e) {
     console.error("Error enabling/disabling app", e);
     addToast(`Error enabling/disabling down app ${e.message}`, "error");
@@ -68,18 +67,30 @@ export const toggleLaunch = async () => {
   await tick();
   await repaint();
   
-  try {
-    if(!get(isRunning)) {
-      await launch();
-      await loadInstalledApps();
-      isRunning.set(true);
-    } else {
-      await shutdown();
-      isRunning.set(false);
-    }
-  } catch(e) {
-    console.error("Error launching/shutting down conductor", e);
-    addToast(`Error launching/shutting down conductor ${e.message}`, "error");
+  if(!get(isRunning)) {
+    await startInner();
+    isRunning.set(true)
+  } else {
+    await stopInner();
+    isRunning.set(false)
   }
   loadingLaunch.set(false);
 }
+
+const startInner = async () => {
+  try {
+    await start();
+  } catch(e) {
+    console.error("Error starting conductor", e);
+    addToast(`Error starting conductor ${e.message}`, "error");
+  }
+};
+
+const stopInner = async () => {
+  try {
+    await stop();
+  } catch(e) {
+    console.error("Error stopping conductor", e);
+    addToast(`Error stopping conductor ${e.message}`, "error");
+  }
+};
