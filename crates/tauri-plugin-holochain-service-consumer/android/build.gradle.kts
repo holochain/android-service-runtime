@@ -38,7 +38,7 @@ android {
 dependencies {
     // Subprojects
     implementation(project(":tauri-android"))
-    implementation(files("${projectDir}/lib/holochain-service-client-release.aar"))
+    implementation("org.holochain.androidserviceruntime:holochain-service-client:0.0.3")
     // Kotlin
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.appcompat:appcompat:1.6.0")
