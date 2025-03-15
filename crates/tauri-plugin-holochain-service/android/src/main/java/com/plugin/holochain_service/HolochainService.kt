@@ -127,7 +127,9 @@ class HolochainService : Service() {
         try {
             // Create the notification to display while the service is running
             val notification = NotificationCompat.Builder(this, "HolochainServiceChannel")
-                .setContentTitle("Holochain Conductor is Running")
+                .setContentTitle("Holochain Service Runtime")
+                .setContentText("Holochain Service is running")
+                .setSmallIcon(R.drawable.notification_icon_sm)
                 .build()
             startForeground(1, notification)
 

@@ -6,7 +6,7 @@ gradle
 .idea
 
 src/main/jniLibs/
-src/main/res/raw/
+src/main/res/raw/injectholochainclientenv.js
 src/main/**/*_ffi
 
 lib
