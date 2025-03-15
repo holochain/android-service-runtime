@@ -14,7 +14,7 @@
 
 <nav class="navbar bg-base-100 border-b-2 border-gray-300 fixed top-0 z-50">
   <div class="flex-1">
-    <span class="btn btn-ghost text-xl">Holochain Conductor Admin</span>
+    <span class="btn btn-ghost text-xl">Holochain Service Runtime</span>
   </div>
 </nav>
 
