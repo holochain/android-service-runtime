@@ -152,13 +152,11 @@ class HolochainService : Service() {
         // Shutdown conductor
         runBlocking {
             runtime?.stop()
-
-            runtime = null
-            runtimeAdminWebsocketPort = null
-
-            // Stop service
-            super.stopForeground(true)
-            stopSelf()
         }
+        runtime = null
+
+        // Stop service
+        super.stopForeground(true)
+        stopSelf()
     }
 }
