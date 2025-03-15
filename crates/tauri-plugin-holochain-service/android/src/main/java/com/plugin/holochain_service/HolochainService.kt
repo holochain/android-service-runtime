@@ -22,7 +22,6 @@ class HolochainService : Service() {
     public var runtime: RuntimeFfi? = null
 
     /// Holochain conductor admin websocket port
-    public var runtimeAdminWebsocketPort: UShort? = null
     private val TAG = "HolochainService"
 
     /// The IPC receiver that other activities can call into
@@ -147,7 +146,6 @@ class HolochainService : Service() {
         } catch (e: Exception) {
            Log.e(TAG, "Holochain failed to start $e")
         }
-        Log.d(TAG, "Admin Port: ${this.runtimeAdminWebsocketPort}")
     }
 
     fun stopForeground() {
