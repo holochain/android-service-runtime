@@ -7,3 +7,6 @@
     <div class="alert alert-{toast.status} text-xs text-left">{toast.text}</div>
   {/each}
 </div>
+
+<!-- This ensures that the alert-* tailwind classes are included in the css bundle-->
+<div class="alert-error alert-success alert-warning alert-info hidden"></div>
