@@ -69,7 +69,7 @@ class AppInfoStatusFfiParcel(val inner: @RawValue AppInfoStatusFfi): Parcelable
 class AppAuthenticationTokenIssuedFfiParcel(val inner: @RawValue AppAuthenticationTokenIssuedFfi): Parcelable
 
 @Parcelize
-class AppWebsocketFfiParcel(val inner: @RawValue AppWebsocketFfi): Parcelable
+class AppAuthFfiParcel(val inner: @RawValue AppAuthFfi): Parcelable
 
 @Parcelize
 class ZomeCallUnsignedFfiParcel(val inner: @RawValue ZomeCallUnsignedFfi): Parcelable

@@ -13,7 +13,6 @@ name = "uniffi-bindgen"
 path = "uniffi-bindgen.rs"
 
 [dependencies]
-holochain-conductor-runtime = { path = "../holochain-conductor-runtime" }
 holochain_conductor_api = { workspace = true }
 holochain_types = { workspace = true }
 uniffi = { workspace = true, features = ["cli", "tokio" ] }

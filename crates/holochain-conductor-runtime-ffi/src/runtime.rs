@@ -1,8 +1,9 @@
 use crate::error::RuntimeResultFfi;
 use android_logger::Config;
-use holochain_conductor_runtime::{move_to_locked_mem, Runtime};
+use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
 use holochain_conductor_runtime_types_ffi::*;
 use log::{debug, LevelFilter};
+use url2::Url2;
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
 #[derive(uniffi::Object, Clone)]
@@ -14,14 +15,22 @@ impl RuntimeFfi {
     pub async fn start(
         passphrase: Vec<u8>,
         runtime_config: RuntimeConfigFfi,
-    ) -> Self {
+    ) -> RuntimeResultFfi<Self> {
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
         debug!("RuntimeFfi::new");
 
         let passphrase_locked = move_to_locked_mem(passphrase).expect("Failed to move password to locked memoery");
-        let runtime = Runtime::new(passphrase_locked, runtime_config.try_into().expect("Failed to parse config")).await.expect("Failed to start conductor");
+        let runtime = Runtime::new(
+            passphrase_locked, 
+            RuntimeConfig {
+                data_root_path: runtime_config.data_root_path.into(),
+                bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
+                signal_url: Url2::try_parse(runtime_config.signal_url)?,
+            }
+        )
+        .await?;
 
-        Self(runtime)
+        Ok(Self(runtime))
     }
 
     /// Shutdown the holochain conductor
@@ -77,9 +86,14 @@ impl RuntimeFfi {
     pub async fn ensure_app_websocket(
         &self,
         installed_app_id: String,
-    ) -> RuntimeResultFfi<AppWebsocketFfi> {
+    ) -> RuntimeResultFfi<AppAuthFfi> {
         debug!("RuntimeFfi::ensure_app_websocket");
-        Ok(self.0.ensure_app_websocket(installed_app_id).await?.into())
+        let app_auth = self.0.ensure_app_websocket(installed_app_id).await?;
+        
+        Ok(AppAuthFfi {
+            authentication: app_auth.authentication.into(),
+            port: app_auth.port,
+        })
     }
 
     /// Sign a zome call
@@ -104,6 +118,7 @@ mod test {
     use std::time::UNIX_EPOCH;
     use tempfile::TempDir;
     use uuid::Uuid;
+    use crate::error::RuntimeErrorFfi;    
 
     const HAPP_FIXTURE: &[u8] = include_bytes!("../fixtures/forum.happ");
 

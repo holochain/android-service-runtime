@@ -11,7 +11,7 @@ Add the library to your dependencies list in your project's `build.gradle.kts`
 ```kotlin
 dependencies {
     ...
-    implementation("org.holochain.androidserviceruntime:holochain-service-client:0.0.3")
+    implementation("org.holochain.androidserviceruntime:holochain-service-client:0.0.5")
 }
 ```
 

@@ -2,7 +2,7 @@ package org.holochain.androidserviceruntime.holochain_service_client;
 
 parcelable InstallAppPayloadFfiParcel;
 parcelable AppInfoFfiParcel;
-parcelable AppWebsocketFfiParcel;
+parcelable AppAuthFfiParcel;
 parcelable ZomeCallUnsignedFfiParcel;
 parcelable ZomeCallFfiParcel;
 
@@ -14,6 +14,6 @@ interface IHolochainService {
     void disableApp(String installedAppId);
     List<AppInfoFfiParcel> listApps();
     boolean isAppInstalled(String installedAppId);
-    AppWebsocketFfiParcel ensureAppWebsocket(String installedAppId);
+    AppAuthFfiParcel ensureAppWebsocket(String installedAppId);
     ZomeCallFfiParcel signZomeCall(in ZomeCallUnsignedFfiParcel request);
 }

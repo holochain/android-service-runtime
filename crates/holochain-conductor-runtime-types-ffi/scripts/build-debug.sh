@@ -1,7 +1,7 @@
 #/usr/bin/env bash
 
 cargo ndk --manifest-path ./Cargo.toml -t arm64-v8a \
-  -o ../tauri-plugin-holochain-service/android/src/main/jniLibs \
+  -o ../../libraries/holochain-service-client/src/main/jniLibs/ \
   build
 
 cargo run --bin uniffi-bindgen generate \

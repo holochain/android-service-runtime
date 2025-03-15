@@ -11,7 +11,7 @@ import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainService
 import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
 import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.AppWebsocketFfiParcel
+import org.holochain.androidserviceruntime.holochain_service_client.AppAuthFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallFfiParcel
@@ -94,10 +94,10 @@ class HolochainService : Service() {
         }
 
         /// Get or create an app websocket with an authenticated token
-        override fun ensureAppWebsocket(installedAppId: String): AppWebsocketFfiParcel {
+        override fun ensureAppWebsocket(installedAppId: String): AppAuthFfiParcel {
             Log.d("IHolochainService", "ensureAppWebsocket")
             return runBlocking {
-                AppWebsocketFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!)
+                AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!)
             }
         }
 

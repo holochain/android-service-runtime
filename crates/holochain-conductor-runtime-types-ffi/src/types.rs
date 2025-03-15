@@ -4,7 +4,6 @@ use holochain_conductor_api::{
     AppAuthenticationTokenIssued, AppInfo, AppInfoStatus, CellInfo, ProvisionedCell, StemCell,
     ZomeCall,
 };
-use holochain_conductor_runtime::AppWebsocket;
 use holochain_types::{
     app::{
         AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload,
@@ -258,18 +257,9 @@ impl From<AppAuthenticationTokenIssued> for AppAuthenticationTokenIssuedFfi {
 }
 
 #[derive(uniffi::Record, Clone, Debug)]
-pub struct AppWebsocketFfi {
+pub struct AppAuthFfi {
     pub authentication: AppAuthenticationTokenIssuedFfi,
     pub port: u16,
-}
-
-impl From<AppWebsocket> for AppWebsocketFfi {
-    fn from(value: AppWebsocket) -> Self {
-        Self {
-            authentication: value.authentication.into(),
-            port: value.port,
-        }
-    }
 }
 
 #[derive(uniffi::Record, Clone)]
@@ -423,4 +413,16 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
             allow_throwaway_random_agent_key: false,
         })
     }
+}
+
+#[derive(uniffi::Record, Clone, Debug)]
+pub struct RuntimeConfigFfi {
+    /// Path where conductor data is stored
+    pub data_root_path: String,
+
+    /// URL of the bootstrap server
+    pub bootstrap_url: String,
+
+    /// URL of the sbd server
+    pub signal_url: String,
 }

@@ -75,7 +75,7 @@ class HolochainServiceClient(
     }
 
     /// Get or create an app websocket with authentication token
-    fun ensureAppWebsocket(installedAppId: String): AppWebsocketFfiParcel {
+    fun ensureAppWebsocket(installedAppId: String): AppAuthFfiParcel {
         return this.mService!!.ensureAppWebsocket(installedAppId)
     }
 
