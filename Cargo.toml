@@ -11,10 +11,10 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-holochain = "0.4.1"
-holochain_conductor_api = "0.4.1"
-holochain_types = "0.4.1"
-kitsune_p2p_types = "0.4.1"
+holochain = "0.4.2"
+holochain_conductor_api = "0.4.2"
+holochain_types = "0.4.2"
+kitsune_p2p_types = "0.4.2"
 sodoken = "0.0.11"
 url2 = "0.0.6"
 

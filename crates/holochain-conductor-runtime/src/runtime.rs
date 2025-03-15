@@ -242,7 +242,7 @@ mod test {
     async fn install_happ_fixture(runtime: Runtime, app_id: &str) -> AppInfo {
         runtime
             .install_app(InstallAppPayload {
-                source: AppBundleSource::Bundle(AppBundle::decode(HAPP_FIXTURE).unwrap()),
+                source: AppBundleSource::Bytes(HAPP_FIXTURE),
                 agent_key: None,
                 installed_app_id: Some(app_id.into()),
                 network_seed: Some(Uuid::new_v4().to_string()),
@@ -356,7 +356,7 @@ mod test {
 
         let res = runtime
             .install_app(InstallAppPayload {
-                source: AppBundleSource::Bundle(AppBundle::decode(HAPP_FIXTURE).unwrap()),
+                source: AppBundleSource::Bytes(HAPP_FIXTURE),
                 agent_key: None,
                 installed_app_id: Some("my-app-1".into()),
                 network_seed: Some(Uuid::new_v4().to_string()),

@@ -412,7 +412,7 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
     type Error = AppBundleError;
     fn try_into(self) -> Result<InstallAppPayload, Self::Error> {
         Ok(InstallAppPayload {
-            source: AppBundleSource::Bundle(AppBundle::decode(self.source.as_slice())?),
+            source: AppBundleSource::Bytes(self.source.as_slice()),
             agent_key: None,
             installed_app_id: self.installed_app_id,
             network_seed: self.network_seed,
