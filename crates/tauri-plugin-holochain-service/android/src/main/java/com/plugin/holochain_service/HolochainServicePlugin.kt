@@ -50,6 +50,10 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun start(invoke: Invoke) {
         Log.d(TAG, "start")
         this.serviceClient = HolochainServiceClient(
+            this.activity,
+            "com.plugin.holochain_service.HolochainService",
+            "org.holochain.androidserviceruntime.app"
+        )
         this.serviceClient.connect()
         invoke.resolve()
     }
