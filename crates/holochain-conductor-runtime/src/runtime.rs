@@ -227,7 +227,6 @@ mod test {
     use holochain::conductor::api::CellInfo::Provisioned;
     use holochain::conductor::api::ProvisionedCell;
     use holochain::conductor::config::KeystoreConfig;
-    use holochain_types::prelude::AppBundle;
     use holochain_types::prelude::AppBundleSource;
     use holochain_types::prelude::DisabledAppReason;
     use holochain_types::prelude::Nonce256Bits;

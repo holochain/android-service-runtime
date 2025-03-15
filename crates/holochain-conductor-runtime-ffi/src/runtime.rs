@@ -127,7 +127,7 @@ mod test {
         let bootstrap_url = "https://bootstrap.holo.host".to_string();
         let signal_url = "wss://sbd.holo.host".to_string();
 
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -146,7 +146,7 @@ mod test {
     async fn test_stop() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -167,7 +167,7 @@ mod test {
     async fn test_install_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -196,7 +196,7 @@ mod test {
     async fn test_uninstall_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -219,7 +219,7 @@ mod test {
     async fn test_enable_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -243,7 +243,7 @@ mod test {
     async fn test_disable_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -272,7 +272,7 @@ mod test {
     async fn test_list_apps() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -293,7 +293,7 @@ mod test {
     async fn test_is_app_installed() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -317,7 +317,7 @@ mod test {
     async fn sign_zome_call() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -361,7 +361,7 @@ mod test {
     async fn test_ensure_app_websocket() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -403,7 +403,7 @@ mod test {
     async fn test_api_err_bad_response() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
