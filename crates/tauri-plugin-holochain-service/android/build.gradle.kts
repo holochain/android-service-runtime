@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.parcelize")
 }
 
 android {
@@ -39,6 +38,7 @@ android {
 dependencies {
     // Subprojects
     implementation(project(":tauri-android"))
+    implementation("org.holochain.androidserviceruntime:holochain-service-client:0.0.5")
     // Kotlin
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.appcompat:appcompat:1.6.0")

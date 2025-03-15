@@ -1,4 +1,3 @@
-use crate::types::*;
 use bytes::Bytes;
 use serde::de::DeserializeOwned;
 use std::ops::Deref;
@@ -31,36 +30,6 @@ pub fn init<R: Runtime, C: DeserializeOwned>(
 pub struct HolochainServiceConsumer<R: Runtime>(pub PluginHandle<R>);
 
 impl<R: Runtime> HolochainServiceConsumer<R> {
-    pub fn is_app_installed(&self, app_id: &str) -> crate::Result<bool> {
-        let res: IsAppInstalledResponse = self.0.run_mobile_plugin(
-            "isAppInstalled",
-            AppIdRequestArgs {
-                app_id: app_id.to_string(),
-            },
-        )?;
-        Ok(res.installed)
-    }
-
-    pub fn install_app(&self, payload: InstallAppRequestArgs) -> crate::Result<()> {
-        Ok(self.0.run_mobile_plugin("installApp", payload)?)
-    }
-
-    pub fn ensure_app_websocket(&self, app_id: &str) -> crate::Result<AppWebsocketAuthResponse> {
-        Ok(self.0.run_mobile_plugin(
-            "ensureAppWebsocket",
-            AppIdRequestArgs {
-                app_id: app_id.to_string(),
-            },
-        )?)
-    }
-
-    pub fn sign_zome_call(
-        &self,
-        payload: SignZomeCallRequestArgs,
-    ) -> crate::Result<SignZomeCallResponse> {
-        Ok(self.0.run_mobile_plugin("signZomeCall", payload)?)
-    }
-
     /// Build a window that opens the main UI for your Tauri app.
     /// This is equivalent to creating a window with `WebviewUrl::App(PathBuf::from("index.html"))`.
     ///
@@ -77,7 +46,7 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
         network_seed: String,
     ) -> tauri::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
         let label = "main";
-        let mut window_builder =
+        let window_builder =
             WebviewWindowBuilder::new(self.0.app(), label, WebviewUrl::App("".into()))
                 .initialization_script(include_str!("../dist-js/holochain-env/index.min.js"))
                 // Workaround that runs the setup script after a brief delay, to wait for window.__TAURI_INTERNALS__ to be defined

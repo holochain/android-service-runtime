@@ -10,7 +10,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@holochain/client": "0.17.1",
+    "@holochain/client": "0.18.0",
     "@msgpack/msgpack": "2.8.0",
     "@tauri-apps/api": "^2.2.0",
     "tauri-plugin-holochain-service-api": "link:../../crates/tauri-plugin-holochain-service"

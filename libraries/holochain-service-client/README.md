@@ -1,0 +1,40 @@
+# Holochain Service Client
+
+A client library for calling the HolochainService which is exposed for IPC binding in the `android-service-runtime` Android app.
+
+This library can be used by other projects that wish to use the holochain conductor bundled in the `android-service-runtime` app.
+
+## How to Use in an Android App
+
+Add the library to your dependencies list in your project's `build.gradle.kts`
+
+```kotlin
+dependencies {
+    ...
+    implementation("org.holochain.androidserviceruntime:holochain-service-client:0.0.5")
+}
+```
+
+## Development
+
+### Authorize Publishing to Maven Central
+1. Copy `gradle.properties.example` to `gradle.properties`
+2. Create Maven Central account at https://central.sonatype.com
+    1. Generate a User Token
+    2. Set `mavenCentralUsername` and `mavenCentralPassword` in `gradle.properties` to the displayed username and password
+3. Ensure your Maven Central account has permissions to the `org.holochain` namespace (you'll need to ask someone else who has permission).
+3. Create signing key
+    1. Create a key with: `gpg --gen-key`
+    2. Retrieve your Key Id in short format with: `gpg --list-keys --keyid-format=short`
+    3. Publish your public key to keyserver with: `gpg --keyserver keys.openpgp.org --send-keys <YOUR KEY ID>`
+4. Export the signing private key to a file with: `gpg --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg`
+5. Add signing key to `gradle.properties`
+    1. Set `signing.keyId` to your public Key Id in in short format
+    2. Set `signing.password` to the key password
+    3. Set `signing.secretKeyRingFile` to the path to your exported private key file
+
+### Publish to Maven Central
+
+1. Update the version number in `build.gradle.kts`, under `mavenPublishing` > `coordinates`
+
+2. Run the gradle command to publish: `./gradlew publishAllPublicationsToMavenCentralRepository`

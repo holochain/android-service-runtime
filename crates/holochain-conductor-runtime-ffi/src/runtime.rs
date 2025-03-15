@@ -1,9 +1,9 @@
 use crate::error::RuntimeResultFfi;
-use crate::types::{AppInfoFfi, InstallAppPayloadFfi, ZomeCallFfi, ZomeCallUnsignedFfi};
-use crate::{config::RuntimeConfigFfi, types::AppWebsocketFfi};
 use android_logger::Config;
-use holochain_conductor_runtime::{move_to_locked_mem, Runtime};
+use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
+use holochain_conductor_runtime_types_ffi::*;
 use log::{debug, LevelFilter};
+use url2::Url2;
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
 #[derive(uniffi::Object, Clone)]
@@ -12,15 +12,23 @@ pub struct RuntimeFfi(Runtime);
 #[uniffi::export(async_runtime = "tokio")]
 impl RuntimeFfi {
     #[uniffi::constructor]
-    pub async fn new(
+    pub async fn start(
         passphrase: Vec<u8>,
         runtime_config: RuntimeConfigFfi,
     ) -> RuntimeResultFfi<Self> {
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
         debug!("RuntimeFfi::new");
 
-        let passphrase_locked = move_to_locked_mem(passphrase)?;
-        let runtime = Runtime::new(passphrase_locked, runtime_config.try_into()?).await?;
+        let passphrase_locked = move_to_locked_mem(passphrase).expect("Failed to move password to locked memoery");
+        let runtime = Runtime::new(
+            passphrase_locked, 
+            RuntimeConfig {
+                data_root_path: runtime_config.data_root_path.into(),
+                bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
+                signal_url: Url2::try_parse(runtime_config.signal_url)?,
+            }
+        )
+        .await?;
 
         Ok(Self(runtime))
     }
@@ -78,9 +86,14 @@ impl RuntimeFfi {
     pub async fn ensure_app_websocket(
         &self,
         installed_app_id: String,
-    ) -> RuntimeResultFfi<AppWebsocketFfi> {
+    ) -> RuntimeResultFfi<AppAuthFfi> {
         debug!("RuntimeFfi::ensure_app_websocket");
-        Ok(self.0.ensure_app_websocket(installed_app_id).await?.into())
+        let app_auth = self.0.ensure_app_websocket(installed_app_id).await?;
+        
+        Ok(AppAuthFfi {
+            authentication: app_auth.authentication.into(),
+            port: app_auth.port,
+        })
     }
 
     /// Sign a zome call
@@ -100,14 +113,12 @@ impl RuntimeFfi {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::config::*;
-    use crate::error::*;
-    use crate::types::*;
     use std::collections::HashMap;
     use std::time::SystemTime;
     use std::time::UNIX_EPOCH;
     use tempfile::TempDir;
     use uuid::Uuid;
+    use crate::error::RuntimeErrorFfi;    
 
     const HAPP_FIXTURE: &[u8] = include_bytes!("../fixtures/forum.happ");
 
@@ -131,7 +142,7 @@ mod test {
         let bootstrap_url = "https://bootstrap.holo.host".to_string();
         let signal_url = "wss://sbd.holo.host".to_string();
 
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -150,7 +161,7 @@ mod test {
     async fn test_stop() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -171,7 +182,7 @@ mod test {
     async fn test_install_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -200,7 +211,7 @@ mod test {
     async fn test_uninstall_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -223,7 +234,7 @@ mod test {
     async fn test_enable_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -247,7 +258,7 @@ mod test {
     async fn test_disable_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -276,7 +287,7 @@ mod test {
     async fn test_list_apps() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -297,7 +308,7 @@ mod test {
     async fn test_is_app_installed() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -321,7 +332,7 @@ mod test {
     async fn sign_zome_call() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -365,7 +376,7 @@ mod test {
     async fn test_ensure_app_websocket() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
@@ -407,7 +418,7 @@ mod test {
     async fn test_api_err_bad_response() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
-        let runtime = RuntimeFfi::new(
+        let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,

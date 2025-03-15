@@ -35,12 +35,12 @@ export interface AppInfo {
 }
 
 
-export async function launch(): Promise<string | null> {
-  return await invoke('plugin:holochain-service|launch');
+export async function start(): Promise<string | null> {
+  return await invoke('plugin:holochain-service|start');
 }
 
-export async function shutdown(): Promise<string | null> {
-  return await invoke('plugin:holochain-service|shutdown');
+export async function stop(): Promise<string | null> {
+  return await invoke('plugin:holochain-service|stop');
 }
 
 export async function installApp(request: {
@@ -53,26 +53,26 @@ export async function installApp(request: {
   return await invoke('plugin:holochain-service|install_app', request);
 }
 
-export async function uninstallApp(appId: string): Promise<null> {
-  return await invoke('plugin:holochain-service|uninstall_app', { appId });
+export async function uninstallApp(installedAppId: string): Promise<null> {
+  return await invoke('plugin:holochain-service|uninstall_app', { installedAppId });
 }
 
-export async function enableApp(appId: string): Promise<null> {
-  return await invoke('plugin:holochain-service|enable_app', { appId });
+export async function enableApp(installedAppId: string): Promise<null> {
+  return await invoke('plugin:holochain-service|enable_app', { installedAppId });
 }
 
-export async function disableApp(appId: string): Promise<null> {
-  return await invoke('plugin:holochain-service|disable_app', { appId });
+export async function disableApp(installedAppId: string): Promise<null> {
+  return await invoke('plugin:holochain-service|disable_app', { installedAppId });
 }
 
-export async function listInstalledApps(): Promise<AppInfo[]> {
-  return await invoke<{installedApps: AppInfo[]}>('plugin:holochain-service|list_installed_apps').then((r) => (r.installedApps ? r.installedApps : []));
+export async function listApps(): Promise<AppInfo[]> {
+  return await invoke<{installedApps: AppInfo[]}>('plugin:holochain-service|list_apps').then((r) => (r.installedApps ? r.installedApps : []));
 }
 
-export async function isAppInstalled(appId: string): Promise<boolean> {
-  return await invoke<{installed: boolean}>('plugin:holochain-service|is_app_installed').then((r) => (r.installed));
+export async function isAppInstalled(installedAppId: string): Promise<boolean> {
+  return await invoke<{installed: boolean}>('plugin:holochain-service|is_app_installed', { installedAppId }).then((r) => (r.installed));
 }
 
-export async function ensureAppWebsocket(appId: string): Promise<{appId: string, port: number, token: Uint8Array} | null> {
-  return await invoke<{ensureAppWebsocket: {appId: string, port: number, token: Uint8Array}}>('plugin:holochain-service|ensure_app_websocket', { appId }).then((r) => (r.ensureAppWebsocket ? r.ensureAppWebsocket : null));
+export async function ensureAppWebsocket(installedAppId: string): Promise<{installedAppId: string, port: number, token: Uint8Array} | null> {
+  return await invoke<{ensureAppWebsocket: {installedAppId: string, port: number, token: Uint8Array}}>('plugin:holochain-service|ensure_app_websocket', { installedAppId }).then((r) => (r.ensureAppWebsocket ? r.ensureAppWebsocket : null));
 }

@@ -3,7 +3,7 @@
   import BaseLoadingToggle from "../components/BaseLoadingToggle.svelte";
 </script>
 
-<h4 class="mx-4">Status</h4>
+<h4 class="mx-4">Service Status</h4>
 <div class="p-4 bg-base-200 flex justify-between items-center">
   <h3 class="m-0">{$isRunning ? 'Running' : 'Stoppped' }</h3>
   <BaseLoadingToggle loading={$loadingLaunch} value={$isRunning} on:toggle={() => toggleLaunch()} />

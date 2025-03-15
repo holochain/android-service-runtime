@@ -1,0 +1,22 @@
+[package]
+name = "holochain-conductor-runtime-types-ffi"
+version = "0.1.0"
+edition = "2021"
+
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+name = "holochain_conductor_runtime_types_ffi"
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
+
+[dependencies]
+holochain_conductor_api = { workspace = true }
+holochain_types = { workspace = true }
+uniffi = { workspace = true, features = ["cli", "tokio" ] }
+url2 = { workspace = true }
+
+[build-dependencies]
+uniffi = { workspace = true, features = ["build"] }

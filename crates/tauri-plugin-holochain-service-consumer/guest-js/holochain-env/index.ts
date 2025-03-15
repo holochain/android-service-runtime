@@ -4,11 +4,11 @@
 import { encode } from '@msgpack/msgpack';
 import { type CallZomeRequest, type CallZomeRequestSigned } from '@holochain/client';
 
-function injectHolochainClientEnv(appId: string, appWebsocketPort: number, appToken: Uint8Array) {
+function injectHolochainClientEnv(installedAppId: string, port: number, token: Uint8Array) {
   (window as any).__HC_LAUNCHER_ENV__ = {
-    APP_INTERFACE_PORT: appWebsocketPort,
-    INSTALLED_APP_ID: appId,
-    APP_INTERFACE_TOKEN: appToken
+    INSTALLED_APP_ID: installedAppId,
+    APP_INTERFACE_PORT: port,
+    APP_INTERFACE_TOKEN: token
   };
 
   (window as any).__HC_ZOME_CALL_SIGNER__ = {
@@ -19,8 +19,7 @@ function injectHolochainClientEnv(appId: string, appWebsocketPort: number, appTo
 
         const zomeCallUnsigned = {
             provenance: request.provenance,
-            cellIdDnaHash: request.cell_id[0],
-            cellIdAgentPubKey: request.cell_id[1],
+            cellIdDnaHash: request.cell_id,
             zomeName: request.zome_name,
             fnName: request.fn_name,
             capSecret: null,
@@ -49,22 +48,22 @@ function injectHolochainClientEnv(appId: string, appWebsocketPort: number, appTo
 (window as any).injectHolochainClientEnv = injectHolochainClientEnv;
 
 // Define function to install app, get app websocket, and inject magic config variables
-async function setupApp(appId: string, appBundleBytes: number[], networkSeed: string) {
+async function setupApp(installedAppId: string, source: number[], networkSeed: string) {
   if (window.location.origin !== 'http://tauri.localhost') return;
 
   // Check if happ is installed
-  const { installed } = await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|is_app_installed', { appId });
+  const { installed } = await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|is_app_installed', { installedAppId });
   
   // Install happ if not already
   if(!installed) {
-    await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|install_app', { appId, appBundleBytes, membraneProofs: {}, networkSeed });
+    await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|install_app', { installedAppId, source, roleSettings: {}, networkSeed });
   }
   
   // Setup app websocket
-  const { port, token } = await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|ensure_app_websocket', { appId });
+  const { port, token } = await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|ensure_app_websocket', { installedAppId });
 
   // Inject magic configuration variables used by @holochain/client 
-  injectHolochainClientEnv(appId, port, token);
+  injectHolochainClientEnv(installedAppId, port, token);
 }
 
 (window as any).setupApp = setupApp;

@@ -6,6 +6,8 @@ The Foreground Service can run persistently, even when the app is closed, ensuri
 
 ## Build
 
+- Copy `src-tauri/gen/android/key.properties.example` to `src-tauri/gen/android/key.properties` and fill in the values
+
 ### Build as a Standalone User App
 
 By default, this will be built as a standard user app that only appears in the App Grid. 

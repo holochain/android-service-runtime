@@ -8,18 +8,14 @@ pub enum RuntimeErrorFfi {
     #[error(transparent)]
     Runtime(#[from] RuntimeError),
 
+    #[error("Runtime is not started")]
+    RuntimeNotStarted,
+
     #[error(transparent)]
-    Config(#[from] RuntimeConfigErrorFfi),
+    Config(#[from] Url2Error),
 
     #[error(transparent)]
     DecodeAppBundle(#[from] AppBundleError),
-}
-
-#[derive(uniffi::Error, thiserror::Error, Debug)]
-#[uniffi(flat_error)]
-pub enum RuntimeConfigErrorFfi {
-    #[error(transparent)]
-    Url2Error(#[from] Url2Error),
 }
 
 pub type RuntimeResultFfi<T> = Result<T, RuntimeErrorFfi>;

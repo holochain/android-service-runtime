@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { launch, shutdown, installApp, listInstalledApps, ensureAppWebsocket, uninstallApp, enableApp, disableApp, type AppInfo } from "tauri-plugin-holochain-service-api";
+  import { launch, shutdown, installApp, listApps, ensureAppWebsocket, uninstallApp, enableApp, disableApp, type AppInfo } from "tauri-plugin-holochain-service-api";
   import Labelled from './Labelled.svelte';
   import happUrl from "./forum.happ?url";
   import { AppWebsocket } from "@holochain/client";
@@ -19,7 +19,7 @@
     appWs = await AppWebsocket.connect();
   };
   const loadInstalledApps = async () => {
-    installedApps = await listInstalledApps();
+    installedApps = await listApps();
   };
   const installForumApp = async () => installApp({
       appId,

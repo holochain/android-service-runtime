@@ -20,10 +20,10 @@ keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
     compileSdk = 34
-    namespace = "com.holochain_apps.android_service_runtime"
+    namespace = "org.holochain.androidserviceruntime.app"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "true"
-        applicationId = "com.holochain_apps.android_service_runtime"
+        applicationId = "org.holochain.androidserviceruntime.app"
         minSdk = 27
         targetSdk = 34
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()

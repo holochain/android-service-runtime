@@ -12,18 +12,16 @@ name = "holochain_conductor_runtime_ffi"
 name = "uniffi-bindgen"
 path = "uniffi-bindgen.rs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-uniffi = { workspace = true, features = ["cli", "tokio" ] }
 holochain-conductor-runtime = { path = "../holochain-conductor-runtime" }
+holochain-conductor-runtime-types-ffi = { path = "../holochain-conductor-runtime-types-ffi" }
 holochain_conductor_api = { workspace = true }
 holochain_types = { workspace = true }
-
-thiserror = { workspace = true }
-url2 = { workspace = true }
 log = { workspace = true }
 android_logger = { workspace = true }
+uniffi = { workspace = true, features = ["cli", "tokio" ] }
+thiserror = { workspace = true }
+url2 = { workspace = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

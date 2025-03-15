@@ -18,7 +18,7 @@
 		"@msgpack/msgpack": "2.8.0",
 		"@tauri-apps/api": "^2.0.0-alpha.11",
 		"lodash": "^4.17.21",
-		"tauri-plugin-holochain-service-api": "link:../p2p-shipyard/crates/tauri-plugin-holochain-service",
+		"tauri-plugin-holochain-service-api": "link:../../crates/tauri-plugin-holochain-service",
 		"uuid": "^10.0.0"
 	},
 	"devDependencies": {

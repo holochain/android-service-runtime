@@ -1,17 +1,13 @@
 #![cfg(mobile)]
 
+mod error;
+mod mobile;
+
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Manager, Runtime,
 };
-
-mod error;
-mod mobile;
-mod types;
-
 pub use error::{Error, Result};
-pub use types::*;
-
 use mobile::HolochainServiceConsumer;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the holochain-service APIs.

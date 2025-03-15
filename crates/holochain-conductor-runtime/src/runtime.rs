@@ -15,18 +15,18 @@ use std::sync::{Arc, RwLock};
 
 /// An app websocket port with an authentication token
 #[derive(Clone, Debug)]
-pub struct AppWebsocket {
+pub struct AppAuth {
     pub authentication: AppAuthenticationTokenIssued,
     pub port: u16,
 }
 
-pub type AppWebsockets = Arc<RwLock<HashMap<InstalledAppId, AppWebsocket>>>;
+pub type AppAuths = Arc<RwLock<HashMap<InstalledAppId, AppAuth>>>;
 
 /// Slim wrapper around holochain Conductor with calls wrapping AdminInterfaceApi requests
 #[derive(Clone)]
 pub struct Runtime {
     conductor: ConductorHandle,
-    app_websockets: AppWebsockets,
+    app_auths: AppAuths,
 }
 
 impl Runtime {
@@ -55,7 +55,7 @@ impl Runtime {
 
         Ok(Self {
             conductor,
-            app_websockets: Arc::new(RwLock::new(HashMap::new())),
+            app_auths: Arc::new(RwLock::new(HashMap::new())),
         })
     }
 
@@ -153,9 +153,9 @@ impl Runtime {
     pub async fn ensure_app_websocket(
         &self,
         installed_app_id: InstalledAppId,
-    ) -> RuntimeResult<AppWebsocket> {
-        let app_websockets = self.app_websockets.read().unwrap().clone();
-        match app_websockets.get(&installed_app_id) {
+    ) -> RuntimeResult<AppAuth> {
+        let app_auths = self.app_auths.read().unwrap().clone();
+        match app_auths.get(&installed_app_id) {
             Some(app_websocket) => Ok(app_websocket.clone()),
             None => {
                 let authentication = self
@@ -168,15 +168,15 @@ impl Runtime {
                 let port = self
                     .attach_app_interface(None, AllowedOrigins::Any, Some(installed_app_id.clone()))
                     .await?;
-                let websocket = AppWebsocket {
+                let app_auth = AppAuth {
                     authentication,
                     port,
                 };
 
-                let mut app_websockets = self.app_websockets.write().unwrap();
-                app_websockets.insert(installed_app_id, websocket.clone());
+                let mut app_auths = self.app_auths.write().unwrap();
+                app_auths.insert(installed_app_id, app_auth.clone());
 
-                Ok(websocket)
+                Ok(app_auth)
             }
         }
     }
@@ -227,7 +227,6 @@ mod test {
     use holochain::conductor::api::CellInfo::Provisioned;
     use holochain::conductor::api::ProvisionedCell;
     use holochain::conductor::config::KeystoreConfig;
-    use holochain_types::prelude::AppBundle;
     use holochain_types::prelude::AppBundleSource;
     use holochain_types::prelude::DisabledAppReason;
     use holochain_types::prelude::Nonce256Bits;
@@ -242,7 +241,7 @@ mod test {
     async fn install_happ_fixture(runtime: Runtime, app_id: &str) -> AppInfo {
         runtime
             .install_app(InstallAppPayload {
-                source: AppBundleSource::Bundle(AppBundle::decode(HAPP_FIXTURE).unwrap()),
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
                 agent_key: None,
                 installed_app_id: Some(app_id.into()),
                 network_seed: Some(Uuid::new_v4().to_string()),
@@ -356,7 +355,7 @@ mod test {
 
         let res = runtime
             .install_app(InstallAppPayload {
-                source: AppBundleSource::Bundle(AppBundle::decode(HAPP_FIXTURE).unwrap()),
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
                 agent_key: None,
                 installed_app_id: Some("my-app-1".into()),
                 network_seed: Some(Uuid::new_v4().to_string()),
@@ -554,8 +553,8 @@ mod test {
             .await
             .unwrap();
         let app_websocket_3 = {
-            let all_app_websockets = runtime.app_websockets.read().unwrap();
-            all_app_websockets.get("my-app-1").unwrap().clone()
+            let all_app_auths = runtime.app_auths.read().unwrap();
+            all_app_auths.get("my-app-1").unwrap().clone()
         };
         assert_eq!(app_websocket.port, app_websocket_2.port);
         assert_eq!(

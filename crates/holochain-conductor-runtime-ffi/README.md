@@ -2,7 +2,7 @@
 
 This crate is a wrapper around p2p-shipyard's `holochain_runtime`, with minimal functionality necessary to expose basic holochain management functions, for generating FFI bindings for those functions.
 
-It generates FFI bindings for swift and kotline.
+It generates FFI bindings for Kotlin.
 
 ## Building
 
