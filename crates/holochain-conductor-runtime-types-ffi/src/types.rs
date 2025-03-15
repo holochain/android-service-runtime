@@ -7,7 +7,7 @@ use holochain_conductor_api::{
 use holochain_conductor_runtime::AppWebsocket;
 use holochain_types::{
     app::{
-        AppBundle, AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload,
+        AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload,
         PausedAppReason, RoleSettings,
     },
     dna::{
@@ -412,7 +412,7 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
     type Error = AppBundleError;
     fn try_into(self) -> Result<InstallAppPayload, Self::Error> {
         Ok(InstallAppPayload {
-            source: AppBundleSource::Bytes(self.source.as_slice()),
+            source: AppBundleSource::Bytes(self.source),
             agent_key: None,
             installed_app_id: self.installed_app_id,
             network_seed: self.network_seed,
