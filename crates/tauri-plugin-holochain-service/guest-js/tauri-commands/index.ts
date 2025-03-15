@@ -35,12 +35,12 @@ export interface AppInfo {
 }
 
 
-export async function launch(): Promise<string | null> {
-  return await invoke('plugin:holochain-service|launch');
+export async function start(): Promise<string | null> {
+  return await invoke('plugin:holochain-service|start');
 }
 
-export async function shutdown(): Promise<string | null> {
-  return await invoke('plugin:holochain-service|shutdown');
+export async function stop(): Promise<string | null> {
+  return await invoke('plugin:holochain-service|stop');
 }
 
 export async function installApp(request: {
@@ -66,7 +66,7 @@ export async function disableApp(installedAppId: string): Promise<null> {
 }
 
 export async function listApps(): Promise<AppInfo[]> {
-  return await invoke<{installedApps: AppInfo[]}>('plugin:holochain-service|list_installed_apps').then((r) => (r.installedApps ? r.installedApps : []));
+  return await invoke<{installedApps: AppInfo[]}>('plugin:holochain-service|list_apps').then((r) => (r.installedApps ? r.installedApps : []));
 }
 
 export async function isAppInstalled(installedAppId: string): Promise<boolean> {
