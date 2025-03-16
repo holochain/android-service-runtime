@@ -7,6 +7,10 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainService
 import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
@@ -21,8 +25,9 @@ class HolochainService : Service() {
     /// The uniffi-generated holochain runtime bindings
     public var runtime: RuntimeFfi? = null
 
-    /// Holochain conductor admin websocket port
     private val TAG = "HolochainService"
+    private val supervisorJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(supervisorJob)
 
     /// The IPC receiver that other activities can call into
     @OptIn(DelicateCoroutinesApi::class, ExperimentalUnsignedTypes::class)
@@ -33,6 +38,12 @@ class HolochainService : Service() {
         override fun stop() {
             Log.d(TAG, "shutdown")
             stopForeground()
+        }
+
+        /// Is the conductor started and ready to receive calls
+        override fun isReady(): Boolean {
+            Log.d(TAG, "isReady")
+            return runtime != null
         }
         
         /// Install an app
@@ -139,10 +150,11 @@ class HolochainService : Service() {
                 "https://bootstrap-0.infra.holochain.org",
                 "wss://sbd.holo.host",
             );
-            this.runtime = runBlocking {
-                RuntimeFfi.start(passphrase, config)
+            
+            serviceScope.launch(Dispatchers.Default) {
+                runtime = RuntimeFfi.start(passphrase, config)
+                Log.d(TAG, "Holochain started successfully")
             }
-            Log.d(TAG, "Holochain started successfully")
         } catch (e: Exception) {
            Log.e(TAG, "Holochain failed to start $e")
         }

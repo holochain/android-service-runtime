@@ -42,6 +42,11 @@ class HolochainServiceClient(
     fun stop() {
         this.mService!!.stop()
     }
+        
+    /// Is the service ready to receive calls
+    fun isReady(): Boolean {
+        return this.mService!!.isReady()
+    }
 
     /// Install an app
     fun installApp(payload: InstallAppPayloadFfiParcel): AppInfoFfiParcel {

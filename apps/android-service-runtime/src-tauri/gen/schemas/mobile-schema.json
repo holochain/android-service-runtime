@@ -1737,6 +1737,11 @@
           "const": "holochain-service:allow-is-app-installed"
         },
         {
+          "description": "Enables the is_ready command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:allow-is-ready"
+        },
+        {
           "description": "Enables the list_apps command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:allow-list-apps"
@@ -1785,6 +1790,11 @@
           "description": "Denies the is_app_installed command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-is-app-installed"
+        },
+        {
+          "description": "Denies the is_ready command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service:deny-is-ready"
         },
         {
           "description": "Denies the list_apps command without any pre-configured scope.",

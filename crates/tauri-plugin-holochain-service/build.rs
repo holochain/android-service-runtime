@@ -1,6 +1,7 @@
 const COMMANDS: &[&str] = &[
     "start",
     "stop",
+    "is_ready",
     "install_app",
     "uninstall_app",
     "enable_app",

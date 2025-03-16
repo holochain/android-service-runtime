@@ -1,8 +1,9 @@
 import { writable, get } from 'svelte/store';
-import { start, stop, enableApp, disableApp, uninstallApp, listApps, type AppInfo } from "tauri-plugin-holochain-service-api";
+import { start, stop, isReady, enableApp, disableApp, uninstallApp, listApps, type AppInfo } from "tauri-plugin-holochain-service-api";
 import { sortBy } from 'lodash';
 import { addToast } from './toasts';
 import { tick } from 'svelte';
+import retry from 'async-retry';
 
 function repaint() {
   return new Promise<void>(resolve =>
@@ -80,6 +81,14 @@ export const toggleLaunch = async () => {
 const startInner = async () => {
   try {
     await start();
+    await retry(async () => {
+      const ready = await isReady();
+      if(!ready) throw new Error("Conductor not ready");
+    }, {
+      retries: 500,
+      factor: 1,
+      minTimeout: 500
+    });
   } catch(e) {
     console.error("Error starting conductor", e);
     addToast(`Error starting conductor ${e.message}`, "error");
