@@ -8,6 +8,7 @@ parcelable ZomeCallFfiParcel;
 
 interface IHolochainService {
     void stop();
+    boolean isReady();
     AppInfoFfiParcel installApp(in InstallAppPayloadFfiParcel request);
     void uninstallApp(String installedAppId);
     AppInfoFfiParcel enableApp(String installedAppId);

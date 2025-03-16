@@ -43,6 +43,10 @@ export async function stop(): Promise<string | null> {
   return await invoke('plugin:holochain-service|stop');
 }
 
+export async function isReady(): Promise<boolean> {
+  return await invoke<{ready: boolean}>('plugin:holochain-service|is_ready').then((r) => (r.ready));
+}
+
 export async function installApp(request: {
   appId: string,
   appBundleBytes: Uint8Array,

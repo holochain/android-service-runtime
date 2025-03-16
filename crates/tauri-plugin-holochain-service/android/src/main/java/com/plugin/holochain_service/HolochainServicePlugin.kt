@@ -57,7 +57,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         this.serviceClient.connect()
         invoke.resolve()
     }
-    
+
     /**
      * Shutdown the service
      */
@@ -66,6 +66,18 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         Log.d(TAG, "stop")
         this.serviceClient.stop()
         invoke.resolve()
+    }
+
+    /**
+     * Is service ready to receive calls
+     */
+    @Command
+    fun isReady(invoke: Invoke) {
+        Log.d(TAG, "isReady")
+        val res = this.serviceClient.isReady()
+        val obj = JSObject()
+        obj.put("ready", res)
+        invoke.resolve(obj)
     }
 
     /**

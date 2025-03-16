@@ -345,6 +345,16 @@
           "const": "deny-is-app-installed"
         },
         {
+          "description": "Enables the is_ready command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-is-ready"
+        },
+        {
+          "description": "Denies the is_ready command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-is-ready"
+        },
+        {
           "description": "Enables the list_apps command without any pre-configured scope.",
           "type": "string",
           "const": "allow-list-apps"
