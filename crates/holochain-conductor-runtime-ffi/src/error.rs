@@ -12,7 +12,7 @@ pub enum RuntimeErrorFfi {
     RuntimeNotStarted,
 
     #[error(transparent)]
-    Config(#[from] Url2Error),
+    Config(#[from] RuntimeConfigErrorFfi),
 
     #[error(transparent)]
     DecodeAppBundle(#[from] AppBundleError),
@@ -24,8 +24,5 @@ pub type RuntimeResultFfi<T> = Result<T, RuntimeErrorFfi>;
 #[uniffi(flat_error)]
 pub enum RuntimeConfigErrorFfi {
     #[error(transparent)]
-    InvalidBootstrapUrl(#[from] Url2Error),
-
-    #[error(transparent)]
-    InvalidSignalUrl(#[from] Url2Error),
+    InvalidUrl(#[from] Url2Error),
 }

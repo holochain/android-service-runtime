@@ -1,6 +1,6 @@
 use crate::error::RuntimeConfigErrorFfi;
 use holochain_conductor_runtime::RuntimeConfig;
-use url2::{Url2, Url2Error};
+use url2::Url2;
 
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct RuntimeConfigFfi {
@@ -19,10 +19,8 @@ impl TryInto<RuntimeConfig> for RuntimeConfigFfi {
     fn try_into(self) -> Result<RuntimeConfig, Self::Error> {
         Ok(RuntimeConfig {
             data_root_path: self.data_root_path.into(),
-            bootstrap_url: Url2::try_parse(self.bootstrap_url)
-                .map_err(RuntimeConfigErrorFfi::InvalidBootstrapUrl)?,
-            signal_url: Url2::try_parse(self.signal_url)
-                .map_err(RuntimeConfigErrorFfi::InvalidSignalUrl)?,
+            bootstrap_url: Url2::try_parse(self.bootstrap_url)?,
+            signal_url: Url2::try_parse(self.signal_url)?,
         })
     }
 }

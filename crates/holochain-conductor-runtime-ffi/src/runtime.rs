@@ -1,7 +1,7 @@
 use crate::error::RuntimeResultFfi;
 use crate::config::RuntimeConfigFfi;
 use android_logger::Config;
-use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
+use holochain_conductor_runtime::{move_to_locked_mem, Runtime};
 use holochain_conductor_runtime_types_ffi::*;
 use log::{debug, LevelFilter};
 
