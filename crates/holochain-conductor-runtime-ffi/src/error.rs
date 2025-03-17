@@ -19,3 +19,13 @@ pub enum RuntimeErrorFfi {
 }
 
 pub type RuntimeResultFfi<T> = Result<T, RuntimeErrorFfi>;
+
+#[derive(uniffi::Error, thiserror::Error, Debug)]
+#[uniffi(flat_error)]
+pub enum RuntimeConfigErrorFfi {
+    #[error(transparent)]
+    InvalidBootstrapUrl(#[from] Url2Error),
+
+    #[error(transparent)]
+    InvalidSignalUrl(#[from] Url2Error),
+}

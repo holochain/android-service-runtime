@@ -1,9 +1,9 @@
 use crate::error::RuntimeResultFfi;
+use crate::config::RuntimeConfigFfi;
 use android_logger::Config;
 use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
 use holochain_conductor_runtime_types_ffi::*;
 use log::{debug, LevelFilter};
-use url2::Url2;
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
 #[derive(uniffi::Object, Clone)]
@@ -22,11 +22,7 @@ impl RuntimeFfi {
         let passphrase_locked = move_to_locked_mem(passphrase).expect("Failed to move password to locked memoery");
         let runtime = Runtime::new(
             passphrase_locked, 
-            RuntimeConfig {
-                data_root_path: runtime_config.data_root_path.into(),
-                bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
-                signal_url: Url2::try_parse(runtime_config.signal_url)?,
-            }
+            runtime_config.try_into()?,
         )
         .await?;
 
