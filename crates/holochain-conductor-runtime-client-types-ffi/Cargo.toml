@@ -6,7 +6,7 @@ edition = "2021"
 
 [lib]
 crate-type = ["lib", "cdylib", "staticlib"]
-name = "holochain_conductor_runtime_types_ffi"
+name = "holochain_conductor_runtime_client_types_ffi"
 
 [[bin]]
 name = "uniffi-bindgen"

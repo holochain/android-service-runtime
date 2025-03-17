@@ -2,7 +2,7 @@ use crate::error::RuntimeResultFfi;
 use crate::config::RuntimeConfigFfi;
 use android_logger::Config;
 use holochain_conductor_runtime::{move_to_locked_mem, Runtime};
-use holochain_conductor_runtime_types_ffi::*;
+use holochain_conductor_runtime_client_types_ffi::*;
 use log::{debug, LevelFilter};
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
