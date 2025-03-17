@@ -414,15 +414,3 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
         })
     }
 }
-
-#[derive(uniffi::Record, Clone, Debug)]
-pub struct RuntimeConfigFfi {
-    /// Path where conductor data is stored
-    pub data_root_path: String,
-
-    /// URL of the bootstrap server
-    pub bootstrap_url: String,
-
-    /// URL of the sbd server
-    pub signal_url: String,
-}

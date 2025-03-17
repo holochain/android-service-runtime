@@ -1,5 +1,5 @@
 [package]
-name = "holochain-conductor-runtime-types-ffi"
+name = "holochain-conductor-runtime-client-types-ffi"
 version = "0.1.0"
 edition = "2021"
 

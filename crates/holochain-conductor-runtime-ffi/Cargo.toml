@@ -14,7 +14,7 @@ path = "uniffi-bindgen.rs"
 
 [dependencies]
 holochain-conductor-runtime = { path = "../holochain-conductor-runtime" }
-holochain-conductor-runtime-types-ffi = { path = "../holochain-conductor-runtime-types-ffi" }
+holochain-conductor-runtime-client-types-ffi = { path = "../holochain-conductor-runtime-client-types-ffi" }
 holochain_conductor_api = { workspace = true }
 holochain_types = { workspace = true }
 log = { workspace = true }
