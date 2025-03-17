@@ -42,5 +42,8 @@ A slim wrapper around holochain Conductor with calls wrapping *some* AdminInterf
 
 #### holochain-conductor-runtime-ffi
 
-A wrapper around [holochain-conductor-runtime](#holochain-conductor-runtime) with types compatible with Uniffi-generated FFI bindings, to facilitate usage of the crate in Kotlin code.
+A wrapper around [holochain-conductor-runtime](#holochain-conductor-runtime) compatible with Uniffi-generated FFI bindings, to facilitate usage of the crate in Kotlin code.
 
+#### holochain-conductor-runtime-client-types-ffi
+
+The public types used for input and responses of exposed functions in [holochain-conductor-runtime-ffi](#holochain-conductor-runtime-ffi), compatible witih Uniffi-generated bindings, so that these types can be generated separately for the Kotlin library [holochain-service-client](#holochain-service-client).

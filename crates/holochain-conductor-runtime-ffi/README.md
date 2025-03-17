@@ -1,17 +1,15 @@
-# holochain_runtime_uniffi
+# holochain-conductor-runtime-ffi
 
-This crate is a wrapper around p2p-shipyard's `holochain_runtime`, with minimal functionality necessary to expose basic holochain management functions, for generating FFI bindings for those functions.
+This crate is a wrapper around `holochain-conductor-runtime`, with minimal functionality necessary to expose basic holochain conductor and lair admin functions, compatible with [uniffi](https://github.com/mozilla/uniffi-rs)
 
 It generates FFI bindings for Kotlin.
 
 ## Building
 
-- Run `./generate-bindings-release.sh`
-- Copy the out/**/*.so directories into jniLib directory of your android project
-- Copy the out/uniffi directory into java directory of your android project
+- Run `./scripts/build.sh`
+- Bindings are output to the tauri-plugin-holochain-service: `crates/tauri-plugin-holochain-service`
 
-## Development
-
-### Gotchas!!!
+## Gotchas
 - Enum variants cannot have the same name as other types (i.e. Error enum variants cannot match other error types)
 - Generated types may have different casing. For example kotlin types use TitleCase
+- Error types cannot be used in external crates
