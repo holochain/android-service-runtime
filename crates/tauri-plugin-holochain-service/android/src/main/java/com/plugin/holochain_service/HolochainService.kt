@@ -12,8 +12,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
+import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeConfigFfi
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainService
-import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
 import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.AppAuthFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfiParcel
