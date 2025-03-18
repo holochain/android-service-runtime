@@ -8,10 +8,6 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 name = "holochain_conductor_runtime_ffi"
 
-[[bin]]
-name = "uniffi-bindgen"
-path = "uniffi-bindgen.rs"
-
 [dependencies]
 holochain-conductor-runtime = { path = "../holochain-conductor-runtime" }
 holochain-conductor-runtime-types-ffi = { path = "../holochain-conductor-runtime-types-ffi" }
