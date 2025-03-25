@@ -87,8 +87,16 @@ class HolochainServiceClient(
     }
 
     /// Enable an installed app
-    fun enableApp(installedAppId: String) {
-        this.mService!!.enableApp(installedAppId)
+    suspend fun enableApp(installedAppId: String): AppInfoFfiParcel {
+        val deferred = CompletableDeferred<AppInfoFfiParcel>()
+        var callbackBinder = object : IHolochainServiceCallbackStub() {
+            override fun enableApp(response: AppInfoFfiParcel) {
+                Log.d(TAG, "enableApp callback")
+                deferred.complete(response)
+            }
+        }
+        this.mService!!.enableApp(callbackBinder, installedAppId)
+        return deferred.await()
     }
 
     /// Disable an installed app

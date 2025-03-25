@@ -12,7 +12,7 @@ interface IHolochainService {
     boolean isReady();
     void installApp(IHolochainServiceCallback callback, in InstallAppPayloadFfiParcel request);
     void uninstallApp(IHolochainServiceCallback callback, String installedAppId);
-    AppInfoFfiParcel enableApp(String installedAppId);
+    void enableApp(IHolochainServiceCallback callback, String installedAppId);
     void disableApp(String installedAppId);
     void listApps(IHolochainServiceCallback callback);
     boolean isAppInstalled(String installedAppId);

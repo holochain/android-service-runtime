@@ -72,11 +72,12 @@ class HolochainService : Service() {
 
         /// Enable an installed app
         override fun enableApp(
+            callback: IHolochainServiceCallback,
             installedAppId: String
-        ): AppInfoFfiParcel {
+        ) {
             Log.d(TAG, "enableApp")
-            return runBlocking {
-                AppInfoFfiParcel(runtime!!.enableApp(installedAppId))
+            serviceScope.launch(Dispatchers.Default) {
+                callback.enableApp(AppInfoFfiParcel(runtime!!.enableApp(installedAppId)))
             }
         }
 

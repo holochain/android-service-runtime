@@ -6,4 +6,5 @@ interface IHolochainServiceCallback {
     void listApps(in List<AppInfoFfiParcel> response);
     void installApp(in AppInfoFfiParcel response);
     void uninstallApp();
+    void enableApp(in AppInfoFfiParcel response);
 }

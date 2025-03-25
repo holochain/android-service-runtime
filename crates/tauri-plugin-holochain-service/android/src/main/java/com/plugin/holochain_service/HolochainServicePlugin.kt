@@ -133,8 +133,12 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun enableApp(invoke: Invoke) {
         Log.d(TAG, "enableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        this.serviceClient.enableApp(args.installedAppId)
-        invoke.resolve()
+        serviceScope.launch(Dispatchers.Default) {
+            val res = serviceClient.enableApp(args.installedAppId)
+            val obj = JSObject()
+            obj.put("enabled", res)
+            invoke.resolve()
+        }
     }
 
     /**
