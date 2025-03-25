@@ -17,6 +17,27 @@ dependencies {
 
 ## Development
 
+### Publish to local Maven repository
+
+The library can be published to a local maven repository for use in development. All other kotlin projects in this android-service-runtime git repo will check for matching dependencies in the local Maven repository *before* checking Maven Central.
+
+To publish the library to the local Maven repository, run:
+
+```bash
+pnpm run publish:local:holochain-service-client
+```
+
+### Clear local Maven Repository
+
+Clear the local Maven repository by deleting this library from it:
+
+```bash
+rm -rf ~/.m2/repository/org/holochain
+```
+
+
+## Publishing
+
 ### Authorize Publishing to Maven Central
 1. Copy `gradle.properties.example` to `gradle.properties`
 2. Create Maven Central account at https://central.sonatype.com
