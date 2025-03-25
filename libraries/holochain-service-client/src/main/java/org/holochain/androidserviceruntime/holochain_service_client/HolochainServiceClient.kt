@@ -50,9 +50,19 @@ class HolochainServiceClient(
     }
 
     /// Install an app
-    fun installApp(payload: InstallAppPayloadFfiParcel): AppInfoFfiParcel {
-        // Call installApp on service
-        return this.mService!!.installApp(payload)
+    suspend fun installApp(payload: InstallAppPayloadFfiParcel): AppInfoFfiParcel {
+        Log.d(TAG, "installApp")
+
+        val deferred = CompletableDeferred<AppInfoFfiParcel>()
+        var callbackBinder = object : IHolochainServiceCallbackStub() {
+            override fun installApp(response: AppInfoFfiParcel) {
+                Log.d(TAG, "installApp callback")
+                deferred.complete(response)
+            }
+        }
+        this.mService!!.installApp(callbackBinder, payload)
+
+        return deferred.await()
     }
 
     /// Is an app with the given app_id installed
@@ -80,12 +90,13 @@ class HolochainServiceClient(
         Log.d(TAG, "listApps")
 
         val deferred = CompletableDeferred<List<AppInfoFfiParcel>>()
-        var callbackBinder = object : IHolochainServiceCallback.Stub() {
+        var callbackBinder = object : IHolochainServiceCallbackStub() {
             override fun listApps(response: List<AppInfoFfiParcel>) {
+                Log.d(TAG, "listApps callback")
                 deferred.complete(response)
             }
         }
-        mService!!.listApps(callbackBinder)
+        this.mService!!.listApps(callbackBinder)
 
         return deferred.await()
     }

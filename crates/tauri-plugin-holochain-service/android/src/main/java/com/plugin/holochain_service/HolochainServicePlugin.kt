@@ -94,8 +94,10 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun installApp(invoke: Invoke) {
         Log.d(TAG, "installApp")
         val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
-        this.serviceClient.installApp(args.toFfi().toParcel())
-        invoke.resolve()
+        serviceScope.launch(Dispatchers.Default) {
+            serviceClient.installApp(args.toFfi().toParcel())
+            invoke.resolve()
+        }
     }
 
     /**

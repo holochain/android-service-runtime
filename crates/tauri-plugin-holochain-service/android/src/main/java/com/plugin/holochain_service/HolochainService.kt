@@ -49,11 +49,12 @@ class HolochainService : Service() {
         
         /// Install an app
         override fun installApp(
+            callback: IHolochainServiceCallback,
             request: InstallAppPayloadFfiParcel
-        ): AppInfoFfiParcel {
+        ) {
             Log.d(TAG, "installApp")
-            return runBlocking {
-                AppInfoFfiParcel(runtime!!.installApp(request.fromParcel()))
+            serviceScope.launch(Dispatchers.Default) {
+                callback.installApp(AppInfoFfiParcel(runtime!!.installApp(request.fromParcel())))
             }
         }
 

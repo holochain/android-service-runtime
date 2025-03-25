@@ -4,4 +4,5 @@ import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiPa
 
 interface IHolochainServiceCallback {
     void listApps(in List<AppInfoFfiParcel> response);
+    void installApp(in AppInfoFfiParcel response);
 }
