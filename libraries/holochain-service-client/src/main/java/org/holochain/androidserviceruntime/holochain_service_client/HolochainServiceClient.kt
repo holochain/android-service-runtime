@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
+import kotlinx.coroutines.delay
 
 class HolochainServiceClient(
     private val activity: Activity,
@@ -75,8 +76,22 @@ class HolochainServiceClient(
     }
 
     /// List installed happs in conductor
-    fun listApps(): MutableList<AppInfoFfiParcel> {
-        return this.mService!!.listApps()
+    suspend fun listApps(): List<AppInfoFfiParcel> {
+        Log.d(TAG, "listApps")
+
+        var res: List<AppInfoFfiParcel>? = null
+        val callbackBinder = object: IHolochainServiceCallback.Stub() {
+            override fun listApps(response: List<AppInfoFfiParcel>) {
+                Log.d(TAG, "listApps Callback")
+                res = response
+            }
+        }
+        this.mService!!.listApps(callbackBinder)
+
+        while(res == null) {
+            delay(50)
+        }
+        return res
     }
 
     /// Get or create an app websocket with authentication token

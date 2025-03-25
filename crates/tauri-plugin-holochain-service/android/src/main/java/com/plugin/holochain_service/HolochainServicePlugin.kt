@@ -6,6 +6,10 @@ import android.app.NotificationManager
 import android.content.Context
 import android.webkit.WebView
 import android.util.Log
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import app.tauri.annotation.Command
 import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
@@ -20,6 +24,8 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     private lateinit var webView: WebView
     private lateinit var injectHolochainClientEnvJavascript: String
     private lateinit var serviceClient: HolochainServiceClient
+    private val supervisorJob = SupervisorJob()
+    private lateinit var serviceScope: CoroutineScope
     private var TAG = "HolochainServicePlugin"
 
     /**
@@ -29,6 +35,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         Log.d(TAG, "load")
         super.load(webView)
         this.webView = webView
+        this.serviceScope = CoroutineScope(this.supervisorJob)
 
         // Load holochain client injected javascript from resource file
         val resourceInputStream = this.activity.resources.openRawResource(R.raw.injectholochainclientenv)
@@ -143,10 +150,12 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun listApps(invoke: Invoke) {
         Log.d(TAG, "listApps")
-        val res = this.serviceClient.listApps()
-        val obj = JSObject() 
-        obj.put("installedApps", res.toJSArray())
-        invoke.resolve(obj)
+        serviceScope.launch(Dispatchers.Default) {
+            val res = serviceClient.listApps()
+            val obj = JSObject() 
+            obj.put("installedApps", res.toJSArray())
+            invoke.resolve(obj)
+        }
     }
 
     /**

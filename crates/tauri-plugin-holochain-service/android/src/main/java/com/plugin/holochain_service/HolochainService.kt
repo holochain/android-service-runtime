@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainService
+import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallback
 import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
 import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.AppAuthFfiParcel
@@ -87,12 +88,12 @@ class HolochainService : Service() {
         }
 
         /// List installed apps
-        override fun listApps(): List<AppInfoFfiParcel> {
+        override fun listApps(callback: IHolochainServiceCallback) {
             Log.d(TAG, "listApps")
-            return runBlocking {
-                runtime!!.listApps().map {
+            serviceScope.launch(Dispatchers.Default) {
+                callback.listApps(runtime!!.listApps().map {
                     AppInfoFfiParcel(it)
-                }
+                })
             }
         }
 
