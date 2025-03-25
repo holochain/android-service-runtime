@@ -1,10 +1,10 @@
 package org.holochain.androidserviceruntime.holochain_service_client;
 
-parcelable InstallAppPayloadFfiParcel;
-parcelable AppInfoFfiParcel;
-parcelable AppAuthFfiParcel;
-parcelable ZomeCallUnsignedFfiParcel;
-parcelable ZomeCallFfiParcel;
+import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfiParcel;
+import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel;
+import org.holochain.androidserviceruntime.holochain_service_client.AppAuthFfiParcel;
+import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel;
+import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallFfiParcel;
 
 interface IHolochainService {
     void stop();
