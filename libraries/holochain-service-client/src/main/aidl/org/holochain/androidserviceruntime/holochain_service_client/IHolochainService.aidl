@@ -11,7 +11,7 @@ interface IHolochainService {
     void stop();
     boolean isReady();
     void installApp(IHolochainServiceCallback callback, in InstallAppPayloadFfiParcel request);
-    void uninstallApp(String installedAppId);
+    void uninstallApp(IHolochainServiceCallback callback, String installedAppId);
     AppInfoFfiParcel enableApp(String installedAppId);
     void disableApp(String installedAppId);
     void listApps(IHolochainServiceCallback callback);

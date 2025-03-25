@@ -71,8 +71,19 @@ class HolochainServiceClient(
     }
 
     /// Uninstall an installed app
-    fun uninstallApp(installedAppId: String) {
-        this.mService!!.uninstallApp(installedAppId)
+    suspend fun uninstallApp(installedAppId: String) {
+        Log.d(TAG, "uninstallApp")
+
+        val deferred = CompletableDeferred<Unit>()
+        var callbackBinder = object : IHolochainServiceCallbackStub() {
+            override fun uninstallApp() {
+                Log.d(TAG, "uninstallApp callback")
+                deferred.complete(Unit)
+            }
+        }
+        this.mService!!.uninstallApp(callbackBinder, installedAppId)
+
+        deferred.await()
     }
 
     /// Enable an installed app

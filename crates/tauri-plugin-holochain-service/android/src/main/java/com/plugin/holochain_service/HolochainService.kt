@@ -60,11 +60,13 @@ class HolochainService : Service() {
 
         /// Uninstall an app
         override fun uninstallApp(
+            callback: IHolochainServiceCallback,
             installedAppId: String
         ) {
             Log.d(TAG, "uninstallApp")
-            return runBlocking {
+            serviceScope.launch(Dispatchers.Default) {
                 runtime!!.uninstallApp(installedAppId)
+                callback.uninstallApp()
             }
         }
 

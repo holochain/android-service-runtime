@@ -120,8 +120,10 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun uninstallApp(invoke: Invoke) {
         Log.d(TAG, "uninstallApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        this.serviceClient.uninstallApp(args.installedAppId)
-        invoke.resolve()
+        serviceScope.launch(Dispatchers.Default) {
+            serviceClient.uninstallApp(args.installedAppId)
+            invoke.resolve()
+        }
     }
 
     /**
