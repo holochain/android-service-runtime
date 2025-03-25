@@ -11,4 +11,4 @@
 - Add function `isReady` to check that the conductor is available, expose in client and tauri-plugin-holochain-service
 - Move uniffi-bindgen cli tool for generating bindings into its own crate, remove from *-ffi crates (see https://mozilla.github.io/uniffi-rs/0.27/tutorial/foreign_language_bindings.html#running-uniffi-bindgen-using-a-library-file-recommended)
 - Commands and setup for publishing kotlin library to local maven repo. All other projects will check local maven repo *before* Maven Central.
-- Android app logs warnings and errrors to android system logs.
+- Android app logs warnings and errors to android system log.
