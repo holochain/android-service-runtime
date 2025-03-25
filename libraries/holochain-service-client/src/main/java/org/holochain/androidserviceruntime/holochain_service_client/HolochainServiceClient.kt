@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CompletableDeferred
 
 class HolochainServiceClient(
     private val activity: Activity,
@@ -79,19 +79,15 @@ class HolochainServiceClient(
     suspend fun listApps(): List<AppInfoFfiParcel> {
         Log.d(TAG, "listApps")
 
-        var res: List<AppInfoFfiParcel>? = null
-        val callbackBinder = object: IHolochainServiceCallback.Stub() {
+        val deferred = CompletableDeferred<List<AppInfoFfiParcel>>()
+        var callbackBinder = object : IHolochainServiceCallback.Stub() {
             override fun listApps(response: List<AppInfoFfiParcel>) {
-                Log.d(TAG, "listApps Callback")
-                res = response
+                deferred.complete(response)
             }
         }
-        this.mService!!.listApps(callbackBinder)
+        mService!!.listApps(callbackBinder)
 
-        while(res == null) {
-            delay(50)
-        }
-        return res
+        return deferred.await()
     }
 
     /// Get or create an app websocket with authentication token
