@@ -5,4 +5,5 @@ open class IHolochainServiceCallbackStub : IHolochainServiceCallback.Stub() {
     override fun installApp(response: AppInfoFfiParcel) { }
     override fun uninstallApp() { }
     override fun enableApp(response: AppInfoFfiParcel) { }
+    override fun disableApp() { }
 }

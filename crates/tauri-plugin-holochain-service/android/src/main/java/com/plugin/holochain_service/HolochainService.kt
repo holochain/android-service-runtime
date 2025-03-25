@@ -83,11 +83,13 @@ class HolochainService : Service() {
 
         /// Disable an installed app
         override fun disableApp(
+            callback: IHolochainServiceCallback,
             installedAppId: String
         ) {
             Log.d(TAG, "disableApp")
-            return runBlocking {
+            serviceScope.launch(Dispatchers.Default) {
                 runtime!!.disableApp(installedAppId)
+                callback.disableApp()
             }
         }
 

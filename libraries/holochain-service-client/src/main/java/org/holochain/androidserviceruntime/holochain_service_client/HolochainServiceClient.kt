@@ -88,6 +88,7 @@ class HolochainServiceClient(
 
     /// Enable an installed app
     suspend fun enableApp(installedAppId: String): AppInfoFfiParcel {
+        Log.d(TAG, "enableApp")
         val deferred = CompletableDeferred<AppInfoFfiParcel>()
         var callbackBinder = object : IHolochainServiceCallbackStub() {
             override fun enableApp(response: AppInfoFfiParcel) {
@@ -100,8 +101,17 @@ class HolochainServiceClient(
     }
 
     /// Disable an installed app
-    fun disableApp(installedAppId: String) {
-        this.mService!!.disableApp(installedAppId)
+    suspend fun disableApp(installedAppId: String) {
+        Log.d(TAG, "disableApp")
+        val deferred = CompletableDeferred<Unit>()
+        var callbackBinder = object : IHolochainServiceCallbackStub() {
+            override fun disableApp() {
+                Log.d(TAG, "disableApp callback")
+                deferred.complete(Unit)
+            }
+        }
+        this.mService!!.disableApp(callbackBinder, installedAppId)
+        deferred.await()
     }
 
     /// List installed happs in conductor

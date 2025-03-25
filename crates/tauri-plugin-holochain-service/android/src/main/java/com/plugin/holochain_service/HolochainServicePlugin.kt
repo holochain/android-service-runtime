@@ -148,8 +148,10 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun disableApp(invoke: Invoke) {
         Log.d(TAG, "disableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        this.serviceClient.disableApp(args.installedAppId)
-        invoke.resolve()
+        serviceScope.launch(Dispatchers.Default) {
+            serviceClient.disableApp(args.installedAppId)
+            invoke.resolve()
+        }
     }
 
     /**
