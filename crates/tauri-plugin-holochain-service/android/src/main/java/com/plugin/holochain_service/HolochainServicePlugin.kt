@@ -107,10 +107,12 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun isAppInstalled(invoke: Invoke) {
         Log.d(TAG, "isAppInstalled")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        val res = this.serviceClient.isAppInstalled(args.installedAppId)
-        val obj = JSObject()
-        obj.put("installed", res)
-        invoke.resolve(obj)
+        serviceScope.launch(Dispatchers.Default) {
+            val res = serviceClient.isAppInstalled(args.installedAppId)
+            val obj = JSObject()
+            obj.put("installed", res)
+            invoke.resolve(obj)
+        }
     }
 
     /**

@@ -66,8 +66,19 @@ class HolochainServiceClient(
     }
 
     /// Is an app with the given app_id installed
-    fun isAppInstalled(installedAppId: String): Boolean {
-        return this.mService!!.isAppInstalled(installedAppId)
+    suspend fun isAppInstalled(installedAppId: String): Boolean {
+        Log.d(TAG, "isAppInstalled")
+
+        val deferred = CompletableDeferred<Boolean>()
+        var callbackBinder = object : IHolochainServiceCallbackStub() {
+            override fun isAppInstalled(response: Boolean) {
+                Log.d(TAG, "isAppInstalled callback")
+                deferred.complete(response)
+            }
+        }
+        this.mService!!.isAppInstalled(callbackBinder, installedAppId)
+
+        return deferred.await()
     }
 
     /// Uninstall an installed app

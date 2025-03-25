@@ -8,4 +8,5 @@ interface IHolochainServiceCallback {
     void uninstallApp();
     void enableApp(in AppInfoFfiParcel response);
     void disableApp();
+    void isAppInstalled(boolean response);
 }

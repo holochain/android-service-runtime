@@ -104,10 +104,13 @@ class HolochainService : Service() {
         }
 
         /// Is app installed
-        override fun isAppInstalled(installedAppId: String): Boolean {
+        override fun isAppInstalled(
+            callback: IHolochainServiceCallback,
+            installedAppId: String
+        ) {
             Log.d(TAG, "isAppInstalled")
-            return runBlocking {
-                runtime!!.isAppInstalled(installedAppId)
+            serviceScope.launch(Dispatchers.Default) {
+                callback.isAppInstalled(runtime!!.isAppInstalled(installedAppId))
             }
         }
 
