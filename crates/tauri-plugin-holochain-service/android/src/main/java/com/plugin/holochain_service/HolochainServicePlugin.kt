@@ -178,18 +178,20 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun ensureAppWebsocket(invoke: Invoke) {
         Log.d(TAG, "ensureAppWebsocket")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        val res = this.serviceClient.ensureAppWebsocket(args.installedAppId)
+        serviceScope.launch(Dispatchers.Default) {
+            val res = serviceClient.ensureAppWebsocket(args.installedAppId)
 
-        // Inject launcher env into web view
-        this.injectHolochainClientEnv(
-            args.installedAppId,
-            res.inner.port.toInt(),
-            res.inner.authentication.token.toUByteArray()
-        )
-        
-        val obj = JSObject() 
-        obj.put("ensureAppWebsocket", res.toJSObject())
-        invoke.resolve(obj)       
+            // Inject launcher env into web view
+            injectHolochainClientEnv(
+                args.installedAppId,
+                res.inner.port.toInt(),
+                res.inner.authentication.token.toUByteArray()
+            )
+            
+            val obj = JSObject() 
+            obj.put("ensureAppWebsocket", res.toJSObject())
+            invoke.resolve(obj)
+        }
     }
 
     /**

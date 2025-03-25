@@ -142,8 +142,19 @@ class HolochainServiceClient(
     }
 
     /// Get or create an app websocket with authentication token
-    fun ensureAppWebsocket(installedAppId: String): AppAuthFfiParcel {
-        return this.mService!!.ensureAppWebsocket(installedAppId)
+    suspend fun ensureAppWebsocket(installedAppId: String): AppAuthFfiParcel {
+        Log.d(TAG, "ensureAppWebsocket")
+
+        val deferred = CompletableDeferred<AppAuthFfiParcel>()
+        var callbackBinder = object : IHolochainServiceCallbackStub() {
+            override fun ensureAppWebsocket(response: AppAuthFfiParcel) {
+                Log.d(TAG, "ensureAppWebsocket callback")
+                deferred.complete(response)
+            }
+        }
+        this.mService!!.ensureAppWebsocket(callbackBinder, installedAppId)
+
+        return deferred.await()
     }
 
     fun signZomeCall(args: ZomeCallUnsignedFfiParcel): ZomeCallFfiParcel {

@@ -115,10 +115,13 @@ class HolochainService : Service() {
         }
 
         /// Get or create an app websocket with an authenticated token
-        override fun ensureAppWebsocket(installedAppId: String): AppAuthFfiParcel {
+        override fun ensureAppWebsocket(
+            callback: IHolochainServiceCallback,
+            installedAppId: String
+        ) {
             Log.d("IHolochainService", "ensureAppWebsocket")
-            return runBlocking {
-                AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!)
+            serviceScope.launch(Dispatchers.Default) {
+                callback.ensureAppWebsocket(AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!))
             }
         }
 

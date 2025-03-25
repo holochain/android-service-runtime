@@ -16,6 +16,6 @@ interface IHolochainService {
     void disableApp(IHolochainServiceCallback callback, String installedAppId);
     void listApps(IHolochainServiceCallback callback);
     void isAppInstalled(IHolochainServiceCallback callback, String installedAppId);
-    AppAuthFfiParcel ensureAppWebsocket(String installedAppId);
+    void ensureAppWebsocket(IHolochainServiceCallback callback, String installedAppId);
     ZomeCallFfiParcel signZomeCall(in ZomeCallUnsignedFfiParcel request);
 }
