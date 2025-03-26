@@ -12,3 +12,4 @@
 - Move uniffi-bindgen cli tool for generating bindings into its own crate, remove from *-ffi crates (see https://mozilla.github.io/uniffi-rs/0.27/tutorial/foreign_language_bindings.html#running-uniffi-bindgen-using-a-library-file-recommended)
 - Commands and setup for publishing kotlin library to local maven repo. All other projects will check local maven repo *before* Maven Central.
 - Android app logs warnings and errors to android system log.
+- The following HolochainService functions exposed via IPC are now async and do not block the main thread: listApps, installApp, uninstallApp, enableApp, disableApp, isAppInstalled, ensureAppWebsocket, and signZomeCall.
