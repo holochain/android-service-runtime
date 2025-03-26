@@ -46,6 +46,8 @@ jobs:
 
       - name: Create gradle.properties without secrets
         run: |
+          ls -la
+          touch android-service-runtime/libraries/android-service-client/gradle.properties
           echo "android.enableJetifier=true\nandroid.useAndroidX=true" > android-service-runtime/libraries/android-service-client/gradle.properties
 
       - name: Enable KVM
