@@ -60,7 +60,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.api-level }}
+          key: avd-${{ matrix.target.api-level }}-${{ matrix.target.arch }}
 
       - name: Run connected tests
         uses: ReactiveCircus/android-emulator-runner@v2
