@@ -53,10 +53,10 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Set up JDK 8
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: 8
+          java-version: 11
           distribution: 'adopt'
           cache: 'gradle'
         
@@ -66,4 +66,5 @@ jobs:
           api-level: ${{ matrix.android-api-level }}
           target: google_apis
           arch: ${{ matrix.arch }}
+          ndk: 23.0.7344513
           script: cd libraries/holochain-service-client && ./gradlew connectedDebugAndroidTest
