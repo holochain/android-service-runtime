@@ -7,8 +7,8 @@ on:
     branches:
       - main
 jobs:
-  test:
-    name: Test
+  test-rust-crates:
+    name: Test Rust Crates
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -30,3 +30,27 @@ jobs:
 
       - name: Make Test
         run: make test
+
+  test-kotlin-libraries:
+    name: Test Kotlin Libraries
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: 8
+          distribution: 'adopt'
+          cache: 'gradle'
+        
+      - name: Run connected tests
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 27
+          target: google_apis
+          arch: x86_64
+          script: cd libraries/holochain-service-client && ./gradlew connectedDebugAndroidTest
