@@ -44,6 +44,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Create gradle.properties without secrets
+        run: |
+          echo "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/android-service-client/gradle.properties
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
