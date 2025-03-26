@@ -25,7 +25,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     private lateinit var injectHolochainClientEnvJavascript: String
     private lateinit var serviceClient: HolochainServiceClient
     private val supervisorJob = SupervisorJob()
-    private lateinit var serviceScope: CoroutineScope
+    private val serviceScope = CoroutineScope(supervisorJob)
     private var TAG = "HolochainServicePlugin"
 
     /**
@@ -35,7 +35,6 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         Log.d(TAG, "load")
         super.load(webView)
         this.webView = webView
-        this.serviceScope = CoroutineScope(this.supervisorJob)
 
         // Load holochain client injected javascript from resource file
         val resourceInputStream = this.activity.resources.openRawResource(R.raw.injectholochainclientenv)
