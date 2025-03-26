@@ -78,9 +78,13 @@ jobs:
             ~/target/*
           key: cargo-${{ matrix.target.arch-cargo }}
 
-      - name: Build deps
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10
+
+      - name: Install cargo-ndk
         run: |
-          npm i pnpm
           cargo install cargo-ndk
 
       - name: Build dependency rust library & kotlin bindings
