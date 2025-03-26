@@ -93,7 +93,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun installApp(invoke: Invoke) {
         Log.d(TAG, "installApp")
         val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.Default) {
+        serviceScope.launch(Dispatchers.IO) {
             serviceClient.installApp(args.toFfi().toParcel())
             invoke.resolve()
         }
@@ -106,7 +106,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun isAppInstalled(invoke: Invoke) {
         Log.d(TAG, "isAppInstalled")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.Default) {
+        serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.isAppInstalled(args.installedAppId)
             val obj = JSObject()
             obj.put("installed", res)
@@ -121,7 +121,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun uninstallApp(invoke: Invoke) {
         Log.d(TAG, "uninstallApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.Default) {
+        serviceScope.launch(Dispatchers.IO) {
             serviceClient.uninstallApp(args.installedAppId)
             invoke.resolve()
         }
@@ -134,7 +134,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun enableApp(invoke: Invoke) {
         Log.d(TAG, "enableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.Default) {
+        serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.enableApp(args.installedAppId)
             val obj = JSObject()
             obj.put("enabled", res)
@@ -149,7 +149,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun disableApp(invoke: Invoke) {
         Log.d(TAG, "disableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.Default) {
+        serviceScope.launch(Dispatchers.IO) {
             serviceClient.disableApp(args.installedAppId)
             invoke.resolve()
         }
@@ -161,7 +161,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun listApps(invoke: Invoke) {
         Log.d(TAG, "listApps")
-        serviceScope.launch(Dispatchers.Default) {
+        serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.listApps()
             val obj = JSObject() 
             obj.put("installedApps", res.toJSArray())
@@ -177,7 +177,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun ensureAppWebsocket(invoke: Invoke) {
         Log.d(TAG, "ensureAppWebsocket")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.Default) {
+        serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.ensureAppWebsocket(args.installedAppId)
 
             // Inject launcher env into web view
@@ -200,7 +200,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun signZomeCall(invoke: Invoke) {
         Log.d(TAG, "signZomeCall")
         val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.Default) {
+        serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.signZomeCall(ZomeCallUnsignedFfiParcel(args.toFfi()))
             invoke.resolve(res.toJSObject())
         }

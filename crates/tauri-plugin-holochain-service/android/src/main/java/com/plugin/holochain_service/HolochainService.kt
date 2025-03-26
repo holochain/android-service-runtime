@@ -53,7 +53,7 @@ class HolochainService : Service() {
             request: InstallAppPayloadFfiParcel
         ) {
             Log.d(TAG, "installApp")
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 callback.installApp(AppInfoFfiParcel(runtime!!.installApp(request.fromParcel())))
             }
         }
@@ -64,7 +64,7 @@ class HolochainService : Service() {
             installedAppId: String
         ) {
             Log.d(TAG, "uninstallApp")
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 runtime!!.uninstallApp(installedAppId)
                 callback.uninstallApp()
             }
@@ -76,7 +76,7 @@ class HolochainService : Service() {
             installedAppId: String
         ) {
             Log.d(TAG, "enableApp")
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 callback.enableApp(AppInfoFfiParcel(runtime!!.enableApp(installedAppId)))
             }
         }
@@ -87,7 +87,7 @@ class HolochainService : Service() {
             installedAppId: String
         ) {
             Log.d(TAG, "disableApp")
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 runtime!!.disableApp(installedAppId)
                 callback.disableApp()
             }
@@ -96,7 +96,7 @@ class HolochainService : Service() {
         /// List installed apps
         override fun listApps(callback: IHolochainServiceCallback) {
             Log.d(TAG, "listApps")
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 callback.listApps(runtime!!.listApps().map {
                     AppInfoFfiParcel(it)
                 })
@@ -109,7 +109,7 @@ class HolochainService : Service() {
             installedAppId: String
         ) {
             Log.d(TAG, "isAppInstalled")
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 callback.isAppInstalled(runtime!!.isAppInstalled(installedAppId))
             }
         }
@@ -120,7 +120,7 @@ class HolochainService : Service() {
             installedAppId: String
         ) {
             Log.d(TAG, "ensureAppWebsocket")
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 callback.ensureAppWebsocket(AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!))
             }
         }
@@ -131,7 +131,7 @@ class HolochainService : Service() {
             req: ZomeCallUnsignedFfiParcel
         ) {
             Log.d(TAG, "signZomeCall")
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 callback.signZomeCall(ZomeCallFfiParcel(runtime!!.signZomeCall(req.inner)))
             }
         }
@@ -166,7 +166,7 @@ class HolochainService : Service() {
                 "wss://sbd.holo.host",
             );
             
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 runtime = RuntimeFfi.start(passphrase, config)
                 Log.d(TAG, "Holochain started successfully")
             }
