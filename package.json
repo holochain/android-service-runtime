@@ -2,11 +2,10 @@
     "name": "android-service-runtime-dev",
     "scripts": {
       "build": "pnpm run build:holochain-conductor-runtime-ffi && pnpm run build:holochain-conductor-runtime-types-ffi && pnpm run build build:holochain-service-client && pnpm run build:tauri-plugin-holochain-service && pnpm run build:tauri-plugin-holochain-service-consumer && pnpm run build:android-service-runtime",
-      "build:debug": "pnpm run build:debug:holochain-conductor-runtime-ffi && pnpm run build:debug:holochain-conductor-runtime-types-ffi && pnpm run build:holochain-service-client && pnpm run build:tauri-plugin-holochain-service && pnpm run build:tauri-plugin-holochain-service-consumer && pnpm run build:android-service-runtime -t aarch64",
       "build:holochain-conductor-runtime-ffi": "cd crates/holochain-conductor-runtime-ffi && ./scripts/build.sh",
       "build:holochain-conductor-runtime-types-ffi": "cd crates/holochain-conductor-runtime-types-ffi && ./scripts/build.sh",
-      "build:debug:holochain-conductor-runtime-ffi": "cd crates/holochain-conductor-runtime-ffi && ./scripts/build-debug.sh",
-      "build:debug:holochain-conductor-runtime-types-ffi": "cd crates/holochain-conductor-runtime-types-ffi && ./scripts/build-debug.sh",
+      "build:single-target:holochain-conductor-runtime-ffi": "cd crates/holochain-conductor-runtime-ffi && ./scripts/build-single-target.sh",
+      "build:single-target:holochain-conductor-runtime-types-ffi": "cd crates/holochain-conductor-runtime-types-ffi && ./scripts/build-single-target.sh",
       "build:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew assemble",
       "build:tauri-plugin-holochain-service": "pnpm run --dir crates/tauri-plugin-holochain-service build",
       "build:tauri-plugin-holochain-service-consumer": "pnpm run --dir crates/tauri-plugin-holochain-service-consumer build",

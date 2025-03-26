@@ -39,7 +39,8 @@ jobs:
       matrix:
         target:
           - api-level: 28
-            arch: x86_64
+            arch-ndk: x86_64
+            arch-cargo: x86_64-linux-android
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -65,12 +66,25 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ matrix.target.api-level }}-${{ matrix.target.arch }}
+          key: avd-${{ matrix.target.api-level }}-${{ matrix.target.arch-ndk }}
 
-      - name: Run connected tests
+      - name: Cargo cache
+        uses: actions/cache@v4
+        id: cargo-cache
+        with:
+          path: |
+            ~/.cargo/*
+            ~/target
+          key: cargo-${{ matrix.target.arch-cargo }}
+
+      - name: Build dependency rust library & kotlin bindings
+        run: |
+          pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
+
+      - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.target.api-level }}
-          arch: ${{ matrix.target.arch }}
+          arch: ${{ matrix.target.arch-ndk }}
           target: google_apis
-          script: cd libraries/holochain-service-client && ./gradlew connectedDebugAndroidTest
+          script: pnpm run test:holochain-service-client
