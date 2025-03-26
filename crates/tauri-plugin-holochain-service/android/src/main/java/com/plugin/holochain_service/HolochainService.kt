@@ -119,18 +119,20 @@ class HolochainService : Service() {
             callback: IHolochainServiceCallback,
             installedAppId: String
         ) {
-            Log.d("IHolochainService", "ensureAppWebsocket")
+            Log.d(TAG, "ensureAppWebsocket")
             serviceScope.launch(Dispatchers.Default) {
                 callback.ensureAppWebsocket(AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!))
             }
         }
 
         /// Sign a zome call
-        override fun signZomeCall(req: ZomeCallUnsignedFfiParcel): ZomeCallFfiParcel {
-            Log.d("IHolochainService", "signZomeCall")
-            return runBlocking {
-                val res = runtime!!.signZomeCall(req.inner)
-                ZomeCallFfiParcel(res)
+        override fun signZomeCall(
+            callback: IHolochainServiceCallback,
+            req: ZomeCallUnsignedFfiParcel
+        ) {
+            Log.d(TAG, "signZomeCall")
+            serviceScope.launch(Dispatchers.Default) {
+                callback.signZomeCall(ZomeCallFfiParcel(runtime!!.signZomeCall(req.inner)))
             }
         }
     }

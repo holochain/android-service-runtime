@@ -8,4 +8,5 @@ open class IHolochainServiceCallbackStub : IHolochainServiceCallback.Stub() {
     override fun disableApp() { }
     override fun isAppInstalled(response: Boolean) { }
     override fun ensureAppWebsocket(response: AppAuthFfiParcel) { }
+    override fun signZomeCall(response: ZomeCallFfiParcel) { }
 }

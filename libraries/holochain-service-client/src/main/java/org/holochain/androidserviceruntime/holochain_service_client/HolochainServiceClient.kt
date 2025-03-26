@@ -157,7 +157,19 @@ class HolochainServiceClient(
         return deferred.await()
     }
 
-    fun signZomeCall(args: ZomeCallUnsignedFfiParcel): ZomeCallFfiParcel {
-        return this.mService!!.signZomeCall(args);
+    /// Sign a zome call
+    suspend fun signZomeCall(args: ZomeCallUnsignedFfiParcel): ZomeCallFfiParcel {
+        Log.d(TAG, "signZomeCall")
+
+        val deferred = CompletableDeferred<ZomeCallFfiParcel>()
+        var callbackBinder = object : IHolochainServiceCallbackStub() {
+            override fun signZomeCall(response: ZomeCallFfiParcel) {
+                Log.d(TAG, "signZomeCall callback")
+                deferred.complete(response)
+            }
+        }
+        this.mService!!.signZomeCall(callbackBinder, args)
+
+        return deferred.await()
     }
 }
