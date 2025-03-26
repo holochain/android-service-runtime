@@ -61,8 +61,8 @@ export async function uninstallApp(installedAppId: string): Promise<null> {
   return await invoke('plugin:holochain-service|uninstall_app', { installedAppId });
 }
 
-export async function enableApp(installedAppId: string): Promise<null> {
-  return await invoke('plugin:holochain-service|enable_app', { installedAppId });
+export async function enableApp(installedAppId: string): Promise<AppInfo> {
+  return await invoke<{enabled: AppInfo}>('plugin:holochain-service|enable_app', { installedAppId }).then((r) => (r.enabled));
 }
 
 export async function disableApp(installedAppId: string): Promise<null> {

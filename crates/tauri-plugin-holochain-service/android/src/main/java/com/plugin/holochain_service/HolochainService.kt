@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainService
+import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallback
 import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
 import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.AppAuthFfiParcel
@@ -48,76 +49,90 @@ class HolochainService : Service() {
         
         /// Install an app
         override fun installApp(
+            callback: IHolochainServiceCallback,
             request: InstallAppPayloadFfiParcel
-        ): AppInfoFfiParcel {
+        ) {
             Log.d(TAG, "installApp")
-            return runBlocking {
-                AppInfoFfiParcel(runtime!!.installApp(request.fromParcel()))
+            serviceScope.launch(Dispatchers.IO) {
+                callback.installApp(AppInfoFfiParcel(runtime!!.installApp(request.fromParcel())))
             }
         }
 
         /// Uninstall an app
         override fun uninstallApp(
+            callback: IHolochainServiceCallback,
             installedAppId: String
         ) {
             Log.d(TAG, "uninstallApp")
-            return runBlocking {
+            serviceScope.launch(Dispatchers.IO) {
                 runtime!!.uninstallApp(installedAppId)
+                callback.uninstallApp()
             }
         }
 
         /// Enable an installed app
         override fun enableApp(
+            callback: IHolochainServiceCallback,
             installedAppId: String
-        ): AppInfoFfiParcel {
+        ) {
             Log.d(TAG, "enableApp")
-            return runBlocking {
-                AppInfoFfiParcel(runtime!!.enableApp(installedAppId))
+            serviceScope.launch(Dispatchers.IO) {
+                callback.enableApp(AppInfoFfiParcel(runtime!!.enableApp(installedAppId)))
             }
         }
 
         /// Disable an installed app
         override fun disableApp(
+            callback: IHolochainServiceCallback,
             installedAppId: String
         ) {
             Log.d(TAG, "disableApp")
-            return runBlocking {
+            serviceScope.launch(Dispatchers.IO) {
                 runtime!!.disableApp(installedAppId)
+                callback.disableApp()
             }
         }
 
         /// List installed apps
-        override fun listApps(): List<AppInfoFfiParcel> {
+        override fun listApps(callback: IHolochainServiceCallback) {
             Log.d(TAG, "listApps")
-            return runBlocking {
-                runtime!!.listApps().map {
+            serviceScope.launch(Dispatchers.IO) {
+                callback.listApps(runtime!!.listApps().map {
                     AppInfoFfiParcel(it)
-                }
+                })
             }
         }
 
         /// Is app installed
-        override fun isAppInstalled(installedAppId: String): Boolean {
+        override fun isAppInstalled(
+            callback: IHolochainServiceCallback,
+            installedAppId: String
+        ) {
             Log.d(TAG, "isAppInstalled")
-            return runBlocking {
-                runtime!!.isAppInstalled(installedAppId)
+            serviceScope.launch(Dispatchers.IO) {
+                callback.isAppInstalled(runtime!!.isAppInstalled(installedAppId))
             }
         }
 
         /// Get or create an app websocket with an authenticated token
-        override fun ensureAppWebsocket(installedAppId: String): AppAuthFfiParcel {
-            Log.d("IHolochainService", "ensureAppWebsocket")
-            return runBlocking {
-                AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!)
+        override fun ensureAppWebsocket(
+            callback: IHolochainServiceCallback,
+            installedAppId: String
+        ) {
+            Log.d(TAG, "ensureAppWebsocket")
+            serviceScope.launch(Dispatchers.IO) {
+                callback.ensureAppWebsocket(AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!))
             }
         }
 
         /// Sign a zome call
-        override fun signZomeCall(req: ZomeCallUnsignedFfiParcel): ZomeCallFfiParcel {
-            Log.d("IHolochainService", "signZomeCall")
-            return runBlocking {
-                val res = runtime!!.signZomeCall(req.inner)
-                ZomeCallFfiParcel(res)
+        override fun signZomeCall(
+            callback: IHolochainServiceCallback,
+            req: ZomeCallUnsignedFfiParcel
+        ) {
+            Log.d(TAG, "signZomeCall")
+            serviceScope.launch(Dispatchers.IO) {
+                callback.signZomeCall(ZomeCallFfiParcel(runtime!!.signZomeCall(req.inner)))
             }
         }
     }
@@ -151,7 +166,7 @@ class HolochainService : Service() {
                 "wss://sbd.holo.host",
             );
             
-            serviceScope.launch(Dispatchers.Default) {
+            serviceScope.launch(Dispatchers.IO) {
                 runtime = RuntimeFfi.start(passphrase, config)
                 Log.d(TAG, "Holochain started successfully")
             }
