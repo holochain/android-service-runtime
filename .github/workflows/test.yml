@@ -45,16 +45,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create gradle.properties without secrets
-        run: |
-          touch libraries/holochain-service-client/gradle.properties
-          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service-client/gradle.properties
-
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+
+      - name: Cargo toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.81.0 # Check the version used by Holochain
+          targets: ${{ matrix.target.arch-cargo }}
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
@@ -74,12 +75,22 @@ jobs:
         with:
           path: |
             ~/.cargo/*
-            ~/target
+            ~/target/*
           key: cargo-${{ matrix.target.arch-cargo }}
+
+      - name: Build deps
+        run: |
+          npm i pnpm
+          cargo install cargo-ndk
 
       - name: Build dependency rust library & kotlin bindings
         run: |
           pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
+      
+      - name: Create gradle.properties without secrets
+        run: |
+          touch libraries/holochain-service-client/gradle.properties
+          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service-client/gradle.properties
 
       - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
