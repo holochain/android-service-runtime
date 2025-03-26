@@ -2,8 +2,6 @@ package org.holochain.androidserviceruntime.holochain_service_client;
 
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallback;
 import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfiParcel;
-import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel;
-import org.holochain.androidserviceruntime.holochain_service_client.AppAuthFfiParcel;
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel;
 
 interface IHolochainService {
