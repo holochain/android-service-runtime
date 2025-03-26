@@ -35,6 +35,13 @@ Clear the local Maven repository by deleting this library from it:
 rm -rf ~/.m2/repository/org/holochain
 ```
 
+### Run Tests
+
+To run the test suite:
+
+```bash
+pnpm run test:holochain-service-client
+```
 
 ## Publishing
 
