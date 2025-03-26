@@ -14,18 +14,18 @@ class HolochainServiceClient(
     private val servicePackageName: String = "org.holochain.androidserviceruntime.app"
 ) {
     private var mService: IHolochainService? = null
-    private val logTag = "HolochainServiceClient"
+    private val TAG = "HolochainServiceClient"
 
     // IPC Connection to HolochainService using AIDL
     private val mConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             mService = IHolochainService.Stub.asInterface(service)
-            Log.d(logTag, "IHolochainService connected")
+            Log.d(TAG, "IHolochainService connected")
         }
 
         override fun onServiceDisconnected(className: ComponentName) {
             mService = null
-            Log.d(logTag, "IHolochainService disconnected")
+            Log.d(TAG, "IHolochainService disconnected")
         }
     }
 
