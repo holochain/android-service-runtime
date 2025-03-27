@@ -13,3 +13,4 @@
 - Commands and setup for publishing kotlin library to local maven repo. All other projects will check local maven repo *before* Maven Central.
 - Android app logs warnings and errors to android system log.
 - The following HolochainService functions exposed via IPC are now async and do not block the main thread: listApps, installApp, uninstallApp, enableApp, disableApp, isAppInstalled, ensureAppWebsocket, and signZomeCall.
+- Run holochain-service-client tests in CI

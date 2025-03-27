@@ -7,8 +7,8 @@ on:
     branches:
       - main
 jobs:
-  test:
-    name: Test
+  test-rust-crates:
+    name: Test Rust Crates
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -16,17 +16,92 @@ jobs:
         os: [
           ubuntu-latest,
         ]
-        toolchain: [
-          "1.81.0", # Check the version used by Holochain
-        ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Rust toolchain
+        uses: mkroening/rust-toolchain-toml@main
+
+      - uses: Swatinem/rust-cache@v2
+        name: Enable Rust Caching
         with:
-          toolchain: ${{ matrix.toolchain }}
+          cache-on-failure: true
 
       - name: Make Test
         run: make test
+
+  test-kotlin-libraries:
+    name: Test Kotlin Libraries
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - api-level: 28
+            arch-ndk: x86_64
+            arch-cargo: x86_64-linux-android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Rust toolchain
+        uses: mkroening/rust-toolchain-toml@main
+
+      - uses: Swatinem/rust-cache@v2
+        name: Enable Rust Caching
+        with:
+          cache-on-failure: true
+
+      - name: Gradle cache
+        uses: gradle/actions/setup-gradle@v3
+        
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ matrix.target.api-level }}-${{ matrix.target.arch-ndk }}
+
+      - name: Cargo cache
+        uses: actions/cache@v4
+        id: cargo-cache
+        with:
+          path: |
+            ~/.cargo/*
+            ~/target/*
+          key: cargo-${{ matrix.target.arch-cargo }}
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10
+
+      - name: Install cargo-ndk
+        run: |
+          cargo install cargo-ndk
+
+      - name: Build dependency rust library & kotlin bindings
+        run: |
+          pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
+      
+      - name: Create gradle.properties without secrets
+        run: |
+          touch libraries/holochain-service-client/gradle.properties
+          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service-client/gradle.properties
+
+      - name: Run tests
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.target.api-level }}
+          arch: ${{ matrix.target.arch-ndk }}
+          target: google_apis
+          script: pnpm run test:holochain-service-client
