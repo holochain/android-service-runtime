@@ -16,17 +16,17 @@ jobs:
         os: [
           ubuntu-latest,
         ]
-        toolchain: [
-          "1.81.0", # Check the version used by Holochain
-        ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Rust toolchain
+        uses: mkroening/rust-toolchain-toml@main
+
+      - uses: Swatinem/rust-cache@v2
+        name: Enable Rust Caching
         with:
-          toolchain: ${{ matrix.toolchain }}
+          cache-on-failure: true
 
       - name: Make Test
         run: make test
@@ -51,11 +51,13 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Cargo toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Rust toolchain
+        uses: mkroening/rust-toolchain-toml@main
+
+      - uses: Swatinem/rust-cache@v2
+        name: Enable Rust Caching
         with:
-          toolchain: 1.81.0 # Check the version used by Holochain
-          targets: ${{ matrix.target.arch-cargo }}
+          cache-on-failure: true
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
