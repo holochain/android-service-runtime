@@ -54,8 +54,6 @@ jobs:
 
       - name: Rust toolchain
         uses: mkroening/rust-toolchain-toml@main
-        with:
-          targets: ${{ matrix.target.arch-cargo }}
 
       - uses: Swatinem/rust-cache@v2
         name: Enable Rust Caching
