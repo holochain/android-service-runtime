@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceAdmin
+import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceApp
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallback
 import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
 import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
@@ -138,6 +139,68 @@ class HolochainService : Service() {
         }
     }
 
+    fun createBinderApp(installedAppId: String): IBinder {
+        return object : IHolochainServiceApp.Stub() {
+            private val TAG = "IHolochainServiceApp"
+
+            /// Install an app
+            override fun installApp(
+                callback: IHolochainServiceCallback,
+                request: InstallAppPayloadFfiParcel
+            ) {
+                if(request.installedAppId == installedAppId) {  
+                    Log.d(TAG, "installApp")
+                    serviceScope.launch(Dispatchers.IO) {
+                        callback.installApp(AppInfoFfiParcel(runtime!!.installApp(request.fromParcel())))
+                    }
+                } else {
+                    // TODO throw error
+                }
+            }
+
+            /// Enable an installed app
+            override fun enableApp(
+                callback: IHolochainServiceCallback,
+            ) {
+                Log.d(TAG, "enableApp")
+                serviceScope.launch(Dispatchers.IO) {
+                    callback.enableApp(AppInfoFfiParcel(runtime!!.enableApp(installedAppId)))
+                }
+            }
+
+            /// Is app installed
+            override fun isAppInstalled(
+                callback: IHolochainServiceCallback,
+            ) {
+                Log.d(TAG, "isAppInstalled")
+                serviceScope.launch(Dispatchers.IO) {
+                    callback.isAppInstalled(runtime!!.isAppInstalled(installedAppId))
+                }
+            }
+
+            /// Get or create an app websocket with an authenticated token
+            override fun ensureAppWebsocket(
+                callback: IHolochainServiceCallback,
+            ) {
+                Log.d(TAG, "ensureAppWebsocket")
+                serviceScope.launch(Dispatchers.IO) {
+                    callback.ensureAppWebsocket(AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!))
+                }
+            }
+
+            /// Sign a zome call
+            override fun signZomeCall(
+                callback: IHolochainServiceCallback,
+                req: ZomeCallUnsignedFfiParcel
+            ) {
+                Log.d(TAG, "signZomeCall")
+                serviceScope.launch(Dispatchers.IO) {
+                    callback.signZomeCall(ZomeCallFfiParcel(runtime!!.signZomeCall(req.inner)))
+                }
+            }
+        }
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground()
         return START_REDELIVER_INTENT
@@ -163,6 +226,25 @@ class HolochainService : Service() {
                 return binderAdmin
             } else {
                 // TODO throw error, unauthorized admin api request
+            }
+        } else if (api == "app") {
+            var installedAppId = intent.getStringExtra("installedAppId")!!
+            var isAuthorized = runtime!!.isAppClientAuthorized(
+                clientPackageName,
+                installedAppId
+            )
+
+            if(isAuthorized) {
+                return this.createBinderApp(installedAppId)
+            } else {
+                // TODO notify user to request authorization
+
+                // Authorize app client
+                runtime!!.authorizeAppClient(
+                    clientPackageName,
+                    installedAppId,
+                )
+                return this.createBinderApp(installedAppId) 
             }
         } else {
             // TODO Throw error, invalid api
