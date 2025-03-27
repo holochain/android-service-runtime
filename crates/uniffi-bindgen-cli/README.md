@@ -1,4 +1,4 @@
-# uniffi-bindgen
+# uniffi-bindgen-cli
 
 This crate provides a binary of the uniffi-bindgen cli, used for generating ffi bindings.
 

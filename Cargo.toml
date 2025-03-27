@@ -7,7 +7,7 @@ members = [
     "crates/tauri-plugin-holochain-service-consumer",
     "apps/android-service-runtime/src-tauri",
     "examples/service-app/src-tauri",
-    "crates/uniffi-bindgen"
+    "crates/uniffi-bindgen-cli"
 ]
 resolver = "2"
 
