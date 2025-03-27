@@ -1,12 +1,12 @@
 package org.holochain.androidserviceruntime.holochain_service_client
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.nio.ByteBuffer
+import java.util.UUID
+import kotlin.random.Random
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.nio.ByteBuffer
-import kotlin.random.Random
-import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class ParcelableTypesTest {
@@ -23,12 +23,13 @@ class ParcelableTypesTest {
 
     @Test
     fun testInstallAppPayloadFfiParcel() {
-        val payload = InstallAppPayloadFfi(
-            source = ByteArray(5000) { Random.nextInt(256).toByte() },
-            installedAppId = "my-app",
-            networkSeed = UUID.randomUUID().toString(),
-            rolesSettings = null,
-        )
+        val payload =
+            InstallAppPayloadFfi(
+                source = ByteArray(5000) { Random.nextInt(256).toByte() },
+                installedAppId = "my-app",
+                networkSeed = UUID.randomUUID().toString(),
+                rolesSettings = null,
+            )
 
         // Convert to parcel
         val parcelPayload = payload.toParcel()
