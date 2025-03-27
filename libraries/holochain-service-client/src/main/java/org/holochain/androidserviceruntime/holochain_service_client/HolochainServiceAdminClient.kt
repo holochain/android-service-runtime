@@ -9,24 +9,24 @@ import android.os.IBinder
 import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
 
-class HolochainServiceClient(
+class HolochainServiceAdminClient(
     private val activity: Activity,
     private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
     private val servicePackageName: String = "org.holochain.androidserviceruntime.app"
 ) {
-    private var mService: IHolochainService? = null
-    private val TAG = "HolochainServiceClient"
+    private var mService: IHolochainServiceAdmin? = null
+    private val TAG = "HolochainServiceAdminClient"
 
     // IPC Connection to HolochainService using AIDL
     private val mConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-            mService = IHolochainService.Stub.asInterface(service)
-            Log.d(TAG, "IHolochainService connected")
+            mService = IHolochainServiceAdmin.Stub.asInterface(service)
+            Log.d(TAG, "onServiceConnected")
         }
 
         override fun onServiceDisconnected(className: ComponentName) {
             mService = null
-            Log.d(TAG, "IHolochainService disconnected")
+            Log.d(TAG, "onServiceDisconnected")
         }
     }
 
@@ -34,7 +34,8 @@ class HolochainServiceClient(
     fun connect() {
         val intent = Intent()
         intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
-
+        intent.putExtra("api", "admin")
+        
         this.activity.startForegroundService(intent)
         this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
     }

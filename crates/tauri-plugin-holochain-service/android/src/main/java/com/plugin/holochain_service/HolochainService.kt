@@ -3,6 +3,7 @@ package com.plugin.holochain_service
 import android.util.Log
 import android.app.Service
 import android.os.IBinder
+import android.os.Binder
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.runBlocking
@@ -12,7 +13,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
-import org.holochain.androidserviceruntime.holochain_service_client.IHolochainService
+import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceAdmin
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallback
 import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
 import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
@@ -32,8 +33,8 @@ class HolochainService : Service() {
 
     /// The IPC receiver that other activities can call into
     @OptIn(DelicateCoroutinesApi::class, ExperimentalUnsignedTypes::class)
-    private val binder = object : IHolochainService.Stub() {
-        private val TAG = "IHolochainService"
+    private val binderAdmin = object : IHolochainServiceAdmin.Stub() {
+        private val TAG = "IHolochainServiceAdmin"
 
         /// Stop the conductor
         override fun stop() {
@@ -146,7 +147,29 @@ class HolochainService : Service() {
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder = binder
+    override fun onBind(intent: Intent): IBinder? {
+        // Get the name of the package that is attempting to bind
+        var callingUid: Int = Binder.getCallingUid()
+        var clientPackageName: String = getPackageManager().getPackagesForUid(callingUid)!![0]
+
+        // Which api are they attempting to bind to?
+        var api = intent.getStringExtra("api")
+
+        Log.d(TAG, "onBind: api=" + api + " clientPackageName=" + clientPackageName)
+
+        if (api == "admin") {
+            // Only this package can call the admin api
+            if(clientPackageName == this.getPackageName()) {
+                return binderAdmin
+            } else {
+                // TODO throw error, unauthorized admin api request
+            }
+        } else {
+            // TODO Throw error, invalid api
+        }
+        
+        return null
+    }
 
     private fun startForeground() {
         try {
