@@ -16,5 +16,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Rust toolchain
+        uses: mkroening/rust-toolchain-toml@main
+
+      - uses: Swatinem/rust-cache@v2
+        name: Enable Rust Caching
+        with:
+          shared-key: android-service-runtime-rust
+          cache-on-failure: true
+      
       - name: Make Static
         run: CHK_SQL_FMT=1 make static

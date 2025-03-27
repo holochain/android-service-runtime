@@ -21,7 +21,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: mkroening/rust-toolchain-toml@main
+
+      - uses: Swatinem/rust-cache@v2
+        name: Enable Rust Caching
+        with:
+          shared-key: android-service-runtime-rust
+          cache-on-failure: true
 
       - name: Make Test
         run: make test
@@ -47,9 +53,15 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: mkroening/rust-toolchain-toml@main
         with:
           targets: ${{ matrix.target.arch-cargo }}
+
+      - uses: Swatinem/rust-cache@v2
+        name: Enable Rust Caching
+        with:
+          shared-key: android-service-runtime-rust
+          cache-on-failure: true
 
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
