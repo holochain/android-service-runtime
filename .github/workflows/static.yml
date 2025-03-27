@@ -22,7 +22,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         name: Enable Rust Caching
         with:
-          shared-key: android-service-runtime-rust
           cache-on-failure: true
       
       - name: Make Static
