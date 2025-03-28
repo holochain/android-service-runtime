@@ -29,7 +29,7 @@ serde = "1.0"
 thiserror = "2.0.11"
 bytes = "1.9.0"
 zeroize = "1.8.1"
-uniffi = "0.29.0"
+uniffi = { git = "https://github.com/mattyg/uniffi-rs.git", branch = "fix/expose-rustbuffer-create-rust-2021" }
 tempfile = "3.17.1"
 tokio = "1.43.0"
 uuid = "1.15.1"
