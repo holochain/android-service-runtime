@@ -1,6 +1,6 @@
 use crate::error::RuntimeResultFfi;
 use android_logger::Config;
-use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
+use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig, ClientId};
 use holochain_conductor_runtime_types_ffi::*;
 use log::{debug, LevelFilter};
 use url2::Url2;
@@ -107,6 +107,16 @@ impl RuntimeFfi {
             .sign_zome_call(zome_call_unsigned.into())
             .await?
             .into())
+    }
+
+    /// Authorize a client to call the given app id
+    pub fn authorize_app_client(&self, client_id: String, installed_app_id: String) -> RuntimeResultFfi<()> {
+        Ok(self.0.authorize_app_client(ClientId(client_id), installed_app_id)?)
+    }
+
+    /// Is this client authorized to call the given app id?
+    pub fn is_app_client_authorized(&self, client_id: String, installed_app_id: String) -> RuntimeResultFfi<bool> {
+        Ok(self.0.is_app_client_authorized(ClientId(client_id), installed_app_id)?)
     }
 }
 

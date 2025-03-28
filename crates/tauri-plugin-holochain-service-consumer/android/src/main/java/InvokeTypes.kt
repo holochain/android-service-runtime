@@ -24,6 +24,22 @@ fun InstallAppPayloadFfiInvokeArg.toFfi(): InstallAppPayloadFfi {
 }
 
 @InvokeArg
+class ConsumerInstallAppPayloadFfiInvokeArg {
+    lateinit var source: ByteArray
+    lateinit var networkSeed: String
+    lateinit var roleSettings: Map<String, RoleSettingsFfi>
+}
+
+fun ConsumerInstallAppPayloadFfiInvokeArg.toFfi(installedAppId: String): InstallAppPayloadFfi {
+    return InstallAppPayloadFfi(
+        this.source,
+        installedAppId,
+        this.networkSeed,
+        this.roleSettings,
+    )
+}
+
+@InvokeArg
 class AppIdInvokeArg {
     lateinit var installedAppId: String
 }

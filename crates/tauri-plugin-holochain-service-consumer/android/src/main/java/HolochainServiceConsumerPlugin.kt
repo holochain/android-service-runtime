@@ -7,15 +7,16 @@ import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
-import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
+import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClientApp
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.toParcel
 
 @TauriPlugin
-class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
+class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(activity) {
     private lateinit var webView: WebView
     private lateinit var injectHolochainClientEnvJavascript: String
     private lateinit var serviceClient: HolochainServiceClient
+    private lateinit var installedAppId: String
 
     /**
      * Load the plugin, start the service
@@ -34,8 +35,11 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
      */
     @Command
     fun connect(invoke: Invoke) {
+        val args = invoke.parseArgs(AppIdInvokeArg::class.java)
+        this.installedAppId = args.installedAppId
         this.serviceClient = HolochainServiceClient(
             this.activity,
+            args.installedAppId,
             "com.plugin.holochain_service.HolochainService",
             "org.holochain.androidserviceruntime.app"
         )
@@ -48,9 +52,20 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
      */
     @Command
     fun installApp(invoke: Invoke) {
-        val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
-        this.serviceClient.installApp(args.toFfi().toParcel())
+        val args = invoke.parseArgs(ConsumerInstallAppPayloadFfiInvokeArg::class.java)
+        this.serviceClient.installApp(args.toFfi(this.installedAppId).toParcel())
         invoke.resolve()
+    }
+
+    /**
+     * Enable an app
+     */
+    @Command
+    fun enableApp(invoke: Invoke) {
+        var res = this.serviceClient.enableApp(this.installedAppId)
+        val obj = JSObject()
+        obj.put("enabled", res)
+        invoke.resolve(obj)
     }
 
     /**
@@ -58,8 +73,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
      */
     @Command
     fun isAppInstalled(invoke: Invoke) {
-        val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        val res = this.serviceClient.isAppInstalled(args.installedAppId)
+        val res = this.serviceClient.isAppInstalled(this.installedAppId)
         val obj = JSObject()
         obj.put("installed", res)
         invoke.resolve(obj)
@@ -71,8 +85,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     @OptIn(ExperimentalUnsignedTypes::class)
     @Command
     fun ensureAppWebsocket(invoke: Invoke) {
-        val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        val res = this.serviceClient.ensureAppWebsocket(args.installedAppId)
+        val res = this.serviceClient.ensureAppWebsocket(this.installedAppId)
 
         val obj = JSObject()
         obj.put("ensureAppWebsocket", res.inner.toJSObject())

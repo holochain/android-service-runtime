@@ -15,7 +15,7 @@ import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
-import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
+import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceAdminClient
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.toParcel
 
@@ -23,7 +23,7 @@ import org.holochain.androidserviceruntime.holochain_service_client.toParcel
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     private lateinit var webView: WebView
     private lateinit var injectHolochainClientEnvJavascript: String
-    private lateinit var serviceClient: HolochainServiceClient
+    private lateinit var serviceClient: HolochainServiceAdminClient
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private var TAG = "HolochainServicePlugin"
@@ -55,7 +55,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun start(invoke: Invoke) {
         Log.d(TAG, "start")
-        this.serviceClient = HolochainServiceClient(
+        this.serviceClient = HolochainServiceAdminClient(
             this.activity,
             "com.plugin.holochain_service.HolochainService",
             "org.holochain.androidserviceruntime.app"
