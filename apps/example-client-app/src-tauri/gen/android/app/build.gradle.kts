@@ -15,11 +15,11 @@ val tauriProperties = Properties().apply {
 
 android {
     compileSdk = 34
-    namespace = "com.tauri.tauri_plugin_service_consumer_example_app"
+    namespace = "org.holochain.androidserviceruntime.example_client_app"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "com.tauri.tauri_plugin_service_consumer_example_app"
-        minSdk = 24
+        applicationId = "org.holochain.androidserviceruntime.example_client_app"
+        minSdk = 27
         targetSdk = 34
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")

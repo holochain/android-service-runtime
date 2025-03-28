@@ -1,20 +1,18 @@
 buildscript {
     repositories {
-        mavenLocal()
-        mavenCentral()
         google()
+        mavenCentral()
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.6.1")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.10")
     }
 }
 
 allprojects {
     repositories {
-        mavenLocal()
-        mavenCentral()
         google()
+        mavenCentral()
     }
 }
 

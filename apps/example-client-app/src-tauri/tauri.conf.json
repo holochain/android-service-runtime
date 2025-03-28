@@ -1,27 +1,18 @@
 {
-  "productName": "tauri-plugin-service-consumer-example-app",
-  "version": "0.1.0",
-  "identifier": "com.tauri.tauri-plugin-service-consumer-example-app",
+  "productName": "Example Client App",
+  "version": "0.7.6",
+  "identifier": "org.holochain.androidserviceruntime.example_client_app",
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
-    "devUrl": "http://localhost:1427",
-    "frontendDist": "../dist"
+    "beforeBuildCommand": "npm run build -w ui",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../ui/build"
   },
   "app": {
-    "withGlobalTauri": false,
+    "withGlobalTauri": true,
     "security": {
       "csp": null
     },
-    "windows": [
-      {
-        "fullscreen": false,
-        "height": 600,
-        "resizable": true,
-        "title": "tauri-app",
-        "width": 800
-      }
-    ]
+    "windows": []
   },
   "bundle": {
     "active": true,
@@ -32,6 +23,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "macOS": {
+      "entitlements": "entitlements.plist"
+    }
   }
 }

@@ -5,9 +5,11 @@ members = [
     "crates/holochain-conductor-runtime-types-ffi",
     "crates/tauri-plugin-holochain-service",
     "crates/tauri-plugin-holochain-service-consumer",
-    "apps/android-service-runtime/src-tauri",
-    "examples/service-app/src-tauri",
-    "crates/uniffi-bindgen-cli"
+    "crates/uniffi-bindgen-cli",
+    "apps/android-service-runtime/src-tauri"
+]
+exclude = [
+    "apps/example-client-app/**"
 ]
 resolver = "2"
 

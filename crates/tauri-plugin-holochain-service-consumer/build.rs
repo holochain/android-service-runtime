@@ -1,4 +1,5 @@
 const COMMANDS: &[&str] = &[
+    "connect",
     "install_app",
     "is_app_installed",
     "ensure_app_websocket",
