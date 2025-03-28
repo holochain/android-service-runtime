@@ -1,3 +1,10 @@
+/// Helpers for converting to and from tauri's JSObject & JSArray types
+/// which are used to return values from tauri-invoked functions.
+///
+/// This file is *not* extracted into a standalone kotlin library
+/// because it depends on app.tauri.plugin,
+/// which is auto-generated during tauri plugin builds.
+
 package com.plugin.holochain_service_consumer
 
 import app.tauri.plugin.JSObject
@@ -12,6 +19,7 @@ object JSCasting {
     /// This is intended to be as generic as possible, but may not work for every object.
     /// If you run into errors, you likely need to override handling of certain property types.
     /// JSObject will accept Any type, but may cast it to a String if it doesn't know how to handle it specifically.
+    @OptIn(ExperimentalUnsignedTypes::class)
     inline fun <reified T : Any> toJSObject(data: T): JSObject {
         val obj = JSObject()
         val properties = data::class.memberProperties
@@ -28,10 +36,10 @@ object JSCasting {
                         try {
                             val entryJsValue = when (entry.value) {
                                 is Collection<*> -> {
-                                    (entry.value as? Collection<Any>)?.toJSArray()
+                                    ((entry.value as Collection<*>).map { it as Any}).toJSArray()
                                 }
                                 else -> {
-                                    (entry.value as? Any)?.toJSObject()
+                                    entry.value?.toJSObject()
                                 }
                             }
                             map.put(entry.key as String, entryJsValue as Any)
@@ -39,7 +47,7 @@ object JSCasting {
                             Log.e("toJSObject", "Error converting Map entry ${entry.key} with value ${entry.value} to JSObject", e)
                         }
                     }
-                    obj.put(property.name, JSONObject(map as? Map<String, Any>) as Any)
+                    obj.put(property.name, JSONObject(map) as Any)
                 }
                 is ByteArray -> {
                     val byteCollection: MutableCollection<UByte> = value.toUByteArray().toMutableList()
@@ -51,9 +59,9 @@ object JSCasting {
                     }
                     obj.put(property.name, jsValue)
                 }
-                is Collection<*>, is MutableCollection<*> -> {
+                is Collection<*> -> {
                     val jsValue = try {
-                        (value as? Collection<Any>)?.toJSArray()
+                        (value.map { it as Any }).toJSArray()
                     } catch (e: Exception) {
                         Log.e("toJSObject", "Error converting property ${property.name} to toJSArray", e)
                         null
@@ -62,7 +70,7 @@ object JSCasting {
                 }
                 else -> {
                     val jsValue = try {
-                        (value as? Any)?.toJSObject()
+                        value.toJSObject()
                     } catch (e: Exception) {
                         Log.e("toJSObject", "Error converting property ${property.name} to JSObject", e)
                         null
@@ -86,16 +94,16 @@ object JSCasting {
                 is UByte -> arr.put(element.toInt())
                 is Enum<*> -> arr.put(element.name)
                 is Map<*,*> -> {
-                    Log.d("toJSArray", "Element ${element} is map")
+                    Log.d("toJSArray", "Element $element is map")
                     var map = HashMap<String, Any>()
                     element.forEach { entry ->
                         try {
                             val entryJsValue = when (entry.value) {
                                 is Collection<*> -> {
-                                    (entry.value as? Collection<Any>)?.toJSArray()
+                                    ((entry.value as Collection<*>).map { it as Any}).toJSArray()
                                 }
                                 else -> {
-                                    (entry.value as? Any)?.toJSObject()
+                                    entry.value?.toJSObject()
                                 }
                             }
                             map.put(entry.key as String, entryJsValue as Any)
@@ -105,21 +113,21 @@ object JSCasting {
                     }
                     arr.put(map as Any)
                 }
-                is Collection<*>, is MutableCollection<*> -> {
+                is Collection<*> -> {
                     val jsValue = try {
-                        (element as? Collection<Any>)?.toJSArray()
+                        (element.map { it as Any }).toJSArray()
                     } catch (e: Exception) {
-                        Log.e("toJSArray", "Error converting element ${element} to toJSArray", e)
+                        Log.e("toJSArray", "Error converting element $element to toJSArray", e)
                         null
                     }
                     arr.put(jsValue)
                 }
                 else -> {
-                    Log.d("toJSArray", "Element ${element} is other")
+                    Log.d("toJSArray", "Element $element is other")
                     val jsValue = try {
-                        (element as? Any)?.toJSObject()
+                        element.toJSObject()
                     } catch (e: Exception) {
-                        Log.e("toJSArray", "Error converting element ${element} to toJSObject", e)
+                        Log.e("toJSArray", "Error converting element $element to toJSObject", e)
                         null
                     }
                     arr.put(jsValue)

@@ -1,8 +1,9 @@
 [workspace]
 members = [
     "crates/runtime",
-    "crates/runtime-ffi",
     "crates/runtime-types-ffi",
+    "crates/runtime-ffi",
+    "crates/runtime-client-ffi",
     "crates/tauri-plugin-holochain-service",
     "crates/tauri-plugin-holochain-service-consumer",
     "apps/android-service-runtime/src-tauri",
