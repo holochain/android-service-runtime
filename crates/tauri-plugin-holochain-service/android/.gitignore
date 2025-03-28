@@ -1,7 +1,6 @@
 build
 .tauri
 .gradle
-gradle
 .kotlin
 .idea
 
