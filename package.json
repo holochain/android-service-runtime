@@ -12,6 +12,7 @@
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
       "start": "pnpm run publish:local:holochain-service-client && pnpm run start:android-service-runtime",
       "start:android-service-runtime": "pnpm run --dir apps/android-service-runtime start:android",
+      "start:example-client-app": "pnpm run --dir apps/example-client-app start:android",
       "android:start": "cd examples/end-user-happ && nix develop .#androidDev --command bash -c \"pnpm run tauri android dev\"",
       "publish:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew publish",
       "publish:local:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew publishToMavenLocal",
