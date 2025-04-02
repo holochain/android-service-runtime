@@ -1,355 +1,562 @@
+import android.os.Parcel
+import android.os.Parcelable.PARCELABLE_WRITE_RETURN_VALUE
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.nio.ByteBuffer
 import java.util.UUID
 import kotlin.random.Random
+import org.holochain.androidserviceruntime.holochain_service_client.*
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import android.os.Parcel
-import android.os.Parcelable.PARCELABLE_WRITE_RETURN_VALUE
-import org.holochain.androidserviceruntime.holochain_service_client.*
 
 @RunWith(AndroidJUnit4::class)
 class ParcelablesTest {
-    @Test
-    fun testCellIdFfiParcel() {
-        val value = CellIdFfiParcel(CellIdFfi(
-            dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
-            agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
-        ))
 
-        val parcel = Parcel.obtain()
-        parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<CellIdFfiParcel>(CellIdFfiParcel::class.java.classLoader,
-            CellIdFfiParcel::class.java)!!
-
-        assertArrayEquals(value.inner.dnaHash, readValue.inner.dnaHash)
-        assertArrayEquals(value.inner.agentPubKey, readValue.inner.agentPubKey)
-    }
-
-    @Test
-    fun testDurationFfiParcel() {
-        val value = DurationFfiParcel(DurationFfi(
-            secs = 100UL,
-            nanos = 500U
-        ))
-
-        val parcel = Parcel.obtain()
-        parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<DurationFfiParcel>(DurationFfiParcel::class.java.classLoader,
-            DurationFfiParcel::class.java)!!
-
-        assertEquals(value.inner.secs, readValue.inner.secs)
-        assertEquals(value.inner.nanos, readValue.inner.nanos)
-    }
-
-    @Test
-    fun testDnaModifiersFfiParcel() {
-        val value = DnaModifiersFfiParcel(DnaModifiersFfi(
-            networkSeed = "1234",
-            properties = ByteArray(300) { Random.nextInt(256).toByte() },
-            originTime = 1000L,
-            quantumTime = DurationFfi(100UL, 100U)
-        ))
-
-        val parcel = Parcel.obtain()
-        parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<DnaModifiersFfiParcel>(DnaModifiersFfiParcel::class.java.classLoader,
-            DnaModifiersFfiParcel::class.java)!!
-
-        assertEquals(value.inner.networkSeed, readValue.inner.networkSeed)
-        assertArrayEquals(value.inner.properties, readValue.inner.properties)
-        assertEquals(value.inner.originTime, readValue.inner.originTime)
-        assertEquals(value.inner.quantumTime.secs, readValue.inner.quantumTime.secs)
-        assertEquals(value.inner.quantumTime.nanos, readValue.inner.quantumTime.nanos)
-    }
-
-    @Test
-    fun testCellInfoFfiParcel() {
-        val value = CellInfoFfiParcel(CellInfoFfi.Provisioned(ProvisionedCellFfi(
-            cellId = CellIdFfi(
+  @Test
+  fun testCellIdFfiParcel() {
+    val value =
+        CellIdFfiParcel(
+            CellIdFfi(
                 dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
                 agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
-            ),
-            dnaModifiers = DnaModifiersFfi(
+            ))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<CellIdFfiParcel>(
+            CellIdFfiParcel::class.java.classLoader, CellIdFfiParcel::class.java)!!
+
+    assertArrayEquals(value.inner.dnaHash, readValue.inner.dnaHash)
+    assertArrayEquals(value.inner.agentPubKey, readValue.inner.agentPubKey)
+  }
+
+  @Test
+  fun testDurationFfiParcel() {
+    val value = DurationFfiParcel(DurationFfi(secs = 100UL, nanos = 500U))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<DurationFfiParcel>(
+            DurationFfiParcel::class.java.classLoader, DurationFfiParcel::class.java)!!
+
+    assertEquals(value.inner.secs, readValue.inner.secs)
+    assertEquals(value.inner.nanos, readValue.inner.nanos)
+  }
+
+  @Test
+  fun testDnaModifiersFfiParcel() {
+    val value =
+        DnaModifiersFfiParcel(
+            DnaModifiersFfi(
                 networkSeed = "1234",
                 properties = ByteArray(300) { Random.nextInt(256).toByte() },
                 originTime = 1000L,
-                quantumTime = DurationFfi(100UL, 100U)
-            ),
-            name = "cell-1"
-        )))
+                quantumTime = DurationFfi(100UL, 100U)))
 
-        val parcel = Parcel.obtain()
-        parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<CellInfoFfiParcel>(CellInfoFfiParcel::class.java.classLoader,
-            CellInfoFfiParcel::class.java)!!
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<DnaModifiersFfiParcel>(
+            DnaModifiersFfiParcel::class.java.classLoader, DnaModifiersFfiParcel::class.java)!!
 
-        assertArrayEquals((value.inner as CellInfoFfi.Provisioned).v1.cellId.dnaHash, (readValue.inner as CellInfoFfi.Provisioned).v1.cellId.dnaHash)
-        assertArrayEquals(value.inner.v1.cellId.agentPubKey, readValue.inner.v1.cellId.agentPubKey)
-        assertEquals(value.inner.v1.dnaModifiers.networkSeed, readValue.inner.v1.dnaModifiers.networkSeed)
-        assertArrayEquals(value.inner.v1.dnaModifiers.properties, readValue.inner.v1.dnaModifiers.properties)
-        assertEquals(value.inner.v1.dnaModifiers.originTime, readValue.inner.v1.dnaModifiers.originTime)
-        assertEquals(value.inner.v1.dnaModifiers.quantumTime.secs, readValue.inner.v1.dnaModifiers.quantumTime.secs)
-        assertEquals(value.inner.v1.dnaModifiers.quantumTime.nanos, readValue.inner.v1.dnaModifiers.quantumTime.nanos)
-        assertEquals((value.inner as CellInfoFfi.Provisioned).v1.name, (readValue.inner as CellInfoFfi.Provisioned).v1.name)
-    }
+    assertEquals(value.inner.networkSeed, readValue.inner.networkSeed)
+    assertArrayEquals(value.inner.properties, readValue.inner.properties)
+    assertEquals(value.inner.originTime, readValue.inner.originTime)
+    assertEquals(value.inner.quantumTime.secs, readValue.inner.quantumTime.secs)
+    assertEquals(value.inner.quantumTime.nanos, readValue.inner.quantumTime.nanos)
+  }
 
-    @Test
-    fun testAppInfoFfiParcel() {
-        val value = AppInfoFfiParcel(AppInfoFfi(
-            installedAppId = "my-app",
-            cellInfo = mapOf(
-                "cell-1" to listOf(
-                    CellInfoFfi.Provisioned(ProvisionedCellFfi(
-                        cellId = CellIdFfi(
+  @Test
+  fun testCellInfoFfiParcel() {
+    val value =
+        CellInfoFfiParcel(
+            CellInfoFfi.Provisioned(
+                ProvisionedCellFfi(
+                    cellId =
+                        CellIdFfi(
                             dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
                             agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
                         ),
-                        dnaModifiers = DnaModifiersFfi(
+                    dnaModifiers =
+                        DnaModifiersFfi(
                             networkSeed = "1234",
                             properties = ByteArray(300) { Random.nextInt(256).toByte() },
                             originTime = 1000L,
-                            quantumTime = DurationFfi(100UL, 100U)
-                        ),
-                        name = "cell-1"
-                    ))
-                )
-            ),
-            status = AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted),
-            agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
-        ))
+                            quantumTime = DurationFfi(100UL, 100U)),
+                    name = "cell-1")))
 
-        val parcel = Parcel.obtain()
-        parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<AppInfoFfiParcel>(AppInfoFfiParcel::class.java.classLoader, AppInfoFfiParcel::class.java)!!
-            
-        assertEquals(value.inner.installedAppId, readValue.inner.installedAppId)
-    }
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<CellInfoFfiParcel>(
+            CellInfoFfiParcel::class.java.classLoader, CellInfoFfiParcel::class.java)!!
 
-    @Test
-    fun testByteBufferToByteArray() {
-        val value = ByteArray(1000) { Random.nextInt(256).toByte() }
-        val buffer = ByteBuffer.allocate(1000).put(value)
+    assertArrayEquals(
+        (value.inner as CellInfoFfi.Provisioned).v1.cellId.dnaHash,
+        (readValue.inner as CellInfoFfi.Provisioned).v1.cellId.dnaHash)
+    assertArrayEquals(value.inner.v1.cellId.agentPubKey, readValue.inner.v1.cellId.agentPubKey)
+    assertEquals(
+        value.inner.v1.dnaModifiers.networkSeed, readValue.inner.v1.dnaModifiers.networkSeed)
+    assertArrayEquals(
+        value.inner.v1.dnaModifiers.properties, readValue.inner.v1.dnaModifiers.properties)
+    assertEquals(value.inner.v1.dnaModifiers.originTime, readValue.inner.v1.dnaModifiers.originTime)
+    assertEquals(
+        value.inner.v1.dnaModifiers.quantumTime.secs,
+        readValue.inner.v1.dnaModifiers.quantumTime.secs)
+    assertEquals(
+        value.inner.v1.dnaModifiers.quantumTime.nanos,
+        readValue.inner.v1.dnaModifiers.quantumTime.nanos)
+    assertEquals(value.inner.v1.name, readValue.inner.v1.name)
+  }
 
-        // Convert to byte array
-        val byteArray = buffer.toByteArray()
-        assertArrayEquals(byteArray, value)
-    }
-
-    @Test
-    fun testInstallAppPayloadFfiParcel() {
-        val payload =
-            InstallAppPayloadFfi(
-                source = ByteArray(5000) { Random.nextInt(256).toByte() },
+  @Test
+  fun testAppInfoFfiParcel() {
+    val value =
+        AppInfoFfiParcel(
+            AppInfoFfi(
                 installedAppId = "my-app",
-                networkSeed = UUID.randomUUID().toString(),
-                rolesSettings = mapOf("cell-1" to RoleSettingsFfi.Provisioned(
-                    membraneProof = ByteArray(60) { Random.nextInt(256).toByte() },
-                    modifiers = DnaModifiersOptFfi(
+                cellInfo =
+                    mapOf(
+                        "cell-1" to
+                            listOf(
+                                CellInfoFfi.Provisioned(
+                                    ProvisionedCellFfi(
+                                        cellId =
+                                            CellIdFfi(
+                                                dnaHash =
+                                                    ByteArray(32) { Random.nextInt(256).toByte() },
+                                                agentPubKey =
+                                                    ByteArray(32) { Random.nextInt(256).toByte() },
+                                            ),
+                                        dnaModifiers =
+                                            DnaModifiersFfi(
+                                                networkSeed = "1234",
+                                                properties =
+                                                    ByteArray(300) { Random.nextInt(256).toByte() },
+                                                originTime = 1000L,
+                                                quantumTime = DurationFfi(100UL, 100U)),
+                                        name = "cell-1")))),
+                status = AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted),
+                agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
+            ))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<AppInfoFfiParcel>(
+            AppInfoFfiParcel::class.java.classLoader, AppInfoFfiParcel::class.java)!!
+
+    assertEquals(value.inner.installedAppId, readValue.inner.installedAppId)
+  }
+
+  @Test
+  fun testByteBufferToByteArray() {
+    val value = ByteArray(1000) { Random.nextInt(256).toByte() }
+    val buffer = ByteBuffer.allocate(1000).put(value)
+
+    // Convert to byte array
+    val byteArray = buffer.toByteArray()
+    assertArrayEquals(byteArray, value)
+  }
+
+  @Test
+  fun testInstallAppPayloadFfiParcel() {
+    val payload =
+        InstallAppPayloadFfi(
+            source = ByteArray(5000) { Random.nextInt(256).toByte() },
+            installedAppId = "my-app",
+            networkSeed = UUID.randomUUID().toString(),
+            rolesSettings =
+                mapOf(
+                    "cell-1" to
+                        RoleSettingsFfi.Provisioned(
+                            membraneProof = ByteArray(60) { Random.nextInt(256).toByte() },
+                            modifiers =
+                                DnaModifiersOptFfi(
+                                    networkSeed = "1234",
+                                    properties = ByteArray(300) { Random.nextInt(256).toByte() },
+                                    originTime = 1000L,
+                                    quantumTime = DurationFfi(100UL, 100U)),
+                        )),
+        )
+
+    // Convert to parcel
+    val parcelPayload = payload.toParcel()
+    val readBuffer = parcelPayload.sourceSharedMemory.mapReadOnly()
+    val retrievedSource = ByteArray(payload.source.size)
+    readBuffer.get(retrievedSource)
+
+    assertEquals(payload.installedAppId, parcelPayload.installedAppId)
+    assertEquals(payload.networkSeed, parcelPayload.networkSeed)
+    assertArrayEquals(payload.source, retrievedSource)
+
+    // Convert from parcel
+    val reconstructedPayload = parcelPayload.fromParcel()
+    assertArrayEquals(payload.source, reconstructedPayload.source)
+    assertEquals(payload.installedAppId, reconstructedPayload.installedAppId)
+    assertEquals(payload.networkSeed, reconstructedPayload.networkSeed)
+  }
+
+  @Test
+  fun testPausedAppReasonFfiParcel() {
+    val value = PausedAppReasonFfiParcel(PausedAppReasonFfi.Error("my error"))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<PausedAppReasonFfiParcel>(
+            PausedAppReasonFfiParcel::class.java.classLoader,
+            PausedAppReasonFfiParcel::class.java)!!
+
+    assert(readValue.inner is PausedAppReasonFfi.Error)
+    assertEquals((readValue.inner as PausedAppReasonFfi.Error).v1, "my error")
+  }
+
+  @Test
+  fun testDisabledAppReasonFfiParcelNeverStarted() {
+    val value = DisabledAppReasonFfiParcel(DisabledAppReasonFfi.NeverStarted)
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<DisabledAppReasonFfiParcel>(
+            DisabledAppReasonFfiParcel::class.java.classLoader,
+            DisabledAppReasonFfiParcel::class.java)!!
+
+    assert(readValue.inner is DisabledAppReasonFfi.NeverStarted)
+  }
+
+  @Test
+  fun testDisabledAppReasonFfiParcelError() {
+    val value = DisabledAppReasonFfiParcel(DisabledAppReasonFfi.Error("my error"))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<DisabledAppReasonFfiParcel>(
+            DisabledAppReasonFfiParcel::class.java.classLoader,
+            DisabledAppReasonFfiParcel::class.java)!!
+
+    assert(readValue.inner is DisabledAppReasonFfi.Error)
+    assertEquals((readValue.inner as DisabledAppReasonFfi.Error).v1, "my error")
+  }
+
+  @Test
+  fun testAppInfoStatusFfiParcelRunning() {
+    val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.Running)
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<AppInfoStatusFfiParcel>(
+            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+
+    assert(readValue.inner is AppInfoStatusFfi.Running)
+  }
+
+  @Test
+  fun testAppInfoStatusFfiParcelAwaitingMemproofs() {
+    val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.AwaitingMemproofs)
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<AppInfoStatusFfiParcel>(
+            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+
+    assert(readValue.inner is AppInfoStatusFfi.AwaitingMemproofs)
+  }
+
+  @Test
+  fun testAppInfoStatusFfiParcelPaused() {
+    val value =
+        AppInfoStatusFfiParcel(AppInfoStatusFfi.Paused(PausedAppReasonFfi.Error("my error")))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<AppInfoStatusFfiParcel>(
+            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+
+    assert(readValue.inner is AppInfoStatusFfi.Paused)
+    assert((readValue.inner as AppInfoStatusFfi.Paused).reason is PausedAppReasonFfi.Error)
+    assertEquals((readValue.inner.reason as PausedAppReasonFfi.Error).v1, "my error")
+  }
+
+  @Test
+  fun testAppInfoStatusFfiParcelDisabledNeverStarted() {
+    val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<AppInfoStatusFfiParcel>(
+            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+
+    assert(readValue.inner is AppInfoStatusFfi.Disabled)
+    assert(
+        (readValue.inner as AppInfoStatusFfi.Disabled).reason is DisabledAppReasonFfi.NeverStarted)
+  }
+
+  @Test
+  fun testAppInfoStatusFfiParcelDisabledError() {
+    val value =
+        AppInfoStatusFfiParcel(AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.Error("my error")))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<AppInfoStatusFfiParcel>(
+            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+
+    assert(readValue.inner is AppInfoStatusFfi.Disabled)
+    assert((readValue.inner as AppInfoStatusFfi.Disabled).reason is DisabledAppReasonFfi.Error)
+    assertEquals((readValue.inner.reason as DisabledAppReasonFfi.Error).v1, "my error")
+  }
+
+  @Test
+  fun testAppAuthenticationTokenIssuedFfiParcel() {
+    val value =
+        AppAuthenticationTokenIssuedFfiParcel(
+            AppAuthenticationTokenIssuedFfi(
+                token = ByteArray(50) { Random.nextInt(256).toByte() }, expiresAt = 1000000L))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<AppAuthenticationTokenIssuedFfiParcel>(
+            AppAuthenticationTokenIssuedFfiParcel::class.java.classLoader,
+            AppAuthenticationTokenIssuedFfiParcel::class.java)!!
+
+    assertArrayEquals(value.inner.token, readValue.inner.token)
+    assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
+  }
+
+  @Test
+  fun testAppAuthFfiParcel() {
+    val value =
+        AppAuthFfiParcel(
+            AppAuthFfi(
+                authentication =
+                    AppAuthenticationTokenIssuedFfi(
+                        token = ByteArray(50) { Random.nextInt(256).toByte() },
+                        expiresAt = 1500000L),
+                port = 4200U))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<AppAuthFfiParcel>(
+            AppAuthFfiParcel::class.java.classLoader, AppAuthFfiParcel::class.java)!!
+
+    assertArrayEquals(value.inner.authentication.token, readValue.inner.authentication.token)
+    assertEquals(value.inner.authentication.expiresAt, readValue.inner.authentication.expiresAt)
+    assertEquals(value.inner.port, readValue.inner.port)
+  }
+
+  @Test
+  fun testZomeCallUnsignedFfiParcel() {
+    val value =
+        ZomeCallUnsignedFfiParcel(
+            ZomeCallUnsignedFfi(
+                provenance = ByteArray(32) { Random.nextInt(256).toByte() },
+                cellId =
+                    CellIdFfi(
+                        dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
+                        agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
+                    ),
+                zomeName = "my_zome",
+                fnName = "my_function",
+                capSecret = ByteArray(50) { Random.nextInt(256).toByte() },
+                payload = ByteArray(50) { Random.nextInt(256).toByte() },
+                nonce = ByteArray(50) { Random.nextInt(256).toByte() },
+                expiresAt = 10000000L))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<ZomeCallUnsignedFfiParcel>(
+            ZomeCallUnsignedFfiParcel::class.java.classLoader,
+            ZomeCallUnsignedFfiParcel::class.java)!!
+
+    assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
+    assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
+    assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
+    assertEquals(value.inner.zomeName, readValue.inner.zomeName)
+    assertEquals(value.inner.fnName, readValue.inner.fnName)
+    assertArrayEquals(value.inner.capSecret, readValue.inner.capSecret)
+    assertArrayEquals(value.inner.payload, readValue.inner.payload)
+    assertArrayEquals(value.inner.nonce, readValue.inner.nonce)
+    assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
+  }
+
+  @Test
+  fun testZomeCallFfiParcel() {
+    val value =
+        ZomeCallFfiParcel(
+            ZomeCallFfi(
+                provenance = ByteArray(32) { Random.nextInt(256).toByte() },
+                cellId =
+                    CellIdFfi(
+                        dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
+                        agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
+                    ),
+                zomeName = "my_zome",
+                fnName = "my_function",
+                capSecret = ByteArray(50) { Random.nextInt(256).toByte() },
+                payload = ByteArray(50) { Random.nextInt(256).toByte() },
+                nonce = ByteArray(50) { Random.nextInt(256).toByte() },
+                expiresAt = 10000000L,
+                signature = ByteArray(50) { Random.nextInt(256).toByte() },
+            ))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<ZomeCallFfiParcel>(
+            ZomeCallFfiParcel::class.java.classLoader, ZomeCallFfiParcel::class.java)!!
+
+    assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
+    assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
+    assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
+    assertEquals(value.inner.zomeName, readValue.inner.zomeName)
+    assertEquals(value.inner.fnName, readValue.inner.fnName)
+    assertArrayEquals(value.inner.capSecret, readValue.inner.capSecret)
+    assertArrayEquals(value.inner.payload, readValue.inner.payload)
+    assertArrayEquals(value.inner.nonce, readValue.inner.nonce)
+    assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
+    assertArrayEquals(value.inner.signature, readValue.inner.signature)
+  }
+
+  @Test
+  fun testProvisionedCellFfiParcel() {
+    val value =
+        ProvisionedCellFfiParcel(
+            ProvisionedCellFfi(
+                cellId =
+                    CellIdFfi(
+                        dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
+                        agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
+                    ),
+                dnaModifiers =
+                    DnaModifiersFfi(
                         networkSeed = "1234",
                         properties = ByteArray(300) { Random.nextInt(256).toByte() },
                         originTime = 1000L,
-                        quantumTime = DurationFfi(100UL, 100U)
+                        quantumTime = DurationFfi(100UL, 100U)),
+                name = "cell-1"))
+
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<ProvisionedCellFfiParcel>(
+            ProvisionedCellFfiParcel::class.java.classLoader,
+            ProvisionedCellFfiParcel::class.java)!!
+
+    assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
+    assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
+    assertEquals(value.inner.dnaModifiers.networkSeed, readValue.inner.dnaModifiers.networkSeed)
+    assertArrayEquals(value.inner.dnaModifiers.properties, readValue.inner.dnaModifiers.properties)
+    assertEquals(value.inner.dnaModifiers.originTime, readValue.inner.dnaModifiers.originTime)
+    assertEquals(
+        value.inner.dnaModifiers.quantumTime.secs, readValue.inner.dnaModifiers.quantumTime.secs)
+    assertEquals(
+        value.inner.dnaModifiers.quantumTime.nanos, readValue.inner.dnaModifiers.quantumTime.nanos)
+    assertEquals(value.inner.name, readValue.inner.name)
+  }
+
+  @Test
+  fun testClonedCellFfiParcel() {
+    val value =
+        ClonedCellFfiParcel(
+            ClonedCellFfi(
+                cellId =
+                    CellIdFfi(
+                        dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
+                        agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
                     ),
-                )),
-            )
+                cloneId = "cell-1.1",
+                originalDnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
+                dnaModifiers =
+                    DnaModifiersFfi(
+                        networkSeed = "1234",
+                        properties = ByteArray(300) { Random.nextInt(256).toByte() },
+                        originTime = 1000L,
+                        quantumTime = DurationFfi(100UL, 100U)),
+                name = "cell-1",
+                enabled = true))
 
-        // Convert to parcel
-        val parcelPayload = payload.toParcel()
-        val readBuffer = parcelPayload.sourceSharedMemory.mapReadOnly()
-        val retrievedSource = ByteArray(payload.source.size)
-        readBuffer.get(retrievedSource)
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<ClonedCellFfiParcel>(
+            ClonedCellFfiParcel::class.java.classLoader, ClonedCellFfiParcel::class.java)!!
 
-        assertEquals(payload.installedAppId, parcelPayload.installedAppId)
-        assertEquals(payload.networkSeed, parcelPayload.networkSeed)
-        assertArrayEquals(payload.source, retrievedSource)
+    assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
+    assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
+    assertEquals(value.inner.cloneId, readValue.inner.cloneId)
+    assertArrayEquals(value.inner.originalDnaHash, readValue.inner.originalDnaHash)
+    assertEquals(value.inner.dnaModifiers.networkSeed, readValue.inner.dnaModifiers.networkSeed)
+    assertArrayEquals(value.inner.dnaModifiers.properties, readValue.inner.dnaModifiers.properties)
+    assertEquals(value.inner.dnaModifiers.originTime, readValue.inner.dnaModifiers.originTime)
+    assertEquals(
+        value.inner.dnaModifiers.quantumTime.secs, readValue.inner.dnaModifiers.quantumTime.secs)
+    assertEquals(
+        value.inner.dnaModifiers.quantumTime.nanos, readValue.inner.dnaModifiers.quantumTime.nanos)
+    assertEquals(value.inner.name, readValue.inner.name)
+    assertEquals(value.inner.enabled, readValue.inner.enabled)
+  }
 
-        // Convert from parcel
-        val reconstructedPayload = parcelPayload.fromParcel()
-        assertArrayEquals(payload.source, reconstructedPayload.source)
-        assertEquals(payload.installedAppId, reconstructedPayload.installedAppId)
-        assertEquals(payload.networkSeed, reconstructedPayload.networkSeed)
-    }
+  @Test
+  fun testStemCellFfiParcel() {
+    val value =
+        StemCellFfiParcel(
+            StemCellFfi(
+                originalDnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
+                dnaModifiers =
+                    DnaModifiersFfi(
+                        networkSeed = "1234",
+                        properties = ByteArray(300) { Random.nextInt(256).toByte() },
+                        originTime = 1000L,
+                        quantumTime = DurationFfi(100UL, 100U)),
+                name = "cell-1"))
 
-    @Test
-    fun testAppInfoStatusFfiParcel() {
-        val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted))
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<StemCellFfiParcel>(
+            StemCellFfiParcel::class.java.classLoader, StemCellFfiParcel::class.java)!!
 
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<AppInfoStatusFfiParcel>(AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
-        parcel.recycle()
-    }
-
-    @Test
-    fun testAppAuthenticationTokenIssuedFfiParcel() {
-        val value = AppAuthenticationTokenIssuedFfiParcel(AppAuthenticationTokenIssuedFfi(
-            token = ByteArray(50) { Random.nextInt(256).toByte() },
-            expiresAt = 1000000L
-        ))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<AppAuthenticationTokenIssuedFfiParcel>(AppAuthenticationTokenIssuedFfiParcel::class.java.classLoader, AppAuthenticationTokenIssuedFfiParcel::class.java)!!
-    }
-
-    @Test
-    fun testAppAuthFfiParcel() {
-        val value = AppAuthFfiParcel(AppAuthFfi(
-            authentication = AppAuthenticationTokenIssuedFfi(
-                token = ByteArray(50) { Random.nextInt(256).toByte() },
-                expiresAt = 1500000L
-            ),
-            port = 4200U
-        ))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<AppAuthFfiParcel>(AppAuthFfiParcel::class.java.classLoader, AppAuthFfiParcel::class.java)!!
-    }
-
-    @Test
-    fun testZomeCallUnsignedFfiParcel() {
-        val value = ZomeCallUnsignedFfiParcel(ZomeCallUnsignedFfi(
-            provenance = ByteArray(32) { Random.nextInt(256).toByte() },
-            cellId = CellIdFfi(
-                dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
-                agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
-            ),
-            zomeName = "my_zome",
-            fnName =  "my_function",
-            capSecret =  ByteArray(50) { Random.nextInt(256).toByte() },
-            payload = ByteArray(50) { Random.nextInt(256).toByte() },
-            nonce = ByteArray(50) { Random.nextInt(256).toByte() },
-            expiresAt = 10000000L
-        ))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<ZomeCallUnsignedFfiParcel>(ZomeCallUnsignedFfiParcel::class.java.classLoader, ZomeCallUnsignedFfiParcel::class.java)!!
-    }
-
-    @Test
-    fun testZomeCallFfiParcel() {
-        val value = ZomeCallFfiParcel(ZomeCallFfi(
-            provenance = ByteArray(32) { Random.nextInt(256).toByte() },
-            cellId = CellIdFfi(
-                dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
-                agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
-            ),
-            zomeName = "my_zome",
-            fnName =  "my_function",
-            capSecret =  ByteArray(50) { Random.nextInt(256).toByte() },
-            payload = ByteArray(50) { Random.nextInt(256).toByte() },
-            nonce = ByteArray(50) { Random.nextInt(256).toByte() },
-            expiresAt = 10000000L,
-            signature = ByteArray(50) { Random.nextInt(256).toByte() },
-        ))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<ZomeCallFfiParcel>(ZomeCallFfiParcel::class.java.classLoader, ZomeCallFfiParcel::class.java)!!
-    }
-
-
-    @Test
-    fun testPausedAppReasonFfiParcel() {
-        val value = PausedAppReasonFfiParcel(PausedAppReasonFfi.Error(v1 = "my error"))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<PausedAppReasonFfiParcel>(PausedAppReasonFfiParcel::class.java.classLoader, PausedAppReasonFfiParcel::class.java)!!
-
-        assert(value == readValue)
-    }
-
-    @Test
-    fun testDisabledAppReasonFfiParcel() {
-        val value = DisabledAppReasonFfiParcel(DisabledAppReasonFfi.NeverStarted)
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<DisabledAppReasonFfiParcel>(DisabledAppReasonFfiParcel::class.java.classLoader, DisabledAppReasonFfiParcel::class.java)!!
-    }
-
-    @Test
-    fun testProvisionedCellFfiParcel() {
-        val value = ProvisionedCellFfiParcel(ProvisionedCellFfi(
-            cellId = CellIdFfi(
-                dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
-                agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
-            ),
-            dnaModifiers = DnaModifiersFfi(
-                networkSeed = "1234",
-                properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                originTime = 1000L,
-                quantumTime = DurationFfi(100UL, 100U)
-            ),
-            name = "cell-1"
-        ))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<ProvisionedCellFfiParcel>(ProvisionedCellFfiParcel::class.java.classLoader, ProvisionedCellFfiParcel::class.java)!!
-    }
-
-    @Test
-    fun testClonedCellFfiParcel() {
-        val value = ClonedCellFfiParcel(ClonedCellFfi(
-            cellId = CellIdFfi(
-                dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
-                agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
-            ),
-            cloneId = "cell-1.1",
-            originalDnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
-            dnaModifiers = DnaModifiersFfi(
-                networkSeed = "1234",
-                properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                originTime = 1000L,
-                quantumTime = DurationFfi(100UL, 100U)
-            ),
-            name = "cell-1",
-            enabled = true
-        ))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<ClonedCellFfiParcel>(ClonedCellFfiParcel::class.java.classLoader, ClonedCellFfiParcel::class.java)!!
-    }
-
-    @Test
-    fun testStemCellFfiParcel() {
-        val value = StemCellFfiParcel(StemCellFfi(
-            originalDnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
-            dnaModifiers = DnaModifiersFfi(
-                networkSeed = "1234",
-                properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                originTime = 1000L,
-                quantumTime = DurationFfi(100UL, 100U)
-            ),
-            name = "cell-1"
-        ))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcel.readParcelable<StemCellFfiParcel>(StemCellFfiParcel::class.java.classLoader, StemCellFfiParcel::class.java)!!
-
-        assert(value.inner == readValue.inner)
-    }
+    assertArrayEquals(value.inner.originalDnaHash, readValue.inner.originalDnaHash)
+    assertEquals(value.inner.dnaModifiers.networkSeed, readValue.inner.dnaModifiers.networkSeed)
+    assertArrayEquals(value.inner.dnaModifiers.properties, readValue.inner.dnaModifiers.properties)
+    assertEquals(value.inner.dnaModifiers.originTime, readValue.inner.dnaModifiers.originTime)
+    assertEquals(
+        value.inner.dnaModifiers.quantumTime.secs, readValue.inner.dnaModifiers.quantumTime.secs)
+    assertEquals(
+        value.inner.dnaModifiers.quantumTime.nanos, readValue.inner.dnaModifiers.quantumTime.nanos)
+    assertEquals(value.inner.name, readValue.inner.name)
+  }
 }

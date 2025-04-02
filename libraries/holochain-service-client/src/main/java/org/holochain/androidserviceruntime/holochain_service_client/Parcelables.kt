@@ -1,11 +1,11 @@
 package org.holochain.androidserviceruntime.holochain_service_client
 
-import kotlinx.parcelize.Parcelize
-import kotlinx.parcelize.RawValue
 import android.os.Parcelable
 import android.os.SharedMemory
 import android.system.OsConstants
 import java.nio.ByteBuffer
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 import kotlinx.parcelize.TypeParceler
 
 @Parcelize
@@ -14,50 +14,45 @@ data class InstallAppPayloadFfiParcel(
     val installedAppId: String?,
     var networkSeed: String?,
     val rolesSettings: Map<String, @RawValue RoleSettingsFfi>?,
-): Parcelable
+) : Parcelable
 
 fun InstallAppPayloadFfi.toParcel(): InstallAppPayloadFfiParcel {
-    // Copy source bytes to shared memory
-    // to avoid a TransactionTooLarge error which limits the size of IPC messages
-    val sourceSharedMemory = SharedMemory.create(this.installedAppId, this.source.size)
-    val appBundleSharedMemoryBuffer: ByteBuffer = sourceSharedMemory.mapReadWrite()
-    appBundleSharedMemoryBuffer.put(this.source)
-    sourceSharedMemory.setProtect(OsConstants.PROT_READ)
+  // Copy source bytes to shared memory
+  // to avoid a TransactionTooLarge error which limits the size of IPC messages
+  val sourceSharedMemory = SharedMemory.create(this.installedAppId, this.source.size)
+  val appBundleSharedMemoryBuffer: ByteBuffer = sourceSharedMemory.mapReadWrite()
+  appBundleSharedMemoryBuffer.put(this.source)
+  sourceSharedMemory.setProtect(OsConstants.PROT_READ)
 
-    return InstallAppPayloadFfiParcel(
-        sourceSharedMemory,
-        this.installedAppId,
-        this.networkSeed,
-        this.rolesSettings,
-    )
+  return InstallAppPayloadFfiParcel(
+      sourceSharedMemory,
+      this.installedAppId,
+      this.networkSeed,
+      this.rolesSettings,
+  )
 }
 
 fun InstallAppPayloadFfiParcel.fromParcel(): InstallAppPayloadFfi {
-    // Read source bytes from shared memory
-    // to avoid a TransactionTooLarge error which limits the size of IPC messages
-    val sourceBuffer: ByteBuffer = this.sourceSharedMemory.mapReadOnly()
-    val source: ByteArray = sourceBuffer.toByteArray()
+  // Read source bytes from shared memory
+  // to avoid a TransactionTooLarge error which limits the size of IPC messages
+  val sourceBuffer: ByteBuffer = this.sourceSharedMemory.mapReadOnly()
+  val source: ByteArray = sourceBuffer.toByteArray()
 
-    // Clear the shared memory
-    SharedMemory.unmap(sourceBuffer)
-    this.sourceSharedMemory.close()
+  // Clear the shared memory
+  SharedMemory.unmap(sourceBuffer)
+  this.sourceSharedMemory.close()
 
-    return InstallAppPayloadFfi(
-        source,
-        this.installedAppId,
-        this.networkSeed,
-        this.rolesSettings
-    )
+  return InstallAppPayloadFfi(source, this.installedAppId, this.networkSeed, this.rolesSettings)
 }
 
 fun ByteBuffer.toByteArray(): ByteArray {
-    return if (hasArray()) {
-        array()
-    } else {
-        val bytes = ByteArray(remaining())
-        get(bytes)
-        bytes
-    }
+  return if (hasArray()) {
+    array()
+  } else {
+    val bytes = ByteArray(remaining())
+    get(bytes)
+    bytes
+  }
 }
 
 @Parcelize
@@ -106,7 +101,8 @@ data class DurationFfiParcel(val inner: DurationFfi) : Parcelable
 
 @Parcelize
 @TypeParceler<AppAuthenticationTokenIssuedFfi, AppAuthenticationTokenIssuedFfiParceler>
-data class AppAuthenticationTokenIssuedFfiParcel(val inner: AppAuthenticationTokenIssuedFfi) : Parcelable
+data class AppAuthenticationTokenIssuedFfiParcel(val inner: AppAuthenticationTokenIssuedFfi) :
+    Parcelable
 
 @Parcelize
 @TypeParceler<AppAuthFfi, AppAuthFfiParceler>
