@@ -3,6 +3,7 @@ import android.os.Parcelable.PARCELABLE_WRITE_RETURN_VALUE
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.util.UUID
 import kotlin.random.Random
+import kotlinx.parcelize.parcelableCreator
 import org.holochain.androidserviceruntime.holochain_service_client.*
 import org.junit.Assert.*
 import org.junit.Test
@@ -21,11 +22,9 @@ class ParcelablesTest {
             ))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<CellIdFfiParcel>(
-            CellIdFfiParcel::class.java.classLoader, CellIdFfiParcel::class.java)!!
+    val readValue = parcelableCreator<CellIdFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(value.inner.dnaHash, readValue.inner.dnaHash)
     assertArrayEquals(value.inner.agentPubKey, readValue.inner.agentPubKey)
@@ -36,11 +35,9 @@ class ParcelablesTest {
     val value = DurationFfiParcel(DurationFfi(secs = 100UL, nanos = 500U))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<DurationFfiParcel>(
-            DurationFfiParcel::class.java.classLoader, DurationFfiParcel::class.java)!!
+    val readValue = parcelableCreator<DurationFfiParcel>().createFromParcel(parcel)
 
     assertEquals(value.inner.secs, readValue.inner.secs)
     assertEquals(value.inner.nanos, readValue.inner.nanos)
@@ -57,11 +54,9 @@ class ParcelablesTest {
                 quantumTime = DurationFfi(100UL, 100U)))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<DnaModifiersFfiParcel>(
-            DnaModifiersFfiParcel::class.java.classLoader, DnaModifiersFfiParcel::class.java)!!
+    val readValue = parcelableCreator<DnaModifiersFfiParcel>().createFromParcel(parcel)
 
     assertEquals(value.inner.networkSeed, readValue.inner.networkSeed)
     assertArrayEquals(value.inner.properties, readValue.inner.properties)
@@ -90,11 +85,9 @@ class ParcelablesTest {
                     name = "cell-1")))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<CellInfoFfiParcel>(
-            CellInfoFfiParcel::class.java.classLoader, CellInfoFfiParcel::class.java)!!
+    val readValue = parcelableCreator<CellInfoFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(
         (value.inner as CellInfoFfi.Provisioned).v1.cellId.dnaHash,
@@ -146,11 +139,9 @@ class ParcelablesTest {
             ))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<AppInfoFfiParcel>(
-            AppInfoFfiParcel::class.java.classLoader, AppInfoFfiParcel::class.java)!!
+    val readValue = parcelableCreator<AppInfoFfiParcel>().createFromParcel(parcel)
 
     assertEquals(value.inner.installedAppId, readValue.inner.installedAppId)
     assertEquals(readValue.inner.cellInfo.keys.size, 1)
@@ -237,12 +228,9 @@ class ParcelablesTest {
             ))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<InstallAppPayloadFfiParcel>(
-            InstallAppPayloadFfiParcel::class.java.classLoader,
-            InstallAppPayloadFfiParcel::class.java)!!
+    val readValue = parcelableCreator<InstallAppPayloadFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(value.inner.source, readValue.inner.source)
     assertEquals(value.inner.installedAppId, readValue.inner.installedAppId)
@@ -301,12 +289,9 @@ class ParcelablesTest {
     val value = PausedAppReasonFfiParcel(PausedAppReasonFfi.Error("my error"))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<PausedAppReasonFfiParcel>(
-            PausedAppReasonFfiParcel::class.java.classLoader,
-            PausedAppReasonFfiParcel::class.java)!!
+    val readValue = parcelableCreator<PausedAppReasonFfiParcel>().createFromParcel(parcel)
 
     assert(readValue.inner is PausedAppReasonFfi.Error)
     assertEquals((readValue.inner as PausedAppReasonFfi.Error).v1, "my error")
@@ -317,12 +302,9 @@ class ParcelablesTest {
     val value = DisabledAppReasonFfiParcel(DisabledAppReasonFfi.NeverStarted)
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<DisabledAppReasonFfiParcel>(
-            DisabledAppReasonFfiParcel::class.java.classLoader,
-            DisabledAppReasonFfiParcel::class.java)!!
+    val readValue = parcelableCreator<DisabledAppReasonFfiParcel>().createFromParcel(parcel)
 
     assert(readValue.inner is DisabledAppReasonFfi.NeverStarted)
   }
@@ -332,12 +314,9 @@ class ParcelablesTest {
     val value = DisabledAppReasonFfiParcel(DisabledAppReasonFfi.Error("my error"))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<DisabledAppReasonFfiParcel>(
-            DisabledAppReasonFfiParcel::class.java.classLoader,
-            DisabledAppReasonFfiParcel::class.java)!!
+    val readValue = parcelableCreator<DisabledAppReasonFfiParcel>().createFromParcel(parcel)
 
     assert(readValue.inner is DisabledAppReasonFfi.Error)
     assertEquals((readValue.inner as DisabledAppReasonFfi.Error).v1, "my error")
@@ -348,11 +327,9 @@ class ParcelablesTest {
     val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.Running)
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<AppInfoStatusFfiParcel>(
-            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+    val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
 
     assert(readValue.inner is AppInfoStatusFfi.Running)
   }
@@ -362,11 +339,9 @@ class ParcelablesTest {
     val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.AwaitingMemproofs)
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<AppInfoStatusFfiParcel>(
-            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+    val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
 
     assert(readValue.inner is AppInfoStatusFfi.AwaitingMemproofs)
   }
@@ -377,11 +352,9 @@ class ParcelablesTest {
         AppInfoStatusFfiParcel(AppInfoStatusFfi.Paused(PausedAppReasonFfi.Error("my error")))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<AppInfoStatusFfiParcel>(
-            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+    val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
 
     assert(readValue.inner is AppInfoStatusFfi.Paused)
     assert((readValue.inner as AppInfoStatusFfi.Paused).reason is PausedAppReasonFfi.Error)
@@ -393,11 +366,9 @@ class ParcelablesTest {
     val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<AppInfoStatusFfiParcel>(
-            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+    val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
 
     assert(readValue.inner is AppInfoStatusFfi.Disabled)
     assert(
@@ -410,11 +381,9 @@ class ParcelablesTest {
         AppInfoStatusFfiParcel(AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.Error("my error")))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<AppInfoStatusFfiParcel>(
-            AppInfoStatusFfiParcel::class.java.classLoader, AppInfoStatusFfiParcel::class.java)!!
+    val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
 
     assert(readValue.inner is AppInfoStatusFfi.Disabled)
     assert((readValue.inner as AppInfoStatusFfi.Disabled).reason is DisabledAppReasonFfi.Error)
@@ -429,12 +398,10 @@ class ParcelablesTest {
                 token = ByteArray(50) { Random.nextInt(256).toByte() }, expiresAt = 1000000L))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
     val readValue =
-        parcel.readParcelable<AppAuthenticationTokenIssuedFfiParcel>(
-            AppAuthenticationTokenIssuedFfiParcel::class.java.classLoader,
-            AppAuthenticationTokenIssuedFfiParcel::class.java)!!
+        parcelableCreator<AppAuthenticationTokenIssuedFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(value.inner.token, readValue.inner.token)
     assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
@@ -452,11 +419,9 @@ class ParcelablesTest {
                 port = 4200U))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<AppAuthFfiParcel>(
-            AppAuthFfiParcel::class.java.classLoader, AppAuthFfiParcel::class.java)!!
+    val readValue = parcelableCreator<AppAuthFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(value.inner.authentication.token, readValue.inner.authentication.token)
     assertEquals(value.inner.authentication.expiresAt, readValue.inner.authentication.expiresAt)
@@ -482,12 +447,9 @@ class ParcelablesTest {
                 expiresAt = 10000000L))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<ZomeCallUnsignedFfiParcel>(
-            ZomeCallUnsignedFfiParcel::class.java.classLoader,
-            ZomeCallUnsignedFfiParcel::class.java)!!
+    val readValue = parcelableCreator<ZomeCallUnsignedFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
     assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
@@ -521,11 +483,9 @@ class ParcelablesTest {
             ))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<ZomeCallFfiParcel>(
-            ZomeCallFfiParcel::class.java.classLoader, ZomeCallFfiParcel::class.java)!!
+    val readValue = parcelableCreator<ZomeCallFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
     assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
@@ -558,12 +518,9 @@ class ParcelablesTest {
                 name = "cell-1"))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<ProvisionedCellFfiParcel>(
-            ProvisionedCellFfiParcel::class.java.classLoader,
-            ProvisionedCellFfiParcel::class.java)!!
+    val readValue = parcelableCreator<ProvisionedCellFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
     assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
@@ -599,11 +556,9 @@ class ParcelablesTest {
                 enabled = true))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<ClonedCellFfiParcel>(
-            ClonedCellFfiParcel::class.java.classLoader, ClonedCellFfiParcel::class.java)!!
+    val readValue = parcelableCreator<ClonedCellFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
     assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
@@ -635,11 +590,9 @@ class ParcelablesTest {
                 name = "cell-1"))
 
     val parcel = Parcel.obtain()
-    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
     parcel.setDataPosition(0)
-    val readValue =
-        parcel.readParcelable<StemCellFfiParcel>(
-            StemCellFfiParcel::class.java.classLoader, StemCellFfiParcel::class.java)!!
+    val readValue = parcelableCreator<StemCellFfiParcel>().createFromParcel(parcel)
 
     assertArrayEquals(value.inner.originalDnaHash, readValue.inner.originalDnaHash)
     assertEquals(value.inner.dnaModifiers.networkSeed, readValue.inner.dnaModifiers.networkSeed)
