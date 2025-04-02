@@ -285,6 +285,27 @@ class ParcelablesTest {
   }
 
   @Test
+  fun testInstallAppPayloadFfiParcelNulls() {
+    val value =
+        InstallAppPayloadFfiParcel(
+            InstallAppPayloadFfi(
+                source = ByteArray(5000) { Random.nextInt(256).toByte() },
+                installedAppId = null,
+                networkSeed = null,
+                rolesSettings = null))
+
+    val parcel = Parcel.obtain()
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue = parcelableCreator<InstallAppPayloadFfiParcel>().createFromParcel(parcel)
+
+    assertArrayEquals(value.inner.source, readValue.inner.source)
+    assertEquals(value.inner.installedAppId, readValue.inner.installedAppId)
+    assertEquals(value.inner.networkSeed, readValue.inner.networkSeed)
+    assertEquals(value.inner.rolesSettings, readValue.inner.rolesSettings)
+  }
+
+  @Test
   fun testPausedAppReasonFfiParcel() {
     val value = PausedAppReasonFfiParcel(PausedAppReasonFfi.Error("my error"))
 
@@ -408,6 +429,23 @@ class ParcelablesTest {
   }
 
   @Test
+  fun testAppAuthenticationTokenIssuedFfiParcelNulls() {
+    val value =
+        AppAuthenticationTokenIssuedFfiParcel(
+            AppAuthenticationTokenIssuedFfi(
+                token = ByteArray(50) { Random.nextInt(256).toByte() }, expiresAt = null))
+
+    val parcel = Parcel.obtain()
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcelableCreator<AppAuthenticationTokenIssuedFfiParcel>().createFromParcel(parcel)
+
+    assertArrayEquals(value.inner.token, readValue.inner.token)
+    assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
+  }
+
+  @Test
   fun testAppAuthFfiParcel() {
     val value =
         AppAuthFfiParcel(
@@ -463,6 +501,40 @@ class ParcelablesTest {
   }
 
   @Test
+  fun testZomeCallUnsignedFfiParcelNulls() {
+    val value =
+        ZomeCallUnsignedFfiParcel(
+            ZomeCallUnsignedFfi(
+                provenance = ByteArray(32) { Random.nextInt(256).toByte() },
+                cellId =
+                    CellIdFfi(
+                        dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
+                        agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
+                    ),
+                zomeName = "my_zome",
+                fnName = "my_function",
+                capSecret = null,
+                payload = ByteArray(50) { Random.nextInt(256).toByte() },
+                nonce = ByteArray(50) { Random.nextInt(256).toByte() },
+                expiresAt = 10000000L))
+
+    val parcel = Parcel.obtain()
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue = parcelableCreator<ZomeCallUnsignedFfiParcel>().createFromParcel(parcel)
+
+    assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
+    assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
+    assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
+    assertEquals(value.inner.zomeName, readValue.inner.zomeName)
+    assertEquals(value.inner.fnName, readValue.inner.fnName)
+    assertEquals(value.inner.capSecret, readValue.inner.capSecret)
+    assertArrayEquals(value.inner.payload, readValue.inner.payload)
+    assertArrayEquals(value.inner.nonce, readValue.inner.nonce)
+    assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
+  }
+
+  @Test
   fun testZomeCallFfiParcel() {
     val value =
         ZomeCallFfiParcel(
@@ -493,6 +565,43 @@ class ParcelablesTest {
     assertEquals(value.inner.zomeName, readValue.inner.zomeName)
     assertEquals(value.inner.fnName, readValue.inner.fnName)
     assertArrayEquals(value.inner.capSecret, readValue.inner.capSecret)
+    assertArrayEquals(value.inner.payload, readValue.inner.payload)
+    assertArrayEquals(value.inner.nonce, readValue.inner.nonce)
+    assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
+    assertArrayEquals(value.inner.signature, readValue.inner.signature)
+  }
+
+  @Test
+  fun testZomeCallFfiParcelNulls() {
+    val value =
+        ZomeCallFfiParcel(
+            ZomeCallFfi(
+                provenance = ByteArray(32) { Random.nextInt(256).toByte() },
+                cellId =
+                    CellIdFfi(
+                        dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
+                        agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
+                    ),
+                zomeName = "my_zome",
+                fnName = "my_function",
+                capSecret = null,
+                payload = ByteArray(50) { Random.nextInt(256).toByte() },
+                nonce = ByteArray(50) { Random.nextInt(256).toByte() },
+                expiresAt = 10000000L,
+                signature = ByteArray(50) { Random.nextInt(256).toByte() },
+            ))
+
+    val parcel = Parcel.obtain()
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue = parcelableCreator<ZomeCallFfiParcel>().createFromParcel(parcel)
+
+    assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
+    assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
+    assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
+    assertEquals(value.inner.zomeName, readValue.inner.zomeName)
+    assertEquals(value.inner.fnName, readValue.inner.fnName)
+    assertEquals(value.inner.capSecret, readValue.inner.capSecret)
     assertArrayEquals(value.inner.payload, readValue.inner.payload)
     assertArrayEquals(value.inner.nonce, readValue.inner.nonce)
     assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
@@ -588,6 +697,36 @@ class ParcelablesTest {
                         originTime = 1000L,
                         quantumTime = DurationFfi(100UL, 100U)),
                 name = "cell-1"))
+
+    val parcel = Parcel.obtain()
+    value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue = parcelableCreator<StemCellFfiParcel>().createFromParcel(parcel)
+
+    assertArrayEquals(value.inner.originalDnaHash, readValue.inner.originalDnaHash)
+    assertEquals(value.inner.dnaModifiers.networkSeed, readValue.inner.dnaModifiers.networkSeed)
+    assertArrayEquals(value.inner.dnaModifiers.properties, readValue.inner.dnaModifiers.properties)
+    assertEquals(value.inner.dnaModifiers.originTime, readValue.inner.dnaModifiers.originTime)
+    assertEquals(
+        value.inner.dnaModifiers.quantumTime.secs, readValue.inner.dnaModifiers.quantumTime.secs)
+    assertEquals(
+        value.inner.dnaModifiers.quantumTime.nanos, readValue.inner.dnaModifiers.quantumTime.nanos)
+    assertEquals(value.inner.name, readValue.inner.name)
+  }
+
+  @Test
+  fun testStemCellFfiParcelNulls() {
+    val value =
+        StemCellFfiParcel(
+            StemCellFfi(
+                originalDnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
+                dnaModifiers =
+                    DnaModifiersFfi(
+                        networkSeed = "1234",
+                        properties = ByteArray(300) { Random.nextInt(256).toByte() },
+                        originTime = 1000L,
+                        quantumTime = DurationFfi(100UL, 100U)),
+                name = null))
 
     val parcel = Parcel.obtain()
     value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
