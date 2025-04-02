@@ -51,18 +51,18 @@ class HolochainServiceClient(
   }
 
   /// Install an app
-  suspend fun installApp(payload: InstallAppPayloadFfiParcel): AppInfoFfiParcel {
+  suspend fun installApp(payload: InstallAppPayloadFfi): AppInfoFfi {
     Log.d(TAG, "installApp")
 
-    val deferred = CompletableDeferred<AppInfoFfiParcel>()
+    val deferred = CompletableDeferred<AppInfoFfi>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
           override fun installApp(response: AppInfoFfiParcel) {
             Log.d(TAG, "installApp callback")
-            deferred.complete(response)
+            deferred.complete(response.inner)
           }
         }
-    this.mService!!.installApp(callbackBinder, payload)
+    this.mService!!.installApp(callbackBinder, InstallAppPayloadFfiParcel(payload))
 
     return deferred.await()
   }
@@ -102,14 +102,14 @@ class HolochainServiceClient(
   }
 
   /// Enable an installed app
-  suspend fun enableApp(installedAppId: String): AppInfoFfiParcel {
+  suspend fun enableApp(installedAppId: String): AppInfoFfi {
     Log.d(TAG, "enableApp")
-    val deferred = CompletableDeferred<AppInfoFfiParcel>()
+    val deferred = CompletableDeferred<AppInfoFfi>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
           override fun enableApp(response: AppInfoFfiParcel) {
             Log.d(TAG, "enableApp callback")
-            deferred.complete(response)
+            deferred.complete(response.inner)
           }
         }
     this.mService!!.enableApp(callbackBinder, installedAppId)
@@ -132,15 +132,15 @@ class HolochainServiceClient(
   }
 
   /// List installed happs in conductor
-  suspend fun listApps(): List<AppInfoFfiParcel> {
+  suspend fun listApps(): List<AppInfoFfi> {
     Log.d(TAG, "listApps")
 
-    val deferred = CompletableDeferred<List<AppInfoFfiParcel>>()
+    val deferred = CompletableDeferred<List<AppInfoFfi>>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
           override fun listApps(response: List<AppInfoFfiParcel>) {
             Log.d(TAG, "listApps callback")
-            deferred.complete(response)
+            deferred.complete(response.map { it.inner })
           }
         }
     this.mService!!.listApps(callbackBinder)
@@ -149,15 +149,15 @@ class HolochainServiceClient(
   }
 
   /// Get or create an app websocket with authentication token
-  suspend fun ensureAppWebsocket(installedAppId: String): AppAuthFfiParcel {
+  suspend fun ensureAppWebsocket(installedAppId: String): AppAuthFfi {
     Log.d(TAG, "ensureAppWebsocket")
 
-    val deferred = CompletableDeferred<AppAuthFfiParcel>()
+    val deferred = CompletableDeferred<AppAuthFfi>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
           override fun ensureAppWebsocket(response: AppAuthFfiParcel) {
             Log.d(TAG, "ensureAppWebsocket callback")
-            deferred.complete(response)
+            deferred.complete(response.inner)
           }
         }
     this.mService!!.ensureAppWebsocket(callbackBinder, installedAppId)
@@ -166,18 +166,18 @@ class HolochainServiceClient(
   }
 
   /// Sign a zome call
-  suspend fun signZomeCall(args: ZomeCallUnsignedFfiParcel): ZomeCallFfiParcel {
+  suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
     Log.d(TAG, "signZomeCall")
 
-    val deferred = CompletableDeferred<ZomeCallFfiParcel>()
+    val deferred = CompletableDeferred<ZomeCallFfi>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
           override fun signZomeCall(response: ZomeCallFfiParcel) {
             Log.d(TAG, "signZomeCall callback")
-            deferred.complete(response)
+            deferred.complete(response.inner)
           }
         }
-    this.mService!!.signZomeCall(callbackBinder, args)
+    this.mService!!.signZomeCall(callbackBinder, ZomeCallUnsignedFfiParcel(args))
 
     return deferred.await()
   }

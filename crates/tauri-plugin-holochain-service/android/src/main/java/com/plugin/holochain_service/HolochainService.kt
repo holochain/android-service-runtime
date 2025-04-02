@@ -20,7 +20,6 @@ import org.holochain.androidserviceruntime.holochain_service_client.AppAuthFfiPa
 import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.fromParcel
 
 class HolochainService : Service() {
     /// The uniffi-generated holochain runtime bindings
