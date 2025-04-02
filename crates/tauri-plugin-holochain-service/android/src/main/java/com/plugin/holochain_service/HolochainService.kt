@@ -54,7 +54,8 @@ class HolochainService : Service() {
         ) {
             Log.d(TAG, "installApp")
             serviceScope.launch(Dispatchers.IO) {
-                callback.installApp(AppInfoFfiParcel(runtime!!.installApp(request.fromParcel())))
+                
+                callback.installApp(AppInfoFfiParcel(runtime!!.installApp(request.inner)))
             }
         }
 

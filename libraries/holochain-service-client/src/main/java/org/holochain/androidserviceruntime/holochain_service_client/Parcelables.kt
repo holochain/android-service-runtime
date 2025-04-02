@@ -1,59 +1,12 @@
 package org.holochain.androidserviceruntime.holochain_service_client
 
 import android.os.Parcelable
-import android.os.SharedMemory
-import android.system.OsConstants
-import java.nio.ByteBuffer
 import kotlinx.parcelize.Parcelize
-import kotlinx.parcelize.RawValue
 import kotlinx.parcelize.TypeParceler
 
 @Parcelize
-data class InstallAppPayloadFfiParcel(
-    val sourceSharedMemory: SharedMemory,
-    val installedAppId: String?,
-    var networkSeed: String?,
-    val rolesSettings: Map<String, @RawValue RoleSettingsFfi>?,
-) : Parcelable
-
-fun InstallAppPayloadFfi.toParcel(): InstallAppPayloadFfiParcel {
-  // Copy source bytes to shared memory
-  // to avoid a TransactionTooLarge error which limits the size of IPC messages
-  val sourceSharedMemory = SharedMemory.create(this.installedAppId, this.source.size)
-  val appBundleSharedMemoryBuffer: ByteBuffer = sourceSharedMemory.mapReadWrite()
-  appBundleSharedMemoryBuffer.put(this.source)
-  sourceSharedMemory.setProtect(OsConstants.PROT_READ)
-
-  return InstallAppPayloadFfiParcel(
-      sourceSharedMemory,
-      this.installedAppId,
-      this.networkSeed,
-      this.rolesSettings,
-  )
-}
-
-fun InstallAppPayloadFfiParcel.fromParcel(): InstallAppPayloadFfi {
-  // Read source bytes from shared memory
-  // to avoid a TransactionTooLarge error which limits the size of IPC messages
-  val sourceBuffer: ByteBuffer = this.sourceSharedMemory.mapReadOnly()
-  val source: ByteArray = sourceBuffer.toByteArray()
-
-  // Clear the shared memory
-  SharedMemory.unmap(sourceBuffer)
-  this.sourceSharedMemory.close()
-
-  return InstallAppPayloadFfi(source, this.installedAppId, this.networkSeed, this.rolesSettings)
-}
-
-fun ByteBuffer.toByteArray(): ByteArray {
-  return if (hasArray()) {
-    array()
-  } else {
-    val bytes = ByteArray(remaining())
-    get(bytes)
-    bytes
-  }
-}
+@TypeParceler<InstallAppPayloadFfi, InstallAppPayloadFfiParceler>
+data class InstallAppPayloadFfiParcel(val inner: InstallAppPayloadFfi) : Parcelable
 
 @Parcelize
 @TypeParceler<AppInfoFfi, AppInfoFfiParceler>
@@ -66,6 +19,10 @@ data class PausedAppReasonFfiParcel(val inner: PausedAppReasonFfi) : Parcelable
 @Parcelize
 @TypeParceler<DisabledAppReasonFfi, DisabledAppReasonFfiParceler>
 data class DisabledAppReasonFfiParcel(val inner: DisabledAppReasonFfi) : Parcelable
+
+@Parcelize
+@TypeParceler<RoleSettingsFfi, RoleSettingsFfiParceler>
+data class RoleSettingsFfiParcel(val inner: RoleSettingsFfi) : Parcelable
 
 @Parcelize
 @TypeParceler<CellInfoFfi, CellInfoFfiParceler>
@@ -94,6 +51,10 @@ data class AppInfoStatusFfiParcel(val inner: AppInfoStatusFfi) : Parcelable
 @Parcelize
 @TypeParceler<DnaModifiersFfi, DnaModifiersFfiParceler>
 data class DnaModifiersFfiParcel(val inner: DnaModifiersFfi) : Parcelable
+
+@Parcelize
+@TypeParceler<DnaModifiersOptFfi, DnaModifiersOptFfiParceler>
+data class DnaModifiersOptFfiParcel(val inner: DnaModifiersOptFfi) : Parcelable
 
 @Parcelize
 @TypeParceler<DurationFfi, DurationFfiParceler>

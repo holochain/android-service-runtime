@@ -1,8 +1,118 @@
 package org.holochain.androidserviceruntime.holochain_service_client
 
 import android.os.Parcel
+import android.os.SharedMemory
+import android.system.OsConstants
+import java.nio.ByteBuffer
 import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.parcelableCreator
+
+object RoleSettingsFfiParceler : Parceler<RoleSettingsFfi> {
+  override fun create(parcel: Parcel): RoleSettingsFfi {
+    return when (parcel.readInt()) {
+      1 ->
+          RoleSettingsFfi.UseExisting(
+              parcelableCreator<CellIdFfiParcel>().createFromParcel(parcel).inner)
+      2 ->
+          RoleSettingsFfi.Provisioned(
+              membraneProof = parcel.createByteArray() ?: ByteArray(0),
+              modifiers =
+                  parcelableCreator<DnaModifiersOptFfiParcel>().createFromParcel(parcel).inner)
+      else -> throw IllegalArgumentException("Unknown RoleSettingsFfi type")
+    }
+  }
+
+  override fun RoleSettingsFfi.write(parcel: Parcel, flags: Int) {
+    when (this) {
+      is RoleSettingsFfi.UseExisting -> {
+        parcel.writeInt(1)
+        CellIdFfiParcel(cellId).writeToParcel(parcel, flags)
+      }
+      is RoleSettingsFfi.Provisioned -> {
+        parcel.writeInt(2)
+        parcel.writeByteArray(membraneProof)
+
+        if (modifiers != null) {
+          DnaModifiersOptFfiParcel(modifiers).writeToParcel(parcel, flags)
+        }
+      }
+    }
+  }
+}
+
+object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
+  override fun create(parcel: Parcel): InstallAppPayloadFfi {
+    // Read source bytes from shared memory
+    // to avoid a TransactionTooLarge error which limits the size of IPC messages
+    val sourceSharedMemory = parcelableCreator<SharedMemory>().createFromParcel(parcel)
+    val sourceBuffer: ByteBuffer = sourceSharedMemory.mapReadOnly()
+    val source: ByteArray = sourceBuffer.toByteArray()
+
+    // Clear the shared memory
+    SharedMemory.unmap(sourceBuffer)
+    sourceSharedMemory.close()
+
+    return InstallAppPayloadFfi(
+        source, parcel.readString(), parcel.readString(), readRoleSettingsMap(parcel))
+  }
+
+  override fun InstallAppPayloadFfi.write(parcel: Parcel, flags: Int) {
+    // Copy source bytes to shared memory
+    // to avoid a TransactionTooLarge error which limits the size of IPC messages
+    val sourceSharedMemory = SharedMemory.create(installedAppId, source.size)
+    val appBundleSharedMemoryBuffer: ByteBuffer = sourceSharedMemory.mapReadWrite()
+    appBundleSharedMemoryBuffer.put(this.source)
+    sourceSharedMemory.setProtect(OsConstants.PROT_READ)
+
+    sourceSharedMemory.writeToParcel(parcel, flags)
+    parcel.writeString(installedAppId)
+    parcel.writeString(networkSeed)
+
+    if (rolesSettings != null) {
+      writeRoleSettingsMap(parcel, rolesSettings!!, flags)
+    }
+  }
+
+  private fun readRoleSettingsMap(parcel: Parcel): Map<String, RoleSettingsFfi>? {
+    val size = parcel.readInt()
+
+    if (size > 0) {
+      val result = mutableMapOf<String, RoleSettingsFfi>()
+
+      repeat(size) {
+        val key = parcel.readString() ?: ""
+        result[key] = parcelableCreator<RoleSettingsFfiParcel>().createFromParcel(parcel).inner
+      }
+
+      return result
+    } else {
+      return null
+    }
+  }
+
+  private fun writeRoleSettingsMap(parcel: Parcel, map: Map<String, RoleSettingsFfi>?, flags: Int) {
+    if (map != null) {
+      parcel.writeInt(map.size)
+
+      map.forEach { (key, value) ->
+        parcel.writeString(key)
+        RoleSettingsFfiParcel(value).writeToParcel(parcel, flags)
+      }
+    } else {
+      parcel.writeInt(0)
+    }
+  }
+
+  private fun ByteBuffer.toByteArray(): ByteArray {
+    return if (hasArray()) {
+      array()
+    } else {
+      val bytes = ByteArray(remaining())
+      get(bytes)
+      bytes
+    }
+  }
+}
 
 object AppInfoFfiParceler : Parceler<AppInfoFfi> {
   override fun create(parcel: Parcel): AppInfoFfi {
@@ -299,6 +409,28 @@ object DnaModifiersFfiParceler : Parceler<DnaModifiersFfi> {
     parcel.writeByteArray(properties)
     parcel.writeLong(originTime)
     DurationFfiParcel(quantumTime).writeToParcel(parcel, flags)
+  }
+}
+
+object DnaModifiersOptFfiParceler : Parceler<DnaModifiersOptFfi> {
+  override fun create(parcel: Parcel): DnaModifiersOptFfi {
+    return DnaModifiersOptFfi(
+        networkSeed = parcel.readString() ?: "",
+        properties = parcel.createByteArray() ?: ByteArray(0),
+        originTime = parcel.readLong(),
+        quantumTime = parcelableCreator<DurationFfiParcel>().createFromParcel(parcel).inner)
+  }
+
+  override fun DnaModifiersOptFfi.write(parcel: Parcel, flags: Int) {
+    parcel.writeString(networkSeed)
+    parcel.writeByteArray(properties)
+
+    if (originTime != null) {
+      parcel.writeLong(originTime!!)
+    }
+    if (quantumTime != null) {
+      DurationFfiParcel(quantumTime!!).writeToParcel(parcel, flags)
+    }
   }
 }
 

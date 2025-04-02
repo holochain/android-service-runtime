@@ -1,7 +1,6 @@
 import android.os.Parcel
 import android.os.Parcelable.PARCELABLE_WRITE_RETURN_VALUE
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import java.nio.ByteBuffer
 import java.util.UUID
 import kotlin.random.Random
 import org.holochain.androidserviceruntime.holochain_service_client.*
@@ -154,54 +153,147 @@ class ParcelablesTest {
             AppInfoFfiParcel::class.java.classLoader, AppInfoFfiParcel::class.java)!!
 
     assertEquals(value.inner.installedAppId, readValue.inner.installedAppId)
-  }
+    assertEquals(readValue.inner.cellInfo.keys.size, 1)
+    assertEquals(readValue.inner.cellInfo.keys.first(), "cell-1")
+    assertEquals(readValue.inner.cellInfo.values.size, 1)
 
-  @Test
-  fun testByteBufferToByteArray() {
-    val value = ByteArray(1000) { Random.nextInt(256).toByte() }
-    val buffer = ByteBuffer.allocate(1000).put(value)
-
-    // Convert to byte array
-    val byteArray = buffer.toByteArray()
-    assertArrayEquals(byteArray, value)
+    assert(readValue.inner.cellInfo["cell-1"]!![0] is CellInfoFfi.Provisioned)
+    assertArrayEquals(
+        (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned).v1.cellId.dnaHash,
+        (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned).v1.cellId.dnaHash)
+    assertArrayEquals(
+        (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned).v1.cellId.agentPubKey,
+        (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned).v1.cellId.agentPubKey)
+    assertEquals(
+        (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
+            .v1
+            .dnaModifiers
+            .networkSeed,
+        (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
+            .v1
+            .dnaModifiers
+            .networkSeed)
+    assertArrayEquals(
+        (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned).v1.dnaModifiers.properties,
+        (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
+            .v1
+            .dnaModifiers
+            .properties)
+    assertEquals(
+        (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned).v1.dnaModifiers.originTime,
+        (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
+            .v1
+            .dnaModifiers
+            .originTime)
+    assertEquals(
+        (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
+            .v1
+            .dnaModifiers
+            .quantumTime
+            .secs,
+        (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
+            .v1
+            .dnaModifiers
+            .quantumTime
+            .secs)
+    assertEquals(
+        (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
+            .v1
+            .dnaModifiers
+            .quantumTime
+            .nanos,
+        (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
+            .v1
+            .dnaModifiers
+            .quantumTime
+            .nanos)
+    assert(
+        (readValue.inner.status as AppInfoStatusFfi.Disabled).reason
+            is DisabledAppReasonFfi.NeverStarted)
+    assertArrayEquals(value.inner.agentPubKey, readValue.inner.agentPubKey)
   }
 
   @Test
   fun testInstallAppPayloadFfiParcel() {
-    val payload =
-        InstallAppPayloadFfi(
-            source = ByteArray(5000) { Random.nextInt(256).toByte() },
-            installedAppId = "my-app",
-            networkSeed = UUID.randomUUID().toString(),
-            rolesSettings =
-                mapOf(
-                    "cell-1" to
-                        RoleSettingsFfi.Provisioned(
-                            membraneProof = ByteArray(60) { Random.nextInt(256).toByte() },
-                            modifiers =
-                                DnaModifiersOptFfi(
-                                    networkSeed = "1234",
-                                    properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                                    originTime = 1000L,
-                                    quantumTime = DurationFfi(100UL, 100U)),
-                        )),
-        )
+    val value =
+        InstallAppPayloadFfiParcel(
+            InstallAppPayloadFfi(
+                source = ByteArray(5000) { Random.nextInt(256).toByte() },
+                installedAppId = "my-app",
+                networkSeed = UUID.randomUUID().toString(),
+                rolesSettings =
+                    mapOf(
+                        "cell-1" to
+                            RoleSettingsFfi.Provisioned(
+                                membraneProof = ByteArray(60) { Random.nextInt(256).toByte() },
+                                modifiers =
+                                    DnaModifiersOptFfi(
+                                        networkSeed = "1234",
+                                        properties =
+                                            ByteArray(300) { Random.nextInt(256).toByte() },
+                                        originTime = 1000L,
+                                        quantumTime = DurationFfi(100UL, 100U)),
+                            )),
+            ))
 
-    // Convert to parcel
-    val parcelPayload = payload.toParcel()
-    val readBuffer = parcelPayload.sourceSharedMemory.mapReadOnly()
-    val retrievedSource = ByteArray(payload.source.size)
-    readBuffer.get(retrievedSource)
+    val parcel = Parcel.obtain()
+    parcel.writeParcelable(value, PARCELABLE_WRITE_RETURN_VALUE)
+    parcel.setDataPosition(0)
+    val readValue =
+        parcel.readParcelable<InstallAppPayloadFfiParcel>(
+            InstallAppPayloadFfiParcel::class.java.classLoader,
+            InstallAppPayloadFfiParcel::class.java)!!
 
-    assertEquals(payload.installedAppId, parcelPayload.installedAppId)
-    assertEquals(payload.networkSeed, parcelPayload.networkSeed)
-    assertArrayEquals(payload.source, retrievedSource)
-
-    // Convert from parcel
-    val reconstructedPayload = parcelPayload.fromParcel()
-    assertArrayEquals(payload.source, reconstructedPayload.source)
-    assertEquals(payload.installedAppId, reconstructedPayload.installedAppId)
-    assertEquals(payload.networkSeed, reconstructedPayload.networkSeed)
+    assertArrayEquals(value.inner.source, readValue.inner.source)
+    assertEquals(value.inner.installedAppId, readValue.inner.installedAppId)
+    assertEquals(value.inner.networkSeed, readValue.inner.networkSeed)
+    assertEquals(value.inner.rolesSettings!!.keys.size, 1)
+    assertEquals(
+        value.inner.rolesSettings!!.keys.first(), readValue.inner.rolesSettings!!.keys.first())
+    assert(value.inner.rolesSettings!!.get("cell-1")!! is RoleSettingsFfi.Provisioned)
+    assertArrayEquals(
+        (value.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned).membraneProof,
+        (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .membraneProof)
+    assertEquals(
+        (value.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .networkSeed,
+        (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .networkSeed)
+    assertArrayEquals(
+        (value.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .properties,
+        (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .properties)
+    assertEquals(
+        (value.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .originTime,
+        (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .originTime)
+    assertEquals(
+        (value.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .quantumTime!!
+            .nanos,
+        (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .quantumTime!!
+            .nanos)
+    assertEquals(
+        (value.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .quantumTime!!
+            .secs,
+        (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
+            .modifiers!!
+            .quantumTime!!
+            .secs)
   }
 
   @Test

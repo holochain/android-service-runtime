@@ -17,7 +17,6 @@ import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.toParcel
 
 @TauriPlugin
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
@@ -94,7 +93,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         Log.d(TAG, "installApp")
         val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
-            serviceClient.installApp(args.toFfi().toParcel())
+            serviceClient.installApp(InstallAppPayloadFfiParcel(args.toFfi()))
             invoke.resolve()
         }
     }
