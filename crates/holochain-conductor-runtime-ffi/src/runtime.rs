@@ -4,6 +4,19 @@ use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
 use holochain_conductor_runtime_types_ffi::*;
 use log::{debug, LevelFilter};
 use url2::Url2;
+use std::sync::LazyLock;
+use tokio::runtime::{Runtime as TokioRuntime, Builder};
+
+/// Global multi threaded tokio runtime
+pub static RT: LazyLock<TokioRuntime> = LazyLock::new(|| {
+    let rt = Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+    rt.block_on(uniffi::deps::async_compat::Compat::new(async {}));
+    rt.enter();
+    rt
+});
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
 #[derive(uniffi::Object, Clone)]
@@ -19,16 +32,15 @@ impl RuntimeFfi {
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
         debug!("RuntimeFfi::new");
 
-        let passphrase_locked = move_to_locked_mem(passphrase).expect("Failed to move password to locked memoery");
-        let runtime = Runtime::new(
+        let passphrase_locked = move_to_locked_mem(passphrase).expect("Failed to move password to locked memory");
+        let runtime = RT.block_on(Runtime::new(
             passphrase_locked, 
             RuntimeConfig {
                 data_root_path: runtime_config.data_root_path.into(),
                 bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
                 signal_url: Url2::try_parse(runtime_config.signal_url)?,
             }
-        )
-        .await?;
+        ))?;
 
         Ok(Self(runtime))
     }
@@ -60,8 +72,8 @@ impl RuntimeFfi {
 
     /// Install an app
     pub async fn install_app(&self, payload: InstallAppPayloadFfi) -> RuntimeResultFfi<AppInfoFfi> {
-        debug!("RuntimeFfi::install_app");
-        Ok(self.0.install_app(payload.try_into()?).await?.into())
+        debug!("RuntimeFfi::install_app RT.block on");
+        Ok(RT.block_on(self.0.install_app(payload.try_into()?))?.into())
     }
 
     /// Uninstall an app
