@@ -12,6 +12,12 @@ import app.tauri.plugin.JSArray
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.KProperty1
 import android.util.Log
+import org.holochain.androidserviceruntime.holochain_service_client.AppInfoStatusFfi
+import org.holochain.androidserviceruntime.holochain_service_client.CellInfoFfi
+import org.holochain.androidserviceruntime.holochain_service_client.DisabledAppReasonFfi
+import org.holochain.androidserviceruntime.holochain_service_client.PausedAppReasonFfi
+import org.holochain.androidserviceruntime.holochain_service_client.ProvisionedCellFfi
+import org.holochain.androidserviceruntime.holochain_service_client.RoleSettingsFfi
 import org.json.JSONObject
 
 object JSCasting {
@@ -23,7 +29,7 @@ object JSCasting {
     inline fun <reified T : Any> toJSObject(data: T): JSObject {
         val obj = JSObject()
         val properties = data::class.memberProperties
-        for (property in properties) { 
+        for (property in properties) {
             val prop = property as? KProperty1<T, *>
             val value = prop?.get(data)
             when (value) {
@@ -66,6 +72,17 @@ object JSCasting {
                         Log.e("toJSObject", "Error converting property ${property.name} to toJSArray", e)
                         null
                     }
+                    obj.put(property.name, jsValue)
+                }
+                // Is this a known sealed class (i.e. converted from a Rust enum)?
+                is AppInfoStatusFfi, is CellInfoFfi, is DisabledAppReasonFfi, is PausedAppReasonFfi, is RoleSettingsFfi -> {
+                    val jsValue = try {
+                        value.toJSObject()
+                    } catch (e: Exception) {
+                        Log.e("toJSObject", "Error converting property ${property.name} to JSObject", e)
+                        null
+                    }
+                    jsValue?.put("type", value::class.simpleName)
                     obj.put(property.name, jsValue)
                 }
                 else -> {
