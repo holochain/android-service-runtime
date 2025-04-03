@@ -1,14 +1,13 @@
-/// Helpers for converting to and from tauri's JSObject & JSArray types
-/// which are used to return values from tauri-invoked functions.
+/// JSON Serialization of arbitrary objects and arrays
 ///
-/// This file is *not* extracted into a standalone kotlin library
-/// because it depends on app.tauri.plugin,
-/// which is auto-generated during tauri plugin builds.
+/// This is intended to be as generic as possible, but may not work for every type.
+/// If you run into errors, you likely need to override handling of certain property types.
+/// Types may cast it to a String if it doesn't know how to handle it specifically.
+///
+/// Note that sealed classes must be matched explicitly
 
 package com.plugin.holochain_service
 
-import app.tauri.plugin.JSObject
-import app.tauri.plugin.JSArray
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.KProperty1
 import android.util.Log
@@ -16,8 +15,8 @@ import org.holochain.androidserviceruntime.holochain_service_client.AppInfoStatu
 import org.holochain.androidserviceruntime.holochain_service_client.CellInfoFfi
 import org.holochain.androidserviceruntime.holochain_service_client.DisabledAppReasonFfi
 import org.holochain.androidserviceruntime.holochain_service_client.PausedAppReasonFfi
-import org.holochain.androidserviceruntime.holochain_service_client.ProvisionedCellFfi
 import org.holochain.androidserviceruntime.holochain_service_client.RoleSettingsFfi
+import org.json.JSONArray
 import org.json.JSONObject
 
 object JSCasting {
@@ -26,8 +25,8 @@ object JSCasting {
     /// If you run into errors, you likely need to override handling of certain property types.
     /// JSObject will accept Any type, but may cast it to a String if it doesn't know how to handle it specifically.
     @OptIn(ExperimentalUnsignedTypes::class)
-    inline fun <reified T : Any> toJSObject(data: T): JSObject {
-        val obj = JSObject()
+    inline fun <reified T : Any> toJSONObject(data: T): JSONObject {
+        val obj = JSONObject()
         val properties = data::class.memberProperties
         for (property in properties) {
             val prop = property as? KProperty1<T, *>
@@ -42,15 +41,15 @@ object JSCasting {
                         try {
                             val entryJsValue = when (entry.value) {
                                 is Collection<*> -> {
-                                    ((entry.value as Collection<*>).map { it as Any}).toJSArray()
+                                    ((entry.value as Collection<*>).map { it as Any}).toJSONArray()
                                 }
                                 else -> {
-                                    entry.value?.toJSObject()
+                                    entry.value?.toJSONObject()
                                 }
                             }
                             map.put(entry.key as String, entryJsValue as Any)
                         } catch (e: Exception) {
-                            Log.e("toJSObject", "Error converting Map entry ${entry.key} with value ${entry.value} to JSObject", e)
+                            Log.e("toJSONObject", "Error converting Map entry ${entry.key} with value ${entry.value} to JSObject", e)
                         }
                     }
                     obj.put(property.name, JSONObject(map) as Any)
@@ -58,18 +57,18 @@ object JSCasting {
                 is ByteArray -> {
                     val byteCollection: MutableCollection<UByte> = value.toUByteArray().toMutableList()
                     val jsValue = try {
-                        (byteCollection as? Collection<UByte>)?.toJSArray()
+                        (byteCollection as? Collection<UByte>)?.toJSONArray()
                     } catch (e: Exception) {
-                        Log.e("toJSObject", "Error converting property ${property.name} to toJSArray", e)
+                        Log.e("toJSONObject", "Error converting property ${property.name} to toJSONArray", e)
                         null
                     }
                     obj.put(property.name, jsValue)
                 }
                 is Collection<*> -> {
                     val jsValue = try {
-                        (value.map { it as Any }).toJSArray()
+                        (value.map { it as Any }).toJSONArray()
                     } catch (e: Exception) {
-                        Log.e("toJSObject", "Error converting property ${property.name} to toJSArray", e)
+                        Log.e("toJSONObject", "Error converting property ${property.name} to toJSONArray", e)
                         null
                     }
                     obj.put(property.name, jsValue)
@@ -77,9 +76,9 @@ object JSCasting {
                 // Is this a known sealed class (i.e. converted from a Rust enum)?
                 is AppInfoStatusFfi, is CellInfoFfi, is DisabledAppReasonFfi, is PausedAppReasonFfi, is RoleSettingsFfi -> {
                     val jsValue = try {
-                        value.toJSObject()
+                        value.toJSONObject()
                     } catch (e: Exception) {
-                        Log.e("toJSObject", "Error converting property ${property.name} to JSObject", e)
+                        Log.e("toJSONObject", "Error converting property ${property.name} to JSObject", e)
                         null
                     }
                     jsValue?.put("type", value::class.simpleName)
@@ -87,9 +86,9 @@ object JSCasting {
                 }
                 else -> {
                     val jsValue = try {
-                        value.toJSObject()
+                        value.toJSONObject()
                     } catch (e: Exception) {
-                        Log.e("toJSObject", "Error converting property ${property.name} to JSObject", e)
+                        Log.e("toJSONObject", "Error converting property ${property.name} to JSObject", e)
                         null
                     }
                     obj.put(property.name, jsValue)
@@ -100,51 +99,59 @@ object JSCasting {
     }
 
     /// Convert Collection<Any> to a JSArray
-    /// This is intended to be as generic as possible, but may not work for every array.
-    /// If you run into errors, you likely need to override handling of certain property types.
-    /// JSArray will accept Any type, but may cast it to a String if it doesn't know how to handle it specifically.
-    inline fun <reified T : Collection<Any>> toJSArray(data: T): JSArray {
-        val arr = JSArray()
+    inline fun <reified T : Collection<Any>> toJSONArray(data: T): JSONArray {
+        val arr = JSONArray()
         for (element in data) {
             when (element) {
                 is String, is Int, is Long, is Double, is Float, is Boolean, is Byte, is ULong, is UInt -> arr.put(element)
                 is UByte -> arr.put(element.toInt())
                 is Enum<*> -> arr.put(element.name)
                 is Map<*,*> -> {
-                    Log.d("toJSArray", "Element $element is map")
+                    Log.d("toJSONArray", "Element $element is map")
                     var map = HashMap<String, Any>()
                     element.forEach { entry ->
                         try {
                             val entryJsValue = when (entry.value) {
                                 is Collection<*> -> {
-                                    ((entry.value as Collection<*>).map { it as Any}).toJSArray()
+                                    ((entry.value as Collection<*>).map { it as Any}).toJSONArray()
                                 }
                                 else -> {
-                                    entry.value?.toJSObject()
+                                    entry.value?.toJSONObject()
                                 }
                             }
                             map.put(entry.key as String, entryJsValue as Any)
                         } catch (e: Exception) {
-                            Log.e("toJSObject", "Error converting Map entry ${entry.key} with value ${entry.value} to JSObject", e)
+                            Log.e("toJSONObject", "Error converting Map entry ${entry.key} with value ${entry.value} to JSObject", e)
                         }
                     }
                     arr.put(map as Any)
                 }
                 is Collection<*> -> {
                     val jsValue = try {
-                        (element.map { it as Any }).toJSArray()
+                        (element.map { it as Any }).toJSONArray()
                     } catch (e: Exception) {
-                        Log.e("toJSArray", "Error converting element $element to toJSArray", e)
+                        Log.e("toJSONArray", "Error converting element $element to toJSONArray", e)
                         null
                     }
                     arr.put(jsValue)
                 }
-                else -> {
-                    Log.d("toJSArray", "Element $element is other")
+                // Is this a known sealed class (i.e. converted from a Rust enum)?
+                is AppInfoStatusFfi, is CellInfoFfi, is DisabledAppReasonFfi, is PausedAppReasonFfi, is RoleSettingsFfi -> {
                     val jsValue = try {
-                        element.toJSObject()
+                        value.toJSONObject()
                     } catch (e: Exception) {
-                        Log.e("toJSArray", "Error converting element $element to toJSObject", e)
+                        Log.e("toJSONObject", "Error converting property ${property.name} to JSObject", e)
+                        null
+                    }
+                    jsValue?.put("type", value::class.simpleName)
+                    obj.put(property.name, jsValue)
+                }
+                else -> {
+                    Log.d("toJSONArray", "Element $element is other")
+                    val jsValue = try {
+                        element.toJSONObject()
+                    } catch (e: Exception) {
+                        Log.e("toJSONArray", "Error converting element $element to toJSONObject", e)
                         null
                     }
                     arr.put(jsValue)
@@ -155,5 +162,8 @@ object JSCasting {
     }
 }
 
-fun Any.toJSObject(): JSObject = JSCasting.toJSObject(this)
-fun Collection<Any>.toJSArray(): JSArray = JSCasting.toJSArray(this)
+fun Any.toJSONObject(): JSONObject = JSCasting.toJSONObject(this)
+fun Collection<Any>.toJSONArray(): JSONArray = JSCasting.toJSONArray(this)
+
+fun Any.toJSONObjectString(): String = JSCasting.toJSONObject(this).toString()
+fun Collection<Any>.toJSONArrayString(): String = JSCasting.toJSONArray(this).toString()
