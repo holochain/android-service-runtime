@@ -17,6 +17,8 @@ import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import app.tauri.plugin.JSArray
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
+import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
+import org.holochain.androidserviceruntime.holochain_service_client.toJSONArrayString
 
 @TauriPlugin
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
@@ -211,7 +213,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         this.webView.evaluateJavascript(this.injectHolochainClientEnvJavascript, null)
 
         // Inject holochain client env
-        val tokenJsArray = appWebsocketToken.toMutableList().toJSONArray().toString()
+        val tokenJsArray = appWebsocketToken.toMutableList().toJSONArrayString()
         this.webView.evaluateJavascript(
             """injectHolochainClientEnv("$appId", ${appWebsocketPort}, ${tokenJsArray}) """,
             null

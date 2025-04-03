@@ -5,8 +5,7 @@
 /// Types may cast it to a String if it doesn't know how to handle it specifically.
 ///
 /// Note that sealed classes must be matched explicitly
-
-package com.plugin.holochain_service
+package org.holochain.androidserviceruntime.holochain_service_client
 
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.KProperty1
@@ -19,11 +18,8 @@ import org.holochain.androidserviceruntime.holochain_service_client.RoleSettings
 import org.json.JSONArray
 import org.json.JSONObject
 
-object JSCasting {
+object Json {
     /// Convert Any object to a JSObject
-    /// This is intended to be as generic as possible, but may not work for every object.
-    /// If you run into errors, you likely need to override handling of certain property types.
-    /// JSObject will accept Any type, but may cast it to a String if it doesn't know how to handle it specifically.
     @OptIn(ExperimentalUnsignedTypes::class)
     inline fun <reified T : Any> toJSONObject(data: T): JSONObject {
         val obj = JSONObject()
@@ -138,13 +134,13 @@ object JSCasting {
                 // Is this a known sealed class (i.e. converted from a Rust enum)?
                 is AppInfoStatusFfi, is CellInfoFfi, is DisabledAppReasonFfi, is PausedAppReasonFfi, is RoleSettingsFfi -> {
                     val jsValue = try {
-                        value.toJSONObject()
+                        element.toJSONObject()
                     } catch (e: Exception) {
-                        Log.e("toJSONObject", "Error converting property ${property.name} to JSObject", e)
+                        Log.e("toJSONObject", "Error converting element $element to JSObject", e)
                         null
                     }
-                    jsValue?.put("type", value::class.simpleName)
-                    obj.put(property.name, jsValue)
+                    jsValue?.put("type", element::class.simpleName)
+                    arr.put(jsValue)
                 }
                 else -> {
                     Log.d("toJSONArray", "Element $element is other")
@@ -162,8 +158,8 @@ object JSCasting {
     }
 }
 
-fun Any.toJSONObject(): JSONObject = JSCasting.toJSONObject(this)
-fun Collection<Any>.toJSONArray(): JSONArray = JSCasting.toJSONArray(this)
+fun Any.toJSONObject(): JSONObject = Json.toJSONObject(this)
+fun Collection<Any>.toJSONArray(): JSONArray = Json.toJSONArray(this)
 
-fun Any.toJSONObjectString(): String = JSCasting.toJSONObject(this).toString()
-fun Collection<Any>.toJSONArrayString(): String = JSCasting.toJSONArray(this).toString()
+fun Any.toJSONObjectString(): String = Json.toJSONObject(this).toString()
+fun Collection<Any>.toJSONArrayString(): String = Json.toJSONArray(this).toString()
