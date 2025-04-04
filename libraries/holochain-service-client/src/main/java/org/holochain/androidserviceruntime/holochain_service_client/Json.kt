@@ -98,61 +98,7 @@ object Json {
     inline fun <reified T : Collection<Any>> toJSONArray(data: T): JSONArray {
         val arr = JSONArray()
         for (element in data) {
-            when (element) {
-                is String, is Int, is Long, is Double, is Float, is Boolean, is Byte, is ULong, is UInt -> arr.put(element)
-                is UByte -> arr.put(element.toInt())
-                is Enum<*> -> arr.put(element.name)
-                is Map<*,*> -> {
-                    Log.d("toJSONArray", "Element $element is map")
-                    var map = HashMap<String, Any>()
-                    element.forEach { entry ->
-                        try {
-                            val entryJsValue = when (entry.value) {
-                                is Collection<*> -> {
-                                    ((entry.value as Collection<*>).map { it as Any}).toJSONArray()
-                                }
-                                else -> {
-                                    entry.value?.toJSONObject()
-                                }
-                            }
-                            map.put(entry.key as String, entryJsValue as Any)
-                        } catch (e: Exception) {
-                            Log.e("toJSONObject", "Error converting Map entry ${entry.key} with value ${entry.value} to JSObject", e)
-                        }
-                    }
-                    arr.put(map as Any)
-                }
-                is Collection<*> -> {
-                    val jsValue = try {
-                        (element.map { it as Any }).toJSONArray()
-                    } catch (e: Exception) {
-                        Log.e("toJSONArray", "Error converting element $element to toJSONArray", e)
-                        null
-                    }
-                    arr.put(jsValue)
-                }
-                // Is this a known sealed class (i.e. converted from a Rust enum)?
-                is AppInfoStatusFfi, is CellInfoFfi, is DisabledAppReasonFfi, is PausedAppReasonFfi, is RoleSettingsFfi -> {
-                    val jsValue = try {
-                        element.toJSONObject()
-                    } catch (e: Exception) {
-                        Log.e("toJSONObject", "Error converting element $element to JSObject", e)
-                        null
-                    }
-                    jsValue?.put("type", element::class.simpleName)
-                    arr.put(jsValue)
-                }
-                else -> {
-                    Log.d("toJSONArray", "Element $element is other")
-                    val jsValue = try {
-                        element.toJSONObject()
-                    } catch (e: Exception) {
-                        Log.e("toJSONArray", "Error converting element $element to toJSONObject", e)
-                        null
-                    }
-                    arr.put(jsValue)
-                }
-            }
+            arr.put(element.toJSONObject())
         }
         return arr
     }
