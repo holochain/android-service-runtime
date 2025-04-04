@@ -4,7 +4,7 @@
   import BaseLabelled from "./BaseLabelled.svelte";
 	import BaseLoadingButton from "./BaseLoadingButton.svelte";
 	import { loadingUninstallApp, loadUninstallApp } from "../stores/holochain";
-
+  import { decode } from "@msgpack/msgpack";
   export let appInfo: AppInfo;
 </script>
 
@@ -45,10 +45,10 @@
                   {cellInfo.v1.dnaModifiers.originTime}
                 </BaseLabelled>
                 <BaseLabelled label="Properties">
-                  {cellInfo.v1.dnaModifiers.properties.slice(0,5)}...
+                  {decode(cellInfo.v1.dnaModifiers.properties)}
                 </BaseLabelled>
                 <BaseLabelled label="Quantum Time">
-                  {cellInfo.v1.dnaModifiers.quantumTime.secs}secs, {cellInfo.v1.dnaModifiers.quantumTime.secs}nanos, 
+                  {cellInfo.v1.dnaModifiers.quantumTime.secs} secs, {cellInfo.v1.dnaModifiers.quantumTime.secs} nanos
                 </BaseLabelled>
               </div>
             </BaseLabelled>
