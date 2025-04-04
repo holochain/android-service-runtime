@@ -23,8 +23,8 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     private val serviceScope = CoroutineScope(supervisorJob)
     private var serviceClient = HolochainServiceClient(
         this.activity,
-        "com.plugin.holochain_service.HolochainService",
-        "org.holochain.androidserviceruntime.app"
+        "org.holochain.androidserviceruntime.app",
+        "com.plugin.holochain_service.HolochainService"
     )
     private var TAG = "HolochainServiceConsumerPlugin"
 
