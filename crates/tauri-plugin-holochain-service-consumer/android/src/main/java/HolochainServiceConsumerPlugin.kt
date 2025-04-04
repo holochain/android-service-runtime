@@ -14,7 +14,6 @@ import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
 import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
-import org.holochain.androidserviceruntime.holochain_service_client.toJSONArrayString
 
 @TauriPlugin
 class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(activity) {
@@ -22,8 +21,12 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     private lateinit var injectHolochainClientEnvJavascript: String
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
-    private lateinit var serviceClient: HolochainServiceClient
-    private var TAG = "HolochainServiceClientPlugin"
+    private var serviceClient = HolochainServiceClient(
+        this.activity,
+        "com.plugin.holochain_service.HolochainService",
+        "org.holochain.androidserviceruntime.app"
+    )
+    private var TAG = "HolochainServiceConsumerPlugin"
 
     /**
      * Load the plugin, start the service
@@ -44,11 +47,6 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     @Command
     fun connect(invoke: Invoke) {
         Log.d(TAG, "connect")
-        this.serviceClient = HolochainServiceClient(
-            this.activity,
-            "com.plugin.holochain_service.HolochainService",
-            "org.holochain.androidserviceruntime.app"
-        )
         this.serviceClient.connect()
         invoke.resolve()
     }
@@ -61,7 +59,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         Log.d(TAG, "installApp")
         val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.installApp(InstallAppPayloadFfiParcel(args.toFfi()))
+            val res = serviceClient.installApp(args.toFfi())
             invoke.resolve(JSObject(res.toJSONObjectString()))
         }
     }
@@ -103,8 +101,8 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         Log.d(TAG, "signZomeCall")
         val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.signZomeCall(ZomeCallUnsignedFfiParcel(args.toFfi()))
-            invoke.resolve(JSObject(res.inner.toJSONObjectString()))
+            val res = serviceClient.signZomeCall(args.toFfi())
+            invoke.resolve(JSObject(res.toJSONObjectString()))
         }
     }
 }
