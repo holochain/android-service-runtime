@@ -1,9 +1,15 @@
 package com.plugin.holochain_service
 
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfi
-import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.Assert.*
+import kotlin.Byte
+import kotlin.Double
+import kotlin.Float
+import kotlin.random.Random
+import org.json.JSONArray
+import org.json.JSONObject
 import org.holochain.androidserviceruntime.holochain_service_client.AppInfoStatusFfi
 import org.holochain.androidserviceruntime.holochain_service_client.CellIdFfi
 import org.holochain.androidserviceruntime.holochain_service_client.CellInfoFfi
@@ -14,26 +20,9 @@ import org.holochain.androidserviceruntime.holochain_service_client.DurationFfi
 import org.holochain.androidserviceruntime.holochain_service_client.PausedAppReasonFfi
 import org.holochain.androidserviceruntime.holochain_service_client.ProvisionedCellFfi
 import org.holochain.androidserviceruntime.holochain_service_client.RoleSettingsFfi
-import org.holochain.androidserviceruntime.holochain_service_client.StemCellFfi
 import org.holochain.androidserviceruntime.holochain_service_client.toJSONArray
 import org.holochain.androidserviceruntime.holochain_service_client.toJSONObject
-import org.json.JSONArray
-import org.json.JSONObject
 
-import org.junit.Test
-import org.junit.runner.RunWith
-
-import org.junit.Assert.*
-import kotlin.Byte
-import kotlin.Double
-import kotlin.Float
-import kotlin.random.Random
-
-/**
- * Instrumented test, which will execute on an Android device.
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
 @RunWith(AndroidJUnit4::class)
 class JsonTest {
 
@@ -64,7 +53,8 @@ class JsonTest {
         val res = JSONObject(value.toJSONObject().toString())
 
         assertEquals(res.getJSONObject("status").getString("type"), "Paused")
-        assertEquals(res.getJSONObject("status").getJSONObject("error").getString("v1"), "my error")
+        assertEquals(res.getJSONObject("status").getJSONObject("reason").getString("type"), "Error")
+        assertEquals(res.getJSONObject("status").getJSONObject("reason").getString("v1"), "my error")
     }
 
     @Test
@@ -91,7 +81,6 @@ class JsonTest {
         assertEquals(res.getJSONObject("info").getJSONObject("v1").getString("name"), "cell-1")
     }
 
-
     @Test
     fun testRoleSettingsFfi() {
         data class MyObj(
@@ -111,7 +100,7 @@ class JsonTest {
 
         val res = JSONObject(value.toJSONObject().toString())
         assertEquals(res.getJSONObject("rolesettings").getString("type"), "Provisioned")
-        assertEquals(res.getJSONObject("rolesettings").getJSONObject("v1").getJSONObject("modifiers").getString("networkSeed"), "1234")
+        assertEquals(res.getJSONObject("rolesettings").getJSONObject("modifiers").getString("networkSeed"), "1234")
     }
 
     @Test
@@ -158,7 +147,7 @@ class JsonTest {
         assertEquals(res.getBoolean("boolean"), true)
         assertEquals(res.getInt("byte"), 0)
         assertEquals(res.getString("myEnum"), "NORTH")
-        assertNull(res.getString("empty"))
+        assertNull(res.optString("empty", null))
         assertEquals(res.getJSONArray("byteArray")[0], JSONArray(arrayOf(0, 1, 2, 3))[0])
         assertEquals(res.getJSONArray("byteArray")[1], JSONArray(arrayOf(0, 1, 2, 3))[1])
         assertEquals(res.getJSONArray("byteArray")[2], JSONArray(arrayOf(0, 1, 2, 3))[2])
@@ -167,12 +156,12 @@ class JsonTest {
     @Test
     fun testMap() {
         data class MyObj(
-            var string: String
+            var map: Map<String, String>
         )
-        val value: Map<String, MyObj> = mapOf("my key" to MyObj(string = "my value"))
+        val value = MyObj(map = mapOf("my key" to "my value"))
         val res = JSONObject(value.toJSONObject().toString())
 
-        assertEquals(res.getString("my key"), "my value")
+        assertEquals(res.getJSONObject("map").getString("my key"), "my value")
     }
 
     @Test

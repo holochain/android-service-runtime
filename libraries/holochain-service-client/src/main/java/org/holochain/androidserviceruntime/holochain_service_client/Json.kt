@@ -19,7 +19,83 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 object Json {
-    /// Convert Any object to a JSObject
+
+    /// Convert Any object to a JSONObject
+    @OptIn(ExperimentalUnsignedTypes::class)
+    fun toJSONPrimitive(value: Any?): Any? {
+        return when (value) {
+            null -> null
+            is String, is Int, is Long, is Double, is Boolean, is ULong, is UInt -> {
+                value
+            }
+            is Float -> {
+                value.toDouble()
+            }
+            is Byte -> {
+                value.toInt()
+            }
+            is UByte -> {
+                value.toInt()
+            }
+            is Enum<*> -> {
+                value.name
+            }
+            is Map<*,*> -> {
+                var map = HashMap<String, Any?>()
+                value.forEach { entry ->
+                    try {
+                        map.put(entry.key as String, toJSONPrimitive(entry.value))
+                    } catch (e: Exception) {
+                        Log.e("toJSONObject", "Error converting Map entry ${entry.key} with value ${entry.value} to JSONObject", e)
+                    }
+                }
+                JSONObject(map) as Any
+            }
+            is ByteArray -> {
+                val byteCollection: MutableCollection<UByte> = value.toUByteArray().toMutableList()
+                val jsValue = try {
+                    (byteCollection as? Collection<UByte>)?.toJSONArray()
+                } catch (e: Exception) {
+                    Log.e("toJSONObject", "Error converting $value to toJSONArray", e)
+                    null
+                }
+                jsValue
+            }
+            is Collection<*> -> {
+                val jsValue = try {
+                    (value.map { it as Any }).toJSONArray()
+                } catch (e: Exception) {
+                    Log.e("toJSONObject", "Error converting $value to toJSONArray", e)
+                    null
+                }
+                jsValue
+            }
+            // Is this a known sealed class (i.e. converted from a Rust enum)?
+            is AppInfoStatusFfi, is CellInfoFfi, is DisabledAppReasonFfi, is PausedAppReasonFfi, is RoleSettingsFfi -> {
+                val jsValue = try {
+                    value.toJSONObject()
+                } catch (e: Exception) {
+                    Log.e("toJSONObject", "Error converting $value to JSONObject", e)
+                    null
+                }
+                jsValue?.put("type", value::class.simpleName)
+                jsValue
+            }
+            else -> {
+                val jsValue = try {
+                    value.toJSONObject()
+                } catch (e: Exception) {
+                    Log.e("toJSONObject", "Error converting $value to JSONObject", e)
+                    null
+                }
+                jsValue
+            }
+        }
+    }
+
+    fun Any?.toJsonPrimitive(): Any? = toJSONPrimitive(this)
+
+    /// Convert Any object to a JSONObject
     @OptIn(ExperimentalUnsignedTypes::class)
     inline fun <reified T : Any> toJSONObject(data: T): JSONObject {
         val obj = JSONObject()
@@ -27,78 +103,16 @@ object Json {
         for (property in properties) {
             val prop = property as? KProperty1<T, *>
             val value = prop?.get(data)
-            when (value) {
-                is String, is Int, is Long, is Double, is Boolean, is ULong, is UInt  -> obj.put(property.name, value)
-                is Enum<*> -> obj.put(property.name, value.name)
-                null -> obj.put(property.name, null)
-                is Map<*,*> -> {
-                    var map = HashMap<String, Any>()
-                    value.forEach { entry ->
-                        try {
-                            val entryJsValue = when (entry.value) {
-                                is Collection<*> -> {
-                                    ((entry.value as Collection<*>).map { it as Any}).toJSONArray()
-                                }
-                                else -> {
-                                    entry.value?.toJSONObject()
-                                }
-                            }
-                            map.put(entry.key as String, entryJsValue as Any)
-                        } catch (e: Exception) {
-                            Log.e("toJSONObject", "Error converting Map entry ${entry.key} with value ${entry.value} to JSObject", e)
-                        }
-                    }
-                    obj.put(property.name, JSONObject(map) as Any)
-                }
-                is ByteArray -> {
-                    val byteCollection: MutableCollection<UByte> = value.toUByteArray().toMutableList()
-                    val jsValue = try {
-                        (byteCollection as? Collection<UByte>)?.toJSONArray()
-                    } catch (e: Exception) {
-                        Log.e("toJSONObject", "Error converting property ${property.name} to toJSONArray", e)
-                        null
-                    }
-                    obj.put(property.name, jsValue)
-                }
-                is Collection<*> -> {
-                    val jsValue = try {
-                        (value.map { it as Any }).toJSONArray()
-                    } catch (e: Exception) {
-                        Log.e("toJSONObject", "Error converting property ${property.name} to toJSONArray", e)
-                        null
-                    }
-                    obj.put(property.name, jsValue)
-                }
-                // Is this a known sealed class (i.e. converted from a Rust enum)?
-                is AppInfoStatusFfi, is CellInfoFfi, is DisabledAppReasonFfi, is PausedAppReasonFfi, is RoleSettingsFfi -> {
-                    val jsValue = try {
-                        value.toJSONObject()
-                    } catch (e: Exception) {
-                        Log.e("toJSONObject", "Error converting property ${property.name} to JSObject", e)
-                        null
-                    }
-                    jsValue?.put("type", value::class.simpleName)
-                    obj.put(property.name, jsValue)
-                }
-                else -> {
-                    val jsValue = try {
-                        value.toJSONObject()
-                    } catch (e: Exception) {
-                        Log.e("toJSONObject", "Error converting property ${property.name} to JSObject", e)
-                        null
-                    }
-                    obj.put(property.name, jsValue)
-                }
-            }
+            obj.put(property.name, value.toJsonPrimitive())
         }
         return obj
     }
 
-    /// Convert Collection<Any> to a JSArray
+    /// Convert Collection<Any> to a JSONArray
     inline fun <reified T : Collection<Any>> toJSONArray(data: T): JSONArray {
         val arr = JSONArray()
         for (element in data) {
-            arr.put(element.toJSONObject())
+            arr.put(element.toJsonPrimitive())
         }
         return arr
     }
