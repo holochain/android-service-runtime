@@ -1,5 +1,5 @@
 fn main() {
-    let res = tauri_build::build();
+    tauri_build::build();
 
     #[cfg(feature="system_settings")]
   tauri_plugin::mobile::update_android_manifest(
@@ -42,5 +42,5 @@ r#"<activity
   )
   .expect("Failed to update AndroidManifest.xml");
 
-    res
+    ()
 }

@@ -3,16 +3,13 @@ use android_logger::Config;
 use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
 use holochain_conductor_runtime_types_ffi::*;
 use log::{debug, LevelFilter};
-use url2::Url2;
 use std::sync::LazyLock;
-use tokio::runtime::{Runtime as TokioRuntime, Builder};
+use tokio::runtime::{Builder, Runtime as TokioRuntime};
+use url2::Url2;
 
 /// Global multi threaded tokio runtime
 pub static RT: LazyLock<TokioRuntime> = LazyLock::new(|| {
-    let rt = Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap();
+    let rt = Builder::new_multi_thread().enable_all().build().unwrap();
     rt.block_on(uniffi::deps::async_compat::Compat::new(async {}));
     let _ = rt.enter();
     rt
@@ -32,14 +29,15 @@ impl RuntimeFfi {
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
         debug!("RuntimeFfi::new");
 
-        let passphrase_locked = move_to_locked_mem(passphrase).expect("Failed to move password to locked memory");
+        let passphrase_locked =
+            move_to_locked_mem(passphrase).expect("Failed to move password to locked memory");
         let runtime = RT.block_on(Runtime::new(
-            passphrase_locked, 
+            passphrase_locked,
             RuntimeConfig {
                 data_root_path: runtime_config.data_root_path.into(),
                 bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
                 signal_url: Url2::try_parse(runtime_config.signal_url)?,
-            }
+            },
         ))?;
 
         Ok(Self(runtime))
@@ -101,7 +99,7 @@ impl RuntimeFfi {
     ) -> RuntimeResultFfi<AppAuthFfi> {
         debug!("RuntimeFfi::ensure_app_websocket");
         let app_auth = self.0.ensure_app_websocket(installed_app_id).await?;
-        
+
         Ok(AppAuthFfi {
             authentication: app_auth.authentication.into(),
             port: app_auth.port,
@@ -125,12 +123,12 @@ impl RuntimeFfi {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::error::RuntimeErrorFfi;
     use std::collections::HashMap;
     use std::time::SystemTime;
     use std::time::UNIX_EPOCH;
     use tempfile::TempDir;
     use uuid::Uuid;
-    use crate::error::RuntimeErrorFfi;    
 
     const HAPP_FIXTURE: &[u8] = include_bytes!("../fixtures/forum.happ");
 
@@ -369,7 +367,7 @@ mod test {
                 zome_name: "forum".into(),
                 fn_name: "get_all_posts".into(),
                 cap_secret: None,
-                payload: vec![].into(),
+                payload: vec![],
                 nonce: [0; 32].to_vec(),
                 expires_at: i64::try_from(
                     SystemTime::now()

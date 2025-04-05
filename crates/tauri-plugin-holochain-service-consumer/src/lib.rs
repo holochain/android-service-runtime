@@ -3,12 +3,12 @@
 mod error;
 mod mobile;
 
+pub use error::{Error, Result};
+use mobile::HolochainServiceConsumer;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Manager, Runtime,
 };
-pub use error::{Error, Result};
-use mobile::HolochainServiceConsumer;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the holochain-service APIs.
 pub trait HolochainServiceConsumerExt<R: Runtime> {
