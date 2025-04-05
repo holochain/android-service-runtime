@@ -1,0 +1,12 @@
+[package]
+name = "holochain-conductor-runtime-client-ffi"
+version = "0.1.0"
+edition = "2021"
+
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+name = "holochain_conductor_runtime_client_ffi"
+
+[dependencies]
+holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi" }
