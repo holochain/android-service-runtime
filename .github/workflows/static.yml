@@ -1,7 +1,5 @@
 name: Static Analysis
-on:
-  push
-  pull_request
+on: [push, pull_request]
 
 jobs:
   static-analysis:
