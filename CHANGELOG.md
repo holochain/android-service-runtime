@@ -16,3 +16,4 @@
 - Run holochain-service-client tests in CI
 - Fix Ffi types to Parcelable types converstions, and tests for Parcelable types.
 - Support Json serialization of sealed classes, cleanup and tests of Json serialization.
+- Added example app demonstrating use of tauri-plugin-holochain-service-consumer
