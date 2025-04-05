@@ -19,25 +19,20 @@ object Json {
   @OptIn(ExperimentalUnsignedTypes::class)
   fun toJSONPrimitive(value: Any?): Any? {
     return when (value) {
-      null -> null
+      null,
+      Unit -> null
       is String,
       is Int,
-      is Long,
       is Double,
-      is Boolean,
-      is ULong,
-      is UInt -> {
-        value
-      }
-      is Float -> {
-        value.toDouble()
-      }
-      is Byte -> {
-        value.toInt()
-      }
-      is UByte -> {
-        value.toInt()
-      }
+      is Boolean -> value
+      is Float -> value.toDouble()
+      is Byte,
+      is Short,
+      is Long, -> value.toInt()
+      is UByte -> value.toInt()
+      is UShort -> value.toInt()
+      is ULong -> value.toInt()
+      is UInt -> value.toInt()
       is Enum<*> -> {
         value.name
       }

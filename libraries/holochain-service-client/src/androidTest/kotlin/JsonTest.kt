@@ -28,9 +28,6 @@ class JsonTest {
 
   enum class Direction {
     NORTH,
-    SOUTH,
-    WEST,
-    EAST
   }
 
   @Test
@@ -116,6 +113,8 @@ class JsonTest {
         var uint: UInt,
         var long: Long,
         var ulong: ULong,
+        var short: Short,
+        var ushort: UShort,
         var double: Double,
         var float: Float,
         var boolean: Boolean,
@@ -132,8 +131,10 @@ class JsonTest {
             uint = 100U,
             long = 100L,
             ulong = 100UL,
-            double = 100.0,
-            float = 100.0F,
+            short = 100,
+            ushort = 100U,
+            double = 100.5,
+            float = 100.5F,
             boolean = true,
             byte = 0x0,
             ubyte = 0x0.toUByte(),
@@ -143,20 +144,20 @@ class JsonTest {
         )
     val res = JSONObject(value.toJSONObject().toString())
 
-    assertEquals(res.getString("string"), "my string")
-    assertEquals(res.getInt("int"), 100)
-    assertEquals(res.getInt("uint"), 100)
-    assertEquals(res.getInt("long"), 100)
-    assertEquals(res.getInt("ulong"), 100)
-    assertEquals(res.getDouble("double"), 100.0, 0.0)
-    assertEquals(res.getDouble("float"), 100.0, 0.0)
-    assertEquals(res.getBoolean("boolean"), true)
-    assertEquals(res.getInt("byte"), 0)
-    assertEquals(res.getString("myEnum"), "NORTH")
+    assertEquals(res.get("string"), "my string")
+    assertEquals(res.get("int"), 100)
+    assertEquals(res.get("uint"), 100)
+    assertEquals(res.get("long"), 100)
+    assertEquals(res.get("ulong"), 100)
+    assertEquals(res.get("short"), 100)
+    assertEquals(res.get("ushort"), 100)
+    assertEquals(res.get("double"), 100.5)
+    assertEquals(res.get("float"), 100.5)
+    assertEquals(res.get("boolean"), true)
+    assertEquals(res.get("byte"), 0)
+    assertEquals(res.get("myEnum"), "NORTH")
     assertNull(res.optString("empty", null))
-    assertEquals(res.getJSONArray("byteArray")[0], JSONArray(arrayOf(0, 1, 2, 3))[0])
-    assertEquals(res.getJSONArray("byteArray")[1], JSONArray(arrayOf(0, 1, 2, 3))[1])
-    assertEquals(res.getJSONArray("byteArray")[2], JSONArray(arrayOf(0, 1, 2, 3))[2])
+    assertEquals(res.get("byteArray").toString(), "[0,1,2]")
   }
 
   @Test
