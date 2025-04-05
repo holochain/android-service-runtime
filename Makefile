@@ -7,8 +7,8 @@ all: test
 test: static unit
 
 unit:
-	RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime -- --nocapture
-	RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime-ffi -- --nocapture
+	RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime -- --nocapture --test-threads 1
+	RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime-ffi -- --nocapture --test-threads 1
 
 static: fmt lint
 	@if [ "${CI}x" != "x" ]; then git diff --exit-code; fi

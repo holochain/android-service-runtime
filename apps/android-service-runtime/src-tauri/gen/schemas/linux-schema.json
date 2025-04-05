@@ -37,7 +37,7 @@
   ],
   "definitions": {
     "Capability": {
-      "description": "A grouping and boundary mechanism developers can use to isolate access to the IPC layer.\n\nIt controls application windows fine grained access to the Tauri core, application, or plugin commands. If a window is not matching any capability then it has no access to the IPC layer at all.\n\nThis can be done to create groups of windows, based on their required system access, which can reduce impact of frontend vulnerabilities in less privileged windows. Windows can be added to a capability by exact name (e.g. `main-window`) or glob patterns like `*` or `admin-*`. A Window can have none, one, or multiple associated capabilities.\n\n## Example\n\n```json { \"identifier\": \"main-user-files-write\", \"description\": \"This capability allows the `main` window on macOS and Windows access to `filesystem` write related commands and `dialog` commands to enable programatic access to files selected by the user.\", \"windows\": [ \"main\" ], \"permissions\": [ \"core:default\", \"dialog:open\", { \"identifier\": \"fs:allow-write-text-file\", \"allow\": [{ \"path\": \"$HOME/test.txt\" }] }, ], \"platforms\": [\"macOS\",\"windows\"] } ```",
+      "description": "A grouping and boundary mechanism developers can use to isolate access to the IPC layer.\n\nIt controls application windows' and webviews' fine grained access to the Tauri core, application, or plugin commands. If a webview or its window is not matching any capability then it has no access to the IPC layer at all.\n\nThis can be done to create groups of windows, based on their required system access, which can reduce impact of frontend vulnerabilities in less privileged windows. Windows can be added to a capability by exact name (e.g. `main-window`) or glob patterns like `*` or `admin-*`. A Window can have none, one, or multiple associated capabilities.\n\n## Example\n\n```json { \"identifier\": \"main-user-files-write\", \"description\": \"This capability allows the `main` window on macOS and Windows access to `filesystem` write related commands and `dialog` commands to enable programatic access to files selected by the user.\", \"windows\": [ \"main\" ], \"permissions\": [ \"core:default\", \"dialog:open\", { \"identifier\": \"fs:allow-write-text-file\", \"allow\": [{ \"path\": \"$HOME/test.txt\" }] }, ], \"platforms\": [\"macOS\",\"windows\"] } ```",
       "type": "object",
       "required": [
         "identifier",
@@ -70,14 +70,14 @@
           "type": "boolean"
         },
         "windows": {
-          "description": "List of windows that are affected by this capability. Can be a glob pattern.\n\nOn multiwebview windows, prefer [`Self::webviews`] for a fine grained access control.\n\n## Example\n\n`[\"main\"]`",
+          "description": "List of windows that are affected by this capability. Can be a glob pattern.\n\nIf a window label matches any of the patterns in this list, the capability will be enabled on all the webviews of that window, regardless of the value of [`Self::webviews`].\n\nOn multiwebview windows, prefer specifying [`Self::webviews`] and omitting [`Self::windows`] for a fine grained access control.\n\n## Example\n\n`[\"main\"]`",
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "webviews": {
-          "description": "List of webviews that are affected by this capability. Can be a glob pattern.\n\nThis is only required when using on multiwebview contexts, by default all child webviews of a window that matches [`Self::windows`] are linked.\n\n## Example\n\n`[\"sub-webview-one\", \"sub-webview-two\"]`",
+          "description": "List of webviews that are affected by this capability. Can be a glob pattern.\n\nThe capability will be enabled on all the webviews whose label matches any of the patterns in this list, regardless of whether the webview's window label matches a pattern in [`Self::windows`].\n\n## Example\n\n`[\"sub-webview-one\", \"sub-webview-two\"]`",
           "type": "array",
           "items": {
             "type": "string"
@@ -202,9 +202,24 @@
           "const": "core:app:allow-default-window-icon"
         },
         {
+          "description": "Enables the fetch_data_store_identifiers command without any pre-configured scope.",
+          "type": "string",
+          "const": "core:app:allow-fetch-data-store-identifiers"
+        },
+        {
+          "description": "Enables the identifier command without any pre-configured scope.",
+          "type": "string",
+          "const": "core:app:allow-identifier"
+        },
+        {
           "description": "Enables the name command without any pre-configured scope.",
           "type": "string",
           "const": "core:app:allow-name"
+        },
+        {
+          "description": "Enables the remove_data_store command without any pre-configured scope.",
+          "type": "string",
+          "const": "core:app:allow-remove-data-store"
         },
         {
           "description": "Enables the set_app_theme command without any pre-configured scope.",
@@ -237,9 +252,24 @@
           "const": "core:app:deny-default-window-icon"
         },
         {
+          "description": "Denies the fetch_data_store_identifiers command without any pre-configured scope.",
+          "type": "string",
+          "const": "core:app:deny-fetch-data-store-identifiers"
+        },
+        {
+          "description": "Denies the identifier command without any pre-configured scope.",
+          "type": "string",
+          "const": "core:app:deny-identifier"
+        },
+        {
           "description": "Denies the name command without any pre-configured scope.",
           "type": "string",
           "const": "core:app:deny-name"
+        },
+        {
+          "description": "Denies the remove_data_store command without any pre-configured scope.",
+          "type": "string",
+          "const": "core:app:deny-remove-data-store"
         },
         {
           "description": "Denies the set_app_theme command without any pre-configured scope.",
@@ -1037,6 +1067,11 @@
           "const": "core:window:allow-internal-toggle-maximize"
         },
         {
+          "description": "Enables the is_always_on_top command without any pre-configured scope.",
+          "type": "string",
+          "const": "core:window:allow-is-always-on-top"
+        },
+        {
           "description": "Enables the is_closable command without any pre-configured scope.",
           "type": "string",
           "const": "core:window:allow-is-closable"
@@ -1402,6 +1437,11 @@
           "const": "core:window:deny-internal-toggle-maximize"
         },
         {
+          "description": "Denies the is_always_on_top command without any pre-configured scope.",
+          "type": "string",
+          "const": "core:window:deny-is-always-on-top"
+        },
+        {
           "description": "Denies the is_closable command without any pre-configured scope.",
           "type": "string",
           "const": "core:window:deny-is-closable"
@@ -1712,11 +1752,6 @@
           "const": "holochain-service:default"
         },
         {
-          "description": "Enables the app_websocket_auth command without any pre-configured scope.",
-          "type": "string",
-          "const": "holochain-service:allow-app-websocket-auth"
-        },
-        {
           "description": "Enables the disable_app command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:allow-disable-app"
@@ -1732,11 +1767,6 @@
           "const": "holochain-service:allow-ensure-app-websocket"
         },
         {
-          "description": "Enables the get_admin_port command without any pre-configured scope.",
-          "type": "string",
-          "const": "holochain-service:allow-get-admin-port"
-        },
-        {
           "description": "Enables the install_app command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:allow-install-app"
@@ -1747,24 +1777,14 @@
           "const": "holochain-service:allow-is-app-installed"
         },
         {
-          "description": "Enables the launch command without any pre-configured scope.",
+          "description": "Enables the is_ready command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-service:allow-launch"
+          "const": "holochain-service:allow-is-ready"
         },
         {
           "description": "Enables the list_apps command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:allow-list-apps"
-        },
-        {
-          "description": "Enables the list_installed_apps command without any pre-configured scope.",
-          "type": "string",
-          "const": "holochain-service:allow-list-installed-apps"
-        },
-        {
-          "description": "Enables the shutdown command without any pre-configured scope.",
-          "type": "string",
-          "const": "holochain-service:allow-shutdown"
         },
         {
           "description": "Enables the sign_zome_call command without any pre-configured scope.",
@@ -1787,11 +1807,6 @@
           "const": "holochain-service:allow-uninstall-app"
         },
         {
-          "description": "Denies the app_websocket_auth command without any pre-configured scope.",
-          "type": "string",
-          "const": "holochain-service:deny-app-websocket-auth"
-        },
-        {
           "description": "Denies the disable_app command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-disable-app"
@@ -1807,11 +1822,6 @@
           "const": "holochain-service:deny-ensure-app-websocket"
         },
         {
-          "description": "Denies the get_admin_port command without any pre-configured scope.",
-          "type": "string",
-          "const": "holochain-service:deny-get-admin-port"
-        },
-        {
           "description": "Denies the install_app command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-install-app"
@@ -1822,24 +1832,14 @@
           "const": "holochain-service:deny-is-app-installed"
         },
         {
-          "description": "Denies the launch command without any pre-configured scope.",
+          "description": "Denies the is_ready command without any pre-configured scope.",
           "type": "string",
-          "const": "holochain-service:deny-launch"
+          "const": "holochain-service:deny-is-ready"
         },
         {
           "description": "Denies the list_apps command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-list-apps"
-        },
-        {
-          "description": "Denies the list_installed_apps command without any pre-configured scope.",
-          "type": "string",
-          "const": "holochain-service:deny-list-installed-apps"
-        },
-        {
-          "description": "Denies the shutdown command without any pre-configured scope.",
-          "type": "string",
-          "const": "holochain-service:deny-shutdown"
         },
         {
           "description": "Denies the sign_zome_call command without any pre-configured scope.",
@@ -1860,6 +1860,21 @@
           "description": "Denies the uninstall_app command without any pre-configured scope.",
           "type": "string",
           "const": "holochain-service:deny-uninstall-app"
+        },
+        {
+          "description": "Allows the log command",
+          "type": "string",
+          "const": "log:default"
+        },
+        {
+          "description": "Enables the log command without any pre-configured scope.",
+          "type": "string",
+          "const": "log:allow-log"
+        },
+        {
+          "description": "Denies the log command without any pre-configured scope.",
+          "type": "string",
+          "const": "log:deny-log"
         }
       ]
     },

@@ -3,7 +3,7 @@
   import { type AppInfo } from "tauri-plugin-holochain-service-api";
   import BaseLabelled from "./BaseLabelled.svelte";
   import BaseInstalledAppCardAdvanced from "./BaseInstalledAppCardAdvanced.svelte";
-	import BaseLoadingToggle from './BaseLoadingToggle.svelte';
+  import BaseLoadingToggle from './BaseLoadingToggle.svelte';
 
   export let appInfo: AppInfo;
   export let loadingToggleEnable: boolean = false;

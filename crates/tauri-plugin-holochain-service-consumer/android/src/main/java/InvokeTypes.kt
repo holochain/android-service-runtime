@@ -31,7 +31,8 @@ class AppIdInvokeArg {
 @InvokeArg
 class ZomeCallUnsignedFfiInvokeArg {
     lateinit var provenance: ByteArray
-    lateinit var cellId: CellIdFfi
+    lateinit var cellIdDnaHash: ByteArray
+    lateinit var cellIdAgentPubKey: ByteArray
     lateinit var zomeName: String
     lateinit var fnName: String
     var capSecret: ByteArray? = null
@@ -43,7 +44,10 @@ class ZomeCallUnsignedFfiInvokeArg {
 fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi {
     return ZomeCallUnsignedFfi(
         this.provenance,
-        this.cellId,
+        CellIdFfi(
+            dnaHash = this.cellIdDnaHash,
+            agentPubKey = this.cellIdAgentPubKey
+        ),
         this.zomeName,
         this.fnName,
         this.capSecret,

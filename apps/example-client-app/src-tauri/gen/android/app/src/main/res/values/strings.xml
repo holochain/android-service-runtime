@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Example Client App</string>
+    <string name="main_activity_title">Example Client App</string>
+</resources>

@@ -1,9 +1,9 @@
 uniffi::setup_scaffolding!();
 
-extern crate log;
 extern crate android_logger;
+extern crate log;
 
-mod runtime;
 mod error;
+mod runtime;
 
 pub use runtime::*;
