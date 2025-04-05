@@ -1,7 +1,6 @@
 package com.plugin.holochain_service
 
 import android.app.Activity
-import android.app.ActivityManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
@@ -228,13 +227,5 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
             """injectHolochainClientEnv("$appId", ${appWebsocketPort}, ${tokenJsArray}) """,
             null
         )
-    }
-
-    private fun isServiceRunning(className: String): Boolean {
-        val manager = this.activity.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-
-        return manager.getRunningServices(Integer.MAX_VALUE).find {
-            it.service.getClassName() == className
-        } !== null
     }
 }
