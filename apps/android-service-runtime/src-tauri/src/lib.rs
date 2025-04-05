@@ -1,13 +1,11 @@
 #![cfg(mobile)]
 
+use log::LevelFilter;
+use simple_logger::SimpleLogger;
 use std::sync::LazyLock;
 use std::sync::Once;
-use simple_logger::SimpleLogger;
-use log::LevelFilter;
 
-static LOGGER: LazyLock<SimpleLogger> = LazyLock::new(|| {
-    SimpleLogger::new()
-});
+static LOGGER: LazyLock<SimpleLogger> = LazyLock::new(|| SimpleLogger::new());
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -17,11 +15,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_holochain_service::init())
-        .plugin(
-            tauri_plugin_log::Builder::new()
-                .skip_logger()
-                .build(),
-        )
+        .plugin(tauri_plugin_log::Builder::new().skip_logger().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
