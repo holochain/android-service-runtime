@@ -1,7 +1,6 @@
 package org.holochain.androidserviceruntime.holochain_service_client
 
 import android.app.Activity
-import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
