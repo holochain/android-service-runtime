@@ -47,7 +47,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         this.webView = webView
 
         // Load holochain client injected javascript from resource file
-        val resourceInputStream = this.activity.resources.openRawResource(R.raw.injectholochainclientenv)
+        val resourceInputStream = this.activity.resources.openRawResource(R.raw.holochainenv)
         this.injectHolochainClientEnvJavascript = resourceInputStream.bufferedReader().use { it.readText() }
 
         // Create notification channel
