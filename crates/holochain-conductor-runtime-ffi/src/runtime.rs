@@ -72,7 +72,7 @@ impl RuntimeFfi {
 
     /// Install an app
     pub async fn install_app(&self, payload: InstallAppPayloadFfi) -> RuntimeResultFfi<AppInfoFfi> {
-        debug!("RuntimeFfi::install_app RT.block on");
+        debug!("RuntimeFfi::install_app");
         Ok(RT.block_on(self.0.install_app(payload.try_into()?))?.into())
     }
 
