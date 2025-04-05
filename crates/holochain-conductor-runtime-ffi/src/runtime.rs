@@ -14,7 +14,7 @@ pub static RT: LazyLock<TokioRuntime> = LazyLock::new(|| {
         .build()
         .unwrap();
     rt.block_on(uniffi::deps::async_compat::Compat::new(async {}));
-    rt.enter();
+    let _ = rt.enter();
     rt
 });
 
