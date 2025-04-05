@@ -8,6 +8,7 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
+import java.lang.IllegalStateException
 
 class HolochainServiceClient(
     private val activity: Activity,
@@ -40,17 +41,29 @@ class HolochainServiceClient(
 
   /// Stop the service
   fun stop() {
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot stop service: Service not connected")
+      throw IllegalStateException("Service not connected")
+    }
     this.mService!!.stop()
   }
 
   /// Is the service ready to receive calls
   fun isReady(): Boolean {
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot check if ready: Service not connected")
+      return false
+    }
     return this.mService!!.isReady()
   }
 
   /// Install an app
   suspend fun installApp(payload: InstallAppPayloadFfi): AppInfoFfi {
     Log.d(TAG, "installApp")
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot install app: Service not connected")
+      throw IllegalStateException("Service not connected")
+    }
 
     val deferred = CompletableDeferred<AppInfoFfi>()
     var callbackBinder =
@@ -68,6 +81,10 @@ class HolochainServiceClient(
   /// Is an app with the given app_id installed
   suspend fun isAppInstalled(installedAppId: String): Boolean {
     Log.d(TAG, "isAppInstalled")
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot check if app installed: Service not connected")
+      throw IllegalStateException("Service not connected")
+    }
 
     val deferred = CompletableDeferred<Boolean>()
     var callbackBinder =
@@ -85,6 +102,10 @@ class HolochainServiceClient(
   /// Uninstall an installed app
   suspend fun uninstallApp(installedAppId: String) {
     Log.d(TAG, "uninstallApp")
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot uninstall app: Service not connected")
+      throw IllegalStateException("Service not connected")
+    }
 
     val deferred = CompletableDeferred<Unit>()
     var callbackBinder =
@@ -102,6 +123,11 @@ class HolochainServiceClient(
   /// Enable an installed app
   suspend fun enableApp(installedAppId: String): AppInfoFfi {
     Log.d(TAG, "enableApp")
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot enable app: Service not connected")
+      throw IllegalStateException("Service not connected")
+    }
+    
     val deferred = CompletableDeferred<AppInfoFfi>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
@@ -117,6 +143,11 @@ class HolochainServiceClient(
   /// Disable an installed app
   suspend fun disableApp(installedAppId: String) {
     Log.d(TAG, "disableApp")
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot disable app: Service not connected")
+      throw IllegalStateException("Service not connected")
+    }
+    
     val deferred = CompletableDeferred<Unit>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
@@ -132,6 +163,10 @@ class HolochainServiceClient(
   /// List installed happs in conductor
   suspend fun listApps(): List<AppInfoFfi> {
     Log.d(TAG, "listApps")
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot list apps: Service not connected")
+      throw IllegalStateException("Service not connected")
+    }
 
     val deferred = CompletableDeferred<List<AppInfoFfi>>()
     var callbackBinder =
@@ -149,6 +184,10 @@ class HolochainServiceClient(
   /// Get or create an app websocket with authentication token
   suspend fun ensureAppWebsocket(installedAppId: String): AppAuthFfi {
     Log.d(TAG, "ensureAppWebsocket")
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot ensure app websocket: Service not connected")
+      throw IllegalStateException("Service not connected")
+    }
 
     val deferred = CompletableDeferred<AppAuthFfi>()
     var callbackBinder =
@@ -166,6 +205,10 @@ class HolochainServiceClient(
   /// Sign a zome call
   suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
     Log.d(TAG, "signZomeCall")
+    if (this.mService == null) {
+      Log.e(TAG, "Cannot sign zome call: Service not connected")
+      throw IllegalStateException("Service not connected")
+    }
 
     val deferred = CompletableDeferred<ZomeCallFfi>()
     var callbackBinder =
