@@ -19,7 +19,8 @@ function injectHolochainClientEnv(installedAppId: string, port: number, token: U
 
         const zomeCallUnsigned = {
             provenance: request.provenance,
-            cellIdDnaHash: request.cell_id,
+            cellIdDnaHash: request.cell_id[0],
+            cellIdAgentPubKey: request.cell_id[1],
             zomeName: request.zome_name,
             fnName: request.fn_name,
             capSecret: null,
