@@ -56,6 +56,10 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
             "Holochain Service Running",
             NotificationManager.IMPORTANCE_HIGH
         ))
+        
+        // Attempt to connect to service
+        // It may not be running
+        this.serviceClient.connect()
     }
 
     /**
@@ -70,6 +74,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         intent.setComponent(ComponentName(this.packageName, this.className))
         this.activity.startForegroundService(intent)
 
+        // Connect to service
         this.serviceClient.connect()
         invoke.resolve()
     }
