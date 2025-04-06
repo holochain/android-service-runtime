@@ -68,10 +68,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
-                if (e is HolochainServiceNotConnectedException) {
-                    showServiceNotConnectedNotice()
-                }
-                invoke.reject(e.toString())
+                handleCommandException(e, invoke)
             }
         }
     }
@@ -88,10 +85,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 val res = serviceClient.enableApp(args.installedAppId)
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
-                if (e is HolochainServiceNotConnectedException) {
-                    showServiceNotConnectedNotice()
-                }
-                invoke.reject(e.toString())
+                handleCommandException(e, invoke)
             }
         }
     }
@@ -108,11 +102,21 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 val res = serviceClient.signZomeCall(args.toFfi())
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
-                if (e is HolochainServiceNotConnectedException) {
-                    showServiceNotConnectedNotice()
-                }
-                invoke.reject(e.toString())
+                handleCommandException(e, invoke)
             }
+        }
+    }
+
+    /**
+     * Display the service notice if the exception is HolochainServiceNotConnectedException
+     */
+    private fun handleCommandException(e: Exception, invoke: Invoke) {
+        if (e is HolochainServiceNotConnectedException) {
+            showServiceNotConnectedNotice()
+            invoke.reject(e.toString(), "HolochainServiceNotConnected")
+        }
+        else {
+            invoke.reject(e.toString())
         }
     }
     
