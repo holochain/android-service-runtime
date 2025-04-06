@@ -56,32 +56,15 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     }
 
     /**
-     * Start the service
+     * Setup an app
      */
-    @Command
-    fun connect(invoke: Invoke) {
-        Log.d(TAG, "connect")
-        try {
-            this.serviceClient.connect()
-            invoke.resolve()
-        } catch (e: Exception) {
-            if (e is HolochainServiceNotConnectedException) {
-                showServiceNotConnectedNotice()
-            }
-            invoke.reject(e.toString())
-        }
-    }
-
-    /**
-     * Install an app
-     */
-    @Command
-    fun installApp(invoke: Invoke) {
-        Log.d(TAG, "installApp")
-        val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
+    fun setupApp(invoke: Invoke) {
+        Log.d(TAG, "setupApp")
+        val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)
+        Log.d(TAG, "setup app args " + args)
         serviceScope.launch(Dispatchers.IO) {
             try {
-                val res = serviceClient.installApp(args.toFfi())
+                val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
                 if (e is HolochainServiceNotConnectedException) {
@@ -103,49 +86,6 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
             try {
             val res = serviceClient.enableApp(args.installedAppId)
             invoke.resolve(JSObject(res.toJSONObjectString()))
-            } catch (e: Exception) {
-                if (e is HolochainServiceNotConnectedException) {
-                    showServiceNotConnectedNotice()
-                }
-                invoke.reject(e.toString())
-            }
-        }
-    }
-
-    /**
-     * Is an app with the given app_id installed
-     */
-    @Command
-    fun isAppInstalled(invoke: Invoke) {
-        Log.d(TAG, "isAppInstalled")
-        val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.IO) {
-            try {
-                val res = serviceClient.isAppInstalled(args.installedAppId)
-                val obj = JSObject()
-                obj.put("installed", res)
-                invoke.resolve(obj)
-            } catch (e: Exception) {
-                if (e is HolochainServiceNotConnectedException) {
-                    showServiceNotConnectedNotice()
-                }
-                invoke.reject(e.toString())
-            }
-        }
-    }
-
-    /**
-     * Get or create an app websocket with authentication token
-     */
-    @OptIn(ExperimentalUnsignedTypes::class)
-    @Command
-    fun ensureAppWebsocket(invoke: Invoke) {
-        Log.d(TAG, "ensureAppWebsocket")
-        val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.IO) {
-            try {
-                val res = serviceClient.ensureAppWebsocket(args.installedAppId)
-                invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
                 if (e is HolochainServiceNotConnectedException) {
                     showServiceNotConnectedNotice()
