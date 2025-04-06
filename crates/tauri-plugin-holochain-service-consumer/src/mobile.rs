@@ -36,31 +36,28 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
     /// * `app_id` - The `app_id` for the app.
     ///   If an app with this `app_id` is not installed in the Holochain conductor running in the Android Service Runtime,
     ///   then this happ bundle will be installed with the provided `app_id` and `network_seed`.
-    ///   Afterwards, the window will be setup so a holochain client cam connnect to that app.
+    ///   Afterwards, the window will be setup so a holochain client can connect to that app.
     /// * `happ_bundle_bytes` - The raw bytes of the `.happ` file.
-    /// * `network_seed` - The network seed to include in the `InstallAppPayload`. This is only used
+    /// * `network_seed` - The network seed to include in the `InstallAppPayload`.
+    /// * `enable_app` - If `true`, enable_app will be called for the app, after it has been installed successfully.
     pub fn main_window_builder(
         &self,
         app_id: String,
         happ_bundle_bytes: Bytes,
         network_seed: String,
+        enable_app: bool
     ) -> tauri::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
         let label = "main";
         let window_builder =
             WebviewWindowBuilder::new(self.0.app(), label, WebviewUrl::App("".into()))
                 .initialization_script(include_str!("../dist-js/holochain-env/index.min.js"))
-                // Workaround that runs the setup script after a brief delay, to wait for window.__TAURI_INTERNALS__ to be defined
-                // See https://github.com/tauri-apps/tauri/issues/12404
                 .initialization_script(
                     format!(
-                        r#"
-      setTimeout(() => {{
-        setupApp("{}", {:?}, "{}");
-      }}, 100);
-    "#,
+                        r#"setupApp("{}", {:?}, "{}", {});"#,
                         app_id,
                         happ_bundle_bytes.deref(),
-                        network_seed
+                        network_seed,
+                        enable_app,
                     )
                     .as_str(),
                 );

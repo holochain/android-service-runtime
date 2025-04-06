@@ -21,6 +21,7 @@ pub fn run() {
                     APP_ID.into(),
                     HAPP_BUNDLE_BYTES.into(),
                     Uuid::new_v4().to_string(),
+                    true
                 )
                 .expect("Failed to build window")
                 .build()
