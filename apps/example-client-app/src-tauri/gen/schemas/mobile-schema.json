@@ -2061,10 +2061,10 @@
           "markdownDescription": "Denies the unminimize command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-connect`\n- `allow-install-app`\n- `allow-enable-app`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`\n- `allow-ensure-app-websocket`\n- `allow-install-app-blocking`\n- `allow-enable-app-blocking`\n- `allow-is-app-installed-blocking`\n- `allow-ensure-app-websocket-blocking`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-setup-app`\n- `allow-enable-app`\n- `allow-sign-zome-call`",
           "type": "string",
           "const": "holochain-service-consumer:default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-connect`\n- `allow-install-app`\n- `allow-enable-app`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`\n- `allow-ensure-app-websocket`\n- `allow-install-app-blocking`\n- `allow-enable-app-blocking`\n- `allow-is-app-installed-blocking`\n- `allow-ensure-app-websocket-blocking`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-setup-app`\n- `allow-enable-app`\n- `allow-sign-zome-call`"
         },
         {
           "description": "Enables the connect command without any pre-configured scope.",
@@ -2119,6 +2119,18 @@
           "type": "string",
           "const": "holochain-service-consumer:allow-is-app-installed-blocking",
           "markdownDescription": "Enables the is_app_installed_blocking command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the set_installed_app_id command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service-consumer:allow-set-installed-app-id",
+          "markdownDescription": "Enables the set_installed_app_id command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the setup_app command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service-consumer:allow-setup-app",
+          "markdownDescription": "Enables the setup_app command without any pre-configured scope."
         },
         {
           "description": "Enables the sign_zome_call command without any pre-configured scope.",
@@ -2179,6 +2191,18 @@
           "type": "string",
           "const": "holochain-service-consumer:deny-is-app-installed-blocking",
           "markdownDescription": "Denies the is_app_installed_blocking command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_installed_app_id command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service-consumer:deny-set-installed-app-id",
+          "markdownDescription": "Denies the set_installed_app_id command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the setup_app command without any pre-configured scope.",
+          "type": "string",
+          "const": "holochain-service-consumer:deny-setup-app",
+          "markdownDescription": "Denies the setup_app command without any pre-configured scope."
         },
         {
           "description": "Denies the sign_zome_call command without any pre-configured scope.",

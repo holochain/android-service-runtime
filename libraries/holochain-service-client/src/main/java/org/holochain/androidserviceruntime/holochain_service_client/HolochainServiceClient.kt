@@ -8,6 +8,7 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
 
 class HolochainServiceClient(
     private val activity: Activity,
@@ -30,12 +31,42 @@ class HolochainServiceClient(
           Log.d(TAG, "IHolochainService disconnected")
         }
       }
+  
+  /// Entire process to setup an app
+  ///
+  /// Connect to service, install app, enable app, ensure app websocket
+  suspend fun setupApp(installAppPayload: InstallAppPayloadFfi, enableAfterInstall: Boolean): AppAuthFfi {
+    this.connect()
+    this.waitForConnectReady()
+
+    if(!this.isAppInstalled(installAppPayload.installedAppId!!)) {
+      this.installApp(installAppPayload)
+
+      if(enableAfterInstall) {
+        this.enableApp(installAppPayload.installedAppId!!)
+      }
+    }
+
+    return this.ensureAppWebsocket(installAppPayload.installedAppId!!)
+  }
 
   /// Connect to the service
   fun connect() {
     val intent = Intent()
     intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
     this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
+  }
+
+  /// Poll until we are connected to the service, or the timeout has elapsed
+  suspend fun waitForConnectReady(timeoutMs: Long = 5000L, intervalMs: Long = 5L) {
+    var elapsedMs = 0L
+    while(elapsedMs <= timeoutMs) {
+      Log.d(TAG, "waitForConnectReady " + elapsedMs)
+      if(this.mService != null) break;
+
+      delay(intervalMs)
+      elapsedMs += intervalMs
+    }
   }
 
   /// Stop the service

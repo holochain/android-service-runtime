@@ -7,14 +7,15 @@ import org.holochain.androidserviceruntime.holochain_service_client.RoleSettings
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfi
 
 @InvokeArg
-class InstallAppPayloadFfiInvokeArg {
+class SetupAppInvokeArg {
     lateinit var source: ByteArray
     lateinit var installedAppId: String
     lateinit var networkSeed: String
     lateinit var roleSettings: Map<String, RoleSettingsFfi>
+    var enableAfterInstall: Boolean = true
 }
 
-fun InstallAppPayloadFfiInvokeArg.toFfi(): InstallAppPayloadFfi {
+fun SetupAppInvokeArg.toInstallAppPayloadFfi(): InstallAppPayloadFfi {
     return InstallAppPayloadFfi(
         this.source,
         this.installedAppId,

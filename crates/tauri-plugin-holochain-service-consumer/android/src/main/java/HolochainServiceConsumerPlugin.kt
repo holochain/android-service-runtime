@@ -40,26 +40,16 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         val resourceInputStream = this.activity.resources.openRawResource(R.raw.holochainenv)
         this.injectHolochainClientEnvJavascript = resourceInputStream.bufferedReader().use { it.readText() }
     }
-
     /**
-     * Start the service
+     * Setup an app
      */
     @Command
-    fun connect(invoke: Invoke) {
-        Log.d(TAG, "connect")
-        this.serviceClient.connect()
-        invoke.resolve()
-    }
-
-    /**
-     * Install an app
-     */
-    @Command
-    fun installApp(invoke: Invoke) {
-        Log.d(TAG, "installApp")
-        val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
+    fun setupApp(invoke: Invoke) {
+        Log.d(TAG, "setupApp")
+        val args = invoke.parseArgs(SetupAppInvokeArg::class.java)
+        Log.d(TAG, "setup app args " + args)
         serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.installApp(args.toFfi())
+            val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
             invoke.resolve(JSObject(res.toJSONObjectString()))
         }
     }
@@ -73,35 +63,6 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.enableApp(args.installedAppId)
-            invoke.resolve(JSObject(res.toJSONObjectString()))
-        }
-    }
-
-    /**
-     * Is an app with the given app_id installed
-     */
-    @Command
-    fun isAppInstalled(invoke: Invoke) {
-        Log.d(TAG, "isAppInstalled")
-        val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.isAppInstalled(args.installedAppId)
-            val obj = JSObject()
-            obj.put("installed", res)
-            invoke.resolve(obj)
-        }
-    }
-
-    /**
-     * Get or create an app websocket with authentication token
-     */
-    @OptIn(ExperimentalUnsignedTypes::class)
-    @Command
-    fun ensureAppWebsocket(invoke: Invoke) {
-        Log.d(TAG, "ensureAppWebsocket")
-        val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.ensureAppWebsocket(args.installedAppId)
             invoke.resolve(JSObject(res.toJSONObjectString()))
         }
     }

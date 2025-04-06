@@ -1,5 +1,5 @@
 use std::{collections::HashMap, time::Duration};
-
+use serde::{Serialize, Deserialize};
 use holochain_conductor_api::{
     AppAuthenticationTokenIssued, AppInfo, AppInfoStatus, CellInfo, ProvisionedCell, StemCell,
     ZomeCall,
@@ -14,13 +14,11 @@ use holochain_types::{
         HoloHash,
     },
     prelude::{
-        CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName,
-        Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties, ZomeCallUnsigned,
-        ZomeName,
+        CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName, Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties, ZomeCallUnsigned, ZomeName
     },
 };
 
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct DurationFfi {
     pub secs: u64,
     pub nanos: u32,
@@ -60,7 +58,7 @@ impl From<DnaModifiers> for DnaModifiersFfi {
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct DnaModifiersOptFfi {
     pub network_seed: Option<String>,
     pub properties: Option<Vec<u8>>,
@@ -241,7 +239,7 @@ impl From<AppInfo> for AppInfoFfi {
     }
 }
 
-#[derive(uniffi::Record, Clone, Debug)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct AppAuthenticationTokenIssuedFfi {
     pub token: Vec<u8>,
     pub expires_at: Option<i64>,
@@ -256,13 +254,13 @@ impl From<AppAuthenticationTokenIssued> for AppAuthenticationTokenIssuedFfi {
     }
 }
 
-#[derive(uniffi::Record, Clone, Debug)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct AppAuthFfi {
     pub authentication: AppAuthenticationTokenIssuedFfi,
     pub port: u16,
 }
 
-#[derive(uniffi::Record, Clone)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct CellIdFfi {
     pub dna_hash: Vec<u8>,
     pub agent_pub_key: Vec<u8>,
@@ -360,7 +358,7 @@ impl From<ZomeCall> for ZomeCallFfi {
     }
 }
 
-#[derive(uniffi::Enum)]
+#[derive(uniffi::Enum, Serialize, Deserialize, Clone, Debug)]
 pub enum RoleSettingsFfi {
     UseExisting {
         cell_id: CellIdFfi,
