@@ -297,117 +297,140 @@
         {
           "description": "Enables the disable_app command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-disable-app"
+          "const": "allow-disable-app",
+          "markdownDescription": "Enables the disable_app command without any pre-configured scope."
         },
         {
           "description": "Denies the disable_app command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-disable-app"
+          "const": "deny-disable-app",
+          "markdownDescription": "Denies the disable_app command without any pre-configured scope."
         },
         {
           "description": "Enables the enable_app command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-enable-app"
+          "const": "allow-enable-app",
+          "markdownDescription": "Enables the enable_app command without any pre-configured scope."
         },
         {
           "description": "Denies the enable_app command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-enable-app"
+          "const": "deny-enable-app",
+          "markdownDescription": "Denies the enable_app command without any pre-configured scope."
         },
         {
           "description": "Enables the ensure_app_websocket command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-ensure-app-websocket"
+          "const": "allow-ensure-app-websocket",
+          "markdownDescription": "Enables the ensure_app_websocket command without any pre-configured scope."
         },
         {
           "description": "Denies the ensure_app_websocket command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-ensure-app-websocket"
+          "const": "deny-ensure-app-websocket",
+          "markdownDescription": "Denies the ensure_app_websocket command without any pre-configured scope."
         },
         {
           "description": "Enables the install_app command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-install-app"
+          "const": "allow-install-app",
+          "markdownDescription": "Enables the install_app command without any pre-configured scope."
         },
         {
           "description": "Denies the install_app command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-install-app"
+          "const": "deny-install-app",
+          "markdownDescription": "Denies the install_app command without any pre-configured scope."
         },
         {
           "description": "Enables the is_app_installed command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-is-app-installed"
+          "const": "allow-is-app-installed",
+          "markdownDescription": "Enables the is_app_installed command without any pre-configured scope."
         },
         {
           "description": "Denies the is_app_installed command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-is-app-installed"
+          "const": "deny-is-app-installed",
+          "markdownDescription": "Denies the is_app_installed command without any pre-configured scope."
         },
         {
           "description": "Enables the is_ready command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-is-ready"
+          "const": "allow-is-ready",
+          "markdownDescription": "Enables the is_ready command without any pre-configured scope."
         },
         {
           "description": "Denies the is_ready command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-is-ready"
+          "const": "deny-is-ready",
+          "markdownDescription": "Denies the is_ready command without any pre-configured scope."
         },
         {
           "description": "Enables the list_apps command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-list-apps"
+          "const": "allow-list-apps",
+          "markdownDescription": "Enables the list_apps command without any pre-configured scope."
         },
         {
           "description": "Denies the list_apps command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-list-apps"
+          "const": "deny-list-apps",
+          "markdownDescription": "Denies the list_apps command without any pre-configured scope."
         },
         {
           "description": "Enables the sign_zome_call command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-sign-zome-call"
+          "const": "allow-sign-zome-call",
+          "markdownDescription": "Enables the sign_zome_call command without any pre-configured scope."
         },
         {
           "description": "Denies the sign_zome_call command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-sign-zome-call"
+          "const": "deny-sign-zome-call",
+          "markdownDescription": "Denies the sign_zome_call command without any pre-configured scope."
         },
         {
           "description": "Enables the start command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-start"
+          "const": "allow-start",
+          "markdownDescription": "Enables the start command without any pre-configured scope."
         },
         {
           "description": "Denies the start command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-start"
+          "const": "deny-start",
+          "markdownDescription": "Denies the start command without any pre-configured scope."
         },
         {
           "description": "Enables the stop command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-stop"
+          "const": "allow-stop",
+          "markdownDescription": "Enables the stop command without any pre-configured scope."
         },
         {
           "description": "Denies the stop command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-stop"
+          "const": "deny-stop",
+          "markdownDescription": "Denies the stop command without any pre-configured scope."
         },
         {
           "description": "Enables the uninstall_app command without any pre-configured scope.",
           "type": "string",
-          "const": "allow-uninstall-app"
+          "const": "allow-uninstall-app",
+          "markdownDescription": "Enables the uninstall_app command without any pre-configured scope."
         },
         {
           "description": "Denies the uninstall_app command without any pre-configured scope.",
           "type": "string",
-          "const": "deny-uninstall-app"
+          "const": "deny-uninstall-app",
+          "markdownDescription": "Denies the uninstall_app command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-start`\n- `allow-stop`\n- `allow-is-ready`\n- `allow-install-app`\n- `allow-uninstall-app`\n- `allow-enable-app`\n- `allow-disable-app`\n- `allow-list-apps`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`",
           "type": "string",
-          "const": "default"
+          "const": "default",
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-start`\n- `allow-stop`\n- `allow-is-ready`\n- `allow-install-app`\n- `allow-uninstall-app`\n- `allow-enable-app`\n- `allow-disable-app`\n- `allow-list-apps`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`"
         }
       ]
     }

@@ -49,7 +49,7 @@ function injectHolochainClientEnv(installedAppId: string, port: number, token: U
 (window as any).injectHolochainClientEnv = injectHolochainClientEnv;
 
 // Define function to install app, get app websocket, and inject magic config variables
-async function setupApp(installedAppId: string, source: number[], networkSeed: string) {
+async function setupApp(installedAppId: string, source: number[], networkSeed: string, enableApp: boolean) {
   if (window.location.origin !== 'http://tauri.localhost') return;
 
   await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|connect');
@@ -60,6 +60,20 @@ async function setupApp(installedAppId: string, source: number[], networkSeed: s
   // Install happ if not already
   if(!installed) {
     await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|install_app', { installedAppId, source, roleSettings: {}, networkSeed });
+
+    // Enable App
+    if(enableApp) {
+      await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|enable_app', { installedAppId });
+    }
+
+    // Hacky workaround attempting to ensure that `window.__HC_LAUNCHER_ENV__` is defined *before* the app UI is loaded.
+    // This is NOT 100% reliable. It assumes that the `ensure_app_websocket` and `injectHolochainClientEnv` calls,
+    // will take *less* time to complete than the app UI loading.
+    //
+    // If the app UI loads first, then `window.__HC_LAUNCHER_ENV__` will still not be defined before the holochain client connects.
+    //
+    // See https://github.com/holochain/android-service-runtime/issues/74
+    window.location.reload();
   }
   
   // Setup app websocket

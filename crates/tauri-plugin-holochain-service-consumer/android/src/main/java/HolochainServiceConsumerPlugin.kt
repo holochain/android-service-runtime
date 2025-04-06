@@ -141,6 +141,19 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     }
 
     /**
+     * Enable an app
+     */
+    @Command
+    fun enableApp(invoke: Invoke) {
+        Log.d(TAG, "enableApp")
+        val args = invoke.parseArgs(AppIdInvokeArg::class.java)
+        serviceScope.launch(Dispatchers.IO) {
+            val res = serviceClient.enableApp(args.installedAppId)
+            invoke.resolve(JSObject(res.toJSONObjectString()))
+        }
+    }
+
+    /**
      * Is an app with the given app_id installed
      */
     @Command

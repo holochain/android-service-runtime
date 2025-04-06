@@ -12,8 +12,6 @@
 	const dispatch = createEventDispatcher<{
     toggleEnable: {}
 	}>();
-
-  $: appInfo, showAdvanced = false;
 </script>
 
 <div class="px-4 py-8 bg-base-200 border-b-2 border-solid border-gray-300">
