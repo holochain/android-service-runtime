@@ -5,13 +5,13 @@ mod mobile;
 mod types;
 
 pub use error::{Error, Result};
+pub use holochain_conductor_runtime_types_ffi::AppAuthFfi;
 use mobile::HolochainServiceConsumer;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Manager, Runtime,
 };
 pub use types::SetupAppConfig;
-pub use holochain_conductor_runtime_types_ffi::AppAuthFfi;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`]
 pub trait HolochainServiceConsumerExt<R: Runtime> {

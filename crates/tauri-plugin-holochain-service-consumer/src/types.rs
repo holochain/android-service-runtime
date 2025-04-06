@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use bytes::Bytes;
-use serde::{Serialize, Deserialize};
 use holochain_conductor_runtime_types_ffi::RoleSettingsFfi;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -30,7 +30,7 @@ impl From<SetupAppConfig> for SetupAppInvokeArg {
             installed_app_id: val.app_id,
             network_seed: val.network_seed,
             role_settings: val.role_settings,
-            enable_after_install: val.enable_after_install
+            enable_after_install: val.enable_after_install,
         }
     }
 }
