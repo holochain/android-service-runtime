@@ -2,6 +2,4 @@
 /.tauri
 .gradle
 
-src/main/jniLibs/
-src/main/*_ffi.kt
 src/main/res/raw/holochainenv.js
