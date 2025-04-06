@@ -1,4 +1,4 @@
-# holochain=conductor-runtime-ffi
+# holochain-conductor-runtime-ffi
 
 This crate is a wrapper around `holochain-conductor-runtime`, with minimal functionality necessary to expose basic holochain management functions, for generating FFI bindings for those functions.
 
