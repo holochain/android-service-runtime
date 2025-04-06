@@ -58,6 +58,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     /**
      * Setup an app
      */
+    @Command
     fun setupApp(invoke: Invoke) {
         Log.d(TAG, "setupApp")
         val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)
@@ -84,8 +85,8 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             try {
-            val res = serviceClient.enableApp(args.installedAppId)
-            invoke.resolve(JSObject(res.toJSONObjectString()))
+                val res = serviceClient.enableApp(args.installedAppId)
+                invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
                 if (e is HolochainServiceNotConnectedException) {
                     showServiceNotConnectedNotice()
