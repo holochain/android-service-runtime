@@ -2,6 +2,7 @@ use crate::error::RuntimeResultFfi;
 use android_logger::Config;
 use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
 use holochain_conductor_runtime_types_ffi::*;
+use holochain_types::prelude::InstallAppPayload;
 use log::{debug, LevelFilter};
 use std::sync::LazyLock;
 use tokio::runtime::{Builder, Runtime as TokioRuntime};
@@ -9,10 +10,7 @@ use url2::Url2;
 
 /// Global multi threaded tokio runtime
 pub static RT: LazyLock<TokioRuntime> = LazyLock::new(|| {
-    let rt = Builder::new_multi_thread().enable_all().build().unwrap();
-    rt.block_on(uniffi::deps::async_compat::Compat::new(async {}));
-    let _ = rt.enter();
-    rt
+    Builder::new_multi_thread().enable_all().build().unwrap()
 });
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
@@ -31,14 +29,14 @@ impl RuntimeFfi {
 
         let passphrase_locked =
             move_to_locked_mem(passphrase).expect("Failed to move password to locked memory");
-        let runtime = RT.block_on(Runtime::new(
+        let runtime = Runtime::new(
             passphrase_locked,
             RuntimeConfig {
                 data_root_path: runtime_config.data_root_path.into(),
                 bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
                 signal_url: Url2::try_parse(runtime_config.signal_url)?,
             },
-        ))?;
+        ).await?;
 
         Ok(Self(runtime))
     }
@@ -71,7 +69,15 @@ impl RuntimeFfi {
     /// Install an app
     pub async fn install_app(&self, payload: InstallAppPayloadFfi) -> RuntimeResultFfi<AppInfoFfi> {
         debug!("RuntimeFfi::install_app");
-        Ok(RT.block_on(self.0.install_app(payload.try_into()?))?.into())
+        let payload: InstallAppPayload = payload.try_into()?;
+
+        #[cfg(not(test))]
+        let res = RT.block_on(async { self.0.install_app(payload).await });
+
+        #[cfg(test)]
+        let res = self.0.install_app(payload).await;
+
+        Ok(res?.into())
     }
 
     /// Uninstall an app
