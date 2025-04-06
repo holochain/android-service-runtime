@@ -9,9 +9,8 @@ use tokio::runtime::{Builder, Runtime as TokioRuntime};
 use url2::Url2;
 
 /// Global multi threaded tokio runtime
-pub static RT: LazyLock<TokioRuntime> = LazyLock::new(|| {
-    Builder::new_multi_thread().enable_all().build().unwrap()
-});
+pub static RT: LazyLock<TokioRuntime> =
+    LazyLock::new(|| Builder::new_multi_thread().enable_all().build().unwrap());
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
 #[derive(uniffi::Object, Clone)]
@@ -36,7 +35,8 @@ impl RuntimeFfi {
                 bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
                 signal_url: Url2::try_parse(runtime_config.signal_url)?,
             },
-        ).await?;
+        )
+        .await?;
 
         Ok(Self(runtime))
     }

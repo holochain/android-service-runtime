@@ -45,7 +45,7 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
         app_id: String,
         happ_bundle_bytes: Bytes,
         network_seed: String,
-        enable_app: bool
+        enable_app: bool,
     ) -> tauri::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
         let label = "main";
         let window_builder =
