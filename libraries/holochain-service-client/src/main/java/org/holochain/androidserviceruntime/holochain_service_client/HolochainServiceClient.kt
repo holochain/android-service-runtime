@@ -10,6 +10,14 @@ import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
 import java.lang.IllegalStateException
 
+/**
+ * Custom exception thrown when the Holochain service is not connected
+ */
+class HolochainServiceNotConnectedException(
+    message: String = "Holochain service is not connected",
+    cause: Throwable? = null
+) : Exception(message, cause)
+
 class HolochainServiceClient(
     private val activity: Activity,
     private val servicePackageName: String = "org.holochain.androidserviceruntime.app",
@@ -42,8 +50,7 @@ class HolochainServiceClient(
   /// Stop the service
   fun stop() {
     if (this.mService == null) {
-      Log.e(TAG, "Cannot stop service: Service not connected")
-      throw IllegalStateException("Service not connected")
+      throw HolochainServiceNotConnectedException()
     }
     this.mService!!.stop()
   }
@@ -51,7 +58,6 @@ class HolochainServiceClient(
   /// Is the service ready to receive calls
   fun isReady(): Boolean {
     if (this.mService == null) {
-      Log.e(TAG, "Cannot check if ready: Service not connected")
       return false
     }
     return this.mService!!.isReady()
@@ -61,8 +67,7 @@ class HolochainServiceClient(
   suspend fun installApp(payload: InstallAppPayloadFfi): AppInfoFfi {
     Log.d(TAG, "installApp")
     if (this.mService == null) {
-      Log.e(TAG, "Cannot install app: Service not connected")
-      throw IllegalStateException("Service not connected")
+      throw HolochainServiceNotConnectedException()
     }
 
     val deferred = CompletableDeferred<AppInfoFfi>()
@@ -82,8 +87,7 @@ class HolochainServiceClient(
   suspend fun isAppInstalled(installedAppId: String): Boolean {
     Log.d(TAG, "isAppInstalled")
     if (this.mService == null) {
-      Log.e(TAG, "Cannot check if app installed: Service not connected")
-      throw IllegalStateException("Service not connected")
+      throw HolochainServiceNotConnectedException()
     }
 
     val deferred = CompletableDeferred<Boolean>()
@@ -103,8 +107,7 @@ class HolochainServiceClient(
   suspend fun uninstallApp(installedAppId: String) {
     Log.d(TAG, "uninstallApp")
     if (this.mService == null) {
-      Log.e(TAG, "Cannot uninstall app: Service not connected")
-      throw IllegalStateException("Service not connected")
+      throw HolochainServiceNotConnectedException()
     }
 
     val deferred = CompletableDeferred<Unit>()
@@ -124,8 +127,7 @@ class HolochainServiceClient(
   suspend fun enableApp(installedAppId: String): AppInfoFfi {
     Log.d(TAG, "enableApp")
     if (this.mService == null) {
-      Log.e(TAG, "Cannot enable app: Service not connected")
-      throw IllegalStateException("Service not connected")
+      throw HolochainServiceNotConnectedException()
     }
     
     val deferred = CompletableDeferred<AppInfoFfi>()
@@ -144,8 +146,7 @@ class HolochainServiceClient(
   suspend fun disableApp(installedAppId: String) {
     Log.d(TAG, "disableApp")
     if (this.mService == null) {
-      Log.e(TAG, "Cannot disable app: Service not connected")
-      throw IllegalStateException("Service not connected")
+      throw HolochainServiceNotConnectedException()
     }
     
     val deferred = CompletableDeferred<Unit>()
@@ -164,8 +165,7 @@ class HolochainServiceClient(
   suspend fun listApps(): List<AppInfoFfi> {
     Log.d(TAG, "listApps")
     if (this.mService == null) {
-      Log.e(TAG, "Cannot list apps: Service not connected")
-      throw IllegalStateException("Service not connected")
+      throw HolochainServiceNotConnectedException()
     }
 
     val deferred = CompletableDeferred<List<AppInfoFfi>>()
@@ -185,8 +185,7 @@ class HolochainServiceClient(
   suspend fun ensureAppWebsocket(installedAppId: String): AppAuthFfi {
     Log.d(TAG, "ensureAppWebsocket")
     if (this.mService == null) {
-      Log.e(TAG, "Cannot ensure app websocket: Service not connected")
-      throw IllegalStateException("Service not connected")
+      throw HolochainServiceNotConnectedException()
     }
 
     val deferred = CompletableDeferred<AppAuthFfi>()
@@ -206,8 +205,7 @@ class HolochainServiceClient(
   suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
     Log.d(TAG, "signZomeCall")
     if (this.mService == null) {
-      Log.e(TAG, "Cannot sign zome call: Service not connected")
-      throw IllegalStateException("Service not connected")
+      throw HolochainServiceNotConnectedException()
     }
 
     val deferred = CompletableDeferred<ZomeCallFfi>()

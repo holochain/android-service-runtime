@@ -45,67 +45,16 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         // Load holochain client injected javascript from resource file
         val resourceInputStream = this.activity.resources.openRawResource(R.raw.holochainenv)
         this.injectHolochainClientEnvJavascript = resourceInputStream.bufferedReader().use { it.readText() }
-        
-        // The notification channel is now created in showServiceNotRunningNotification
-        // to ensure it has all the right settings every time
     }
 
-    /**
-     * Show a notification that Holochain Service is not running
-     */
-    private fun showServiceNotRunningNotification() {
-        Log.d(TAG, "showServiceNotRunningNotification")
+    override fun onNewIntent(intent: Intent) {
+        Log.d(TAG, "onNewIntent")
         try {
-            val notificationManager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            
-            // Ensure channel exists with proper settings
-            val channel = NotificationChannel(
-                "HolochainServiceErrorChannel",
-                "Holochain Service Errors",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            channel.description = "Notifications for Holochain Service errors"
-            channel.enableLights(true)
-            channel.enableVibration(true)
-            notificationManager.createNotificationChannel(channel)
-            
-            // Build notification with icon from Android system
-            val notification = NotificationCompat.Builder(activity, "HolochainServiceErrorChannel")
-                .setContentTitle("Holochain Service Error")
-                .setContentText("Holochain Service is not running")
-                .setSmallIcon(android.R.drawable.ic_dialog_alert)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .build()
-                
-            notificationManager.notify(100, notification)
-            Log.d(TAG, "Notification shown for service error")
-            
-            // Show toast on UI thread
-            activity.runOnUiThread {
-                Toast.makeText(activity, "Holochain Service is not running", Toast.LENGTH_LONG).show()
-            }
+            this.serviceClient.connect()
         } catch (e: Exception) {
-            // Log failure but don't crash
-            Log.e(TAG, "Failed to show notification", e)
-        }
-    }
-    
-    /**
-     * Handle service connection errors
-     */
-    private fun handleServiceError(invoke: Invoke, error: Throwable, errorMessage: String) {
-        Log.e(TAG, errorMessage, error)
-        if (error is IllegalStateException && error.message == "Service not connected") {
-            Log.d(TAG, "SERVICE NOT CONNECTED")
-            showServiceNotRunningNotification()
-            val errorObj = JSObject()
-            errorObj.put("error", "SERVICE_NOT_CONNECTED")
-            errorObj.put("message", "Holochain Service is not running")
-            invoke.reject(errorMessage, errorObj)
-        } else {
-            Log.d(TAG, "other error")
-            invoke.reject(errorMessage, error as Exception)
+            if (e is HolochainServiceNotConnectedException) {
+                showServiceNotConnectedNotice()
+            }
         }
     }
 
@@ -119,7 +68,10 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
             this.serviceClient.connect()
             invoke.resolve()
         } catch (e: Exception) {
-            handleServiceError(invoke, e, "Failed to connect to Holochain Service")
+            if (e is HolochainServiceNotConnectedException) {
+                showServiceNotConnectedNotice()
+            }
+            invoke.reject(e.toString())
         }
     }
 
@@ -135,7 +87,10 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 val res = serviceClient.installApp(args.toFfi())
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
-                handleServiceError(invoke, e, "Failed to install app")
+                if (e is HolochainServiceNotConnectedException) {
+                    showServiceNotConnectedNotice()
+                }
+                invoke.reject(e.toString())
             }
         }
     }
@@ -148,8 +103,15 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         Log.d(TAG, "enableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
+            try {
             val res = serviceClient.enableApp(args.installedAppId)
             invoke.resolve(JSObject(res.toJSONObjectString()))
+            } catch (e: Exception) {
+                if (e is HolochainServiceNotConnectedException) {
+                    showServiceNotConnectedNotice()
+                }
+                invoke.reject(e.toString())
+            }
         }
     }
 
@@ -167,7 +129,10 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 obj.put("installed", res)
                 invoke.resolve(obj)
             } catch (e: Exception) {
-                handleServiceError(invoke, e, "Failed to check if app is installed")
+                if (e is HolochainServiceNotConnectedException) {
+                    showServiceNotConnectedNotice()
+                }
+                invoke.reject(e.toString())
             }
         }
     }
@@ -185,7 +150,10 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 val res = serviceClient.ensureAppWebsocket(args.installedAppId)
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
-                handleServiceError(invoke, e, "Failed to ensure app websocket")
+                if (e is HolochainServiceNotConnectedException) {
+                    showServiceNotConnectedNotice()
+                }
+                invoke.reject(e.toString())
             }
         }
     }
@@ -202,7 +170,14 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 val res = serviceClient.signZomeCall(args.toFfi())
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
-                handleServiceError(invoke, e, "Failed to sign zome call")
+                if (e is HolochainServiceNotConnectedException) {
+                    showServiceNotConnectedNotice()
+                }
+                invoke.reject(e.toString())
+            }
+        }
+    }
+
             }
         }
     }
