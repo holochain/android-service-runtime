@@ -46,7 +46,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     @Command
     fun setupApp(invoke: Invoke) {
         Log.d(TAG, "setupApp")
-        val args = invoke.parseArgs(SetupAppInvokeArg::class.java)
+        val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)
         Log.d(TAG, "setup app args " + args)
         serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)

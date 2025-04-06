@@ -23,7 +23,7 @@ pub fn run() {
                         app_id: APP_ID.into(),
                         happ_bundle_bytes: HAPP_BUNDLE_BYTES.into(),
                         network_seed: Uuid::new_v4().to_string(),
-                        role_settings: HashMap::new(),
+                        roles_settings: HashMap::new(),
                         enable_after_install: true
                     }
                 )?
