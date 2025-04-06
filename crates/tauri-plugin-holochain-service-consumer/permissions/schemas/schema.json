@@ -403,6 +403,18 @@
           "markdownDescription": "Denies the is_app_installed_blocking command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_installed_app_id command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-installed-app-id",
+          "markdownDescription": "Enables the set_installed_app_id command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_installed_app_id command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-installed-app-id",
+          "markdownDescription": "Denies the set_installed_app_id command without any pre-configured scope."
+        },
+        {
           "description": "Enables the sign_zome_call command without any pre-configured scope.",
           "type": "string",
           "const": "allow-sign-zome-call",
@@ -415,10 +427,10 @@
           "markdownDescription": "Denies the sign_zome_call command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-connect`\n- `allow-install-app`\n- `allow-enable-app`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`\n- `allow-ensure-app-websocket`\n- `allow-install-app-blocking`\n- `allow-enable-app-blocking`\n- `allow-is-app-installed-blocking`\n- `allow-ensure-app-websocket-blocking`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-connect`\n- `allow-install-app`\n- `allow-enable-app`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`\n- `allow-ensure-app-websocket`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-connect`\n- `allow-install-app`\n- `allow-enable-app`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`\n- `allow-ensure-app-websocket`\n- `allow-install-app-blocking`\n- `allow-enable-app-blocking`\n- `allow-is-app-installed-blocking`\n- `allow-ensure-app-websocket-blocking`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-connect`\n- `allow-install-app`\n- `allow-enable-app`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`\n- `allow-ensure-app-websocket`"
         }
       ]
     }
