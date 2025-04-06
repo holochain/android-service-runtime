@@ -33,10 +33,17 @@
             android:gravity="center" />
 
         <Button
-            android:id="@+id/notificationAction"
+            android:id="@+id/openSettingsAction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Open Settings"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/reloadAction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Reload"
             android:textColor="#FFFFFF" />
 
     </LinearLayout>

@@ -7,15 +7,12 @@ import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.webkit.WebView
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
-import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
@@ -32,9 +29,7 @@ import org.holochain.androidserviceruntime.holochain_service_client.HolochainSer
 @TauriPlugin
 class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(activity) {
     private lateinit var webView: WebView
-    private var overlayView: FrameLayout? = null
-    private var notificationCard: CardView? = null
-    private lateinit var injectHolochainClientEnvJavascript: String
+    private lateinit var holochainEnvJs: String
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private val servicePackage = "org.holochain.androidserviceruntime.app"
@@ -44,6 +39,8 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         "com.plugin.holochain_service.HolochainService"
     )
     private var TAG = "HolochainServiceConsumerPlugin"
+    private var overlayView: FrameLayout? = null
+    private var notificationCard: CardView? = null
 
     /**
      * Load the plugin, start the service
@@ -55,18 +52,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
 
         // Load holochain client injected javascript from resource file
         val resourceInputStream = this.activity.resources.openRawResource(R.raw.holochainenv)
-        this.injectHolochainClientEnvJavascript = resourceInputStream.bufferedReader().use { it.readText() }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        Log.d(TAG, "onNewIntent")
-        try {
-            this.serviceClient.connect()
-        } catch (e: Exception) {
-            if (e is HolochainServiceNotConnectedException) {
-                showServiceNotConnectedNotice()
-            }
-        }
+        this.holochainEnvJs = resourceInputStream.bufferedReader().use { it.readText() }
     }
 
     /**
@@ -188,46 +174,6 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
             }
         }
     }
-
-    /**
-     * Creates and shows a semi-transparent overlay that blocks the UI
-     */
-    private fun showBlurOverlay() {
-        activity.runOnUiThread {
-            try {
-                // Remove any existing overlay first
-                removeBlurOverlay()
-                
-                // Get the root view of the activity
-                val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
-                
-                // Create a new FrameLayout for the overlay
-                overlayView = FrameLayout(activity)
-                overlayView?.layoutParams = FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
-                
-                // Set a semi-transparent background
-                overlayView?.background = ColorDrawable(Color.parseColor("#80000000")) // 50% transparent black
-                
-                // Block touch events by setting an OnClickListener
-                overlayView?.isClickable = true
-                overlayView?.isFocusable = true
-                overlayView?.setOnClickListener { 
-                    // Consume the click event and do nothing
-                    Log.d(TAG, "Overlay clicked - preventing interaction with elements behind")
-                }
-                
-                // Add the overlay to the root view with highest z-index
-                rootView.addView(overlayView)
-                
-                Log.d(TAG, "Blur overlay added with touch blocking")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to show blur overlay", e)
-            }
-        }
-    }
     
     /**
      * Removes the blur overlay and notification
@@ -256,74 +202,61 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
      */
     private fun showServiceNotConnectedNotice() {
         Log.d(TAG, "showServiceNotConnectedNotice")
+
         try {
             // Show blur overlay and custom notification on UI thread
             activity.runOnUiThread {
-                // Add blur overlay first
-                showBlurOverlay()
-                
-                // Remove any existing notification
-                if (notificationCard != null) {
-                    (overlayView as ViewGroup).removeView(notificationCard)
-                    notificationCard = null
-                }
-                
-                // Inflate custom notification layout
+                // Create Blur Background View
+                overlayView = FrameLayout(activity)
+                overlayView!!.layoutParams = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+
+                // 50% transparent black
+                overlayView!!.background = ColorDrawable(Color.parseColor("#80000000"))
+
+                // Prevent clicking
+                overlayView!!.isClickable = true
+                overlayView!!.isFocusable = true
+                overlayView!!.setOnClickListener { }
+
+
+                // Create Notice View
                 val inflater = LayoutInflater.from(activity)
                 val notificationView = inflater.inflate(R.layout.custom_notification, null)
                 notificationCard = notificationView as CardView
-                
-                // Set background color based on theme
-                val isNightMode = activity.resources.configuration.uiMode and 
+
+                // Set colors
+                val isNightMode = activity.resources.configuration.uiMode and
                     android.content.res.Configuration.UI_MODE_NIGHT_MASK == 
                     android.content.res.Configuration.UI_MODE_NIGHT_YES
-                
                 val bgColor = if (isNightMode) {
                     activity.resources.getColor(R.color.notification_background_dark, activity.theme)
                 } else {
                     activity.resources.getColor(R.color.notification_background_light, activity.theme)
                 }
-                
                 val textColor = if (isNightMode) {
                     activity.resources.getColor(R.color.notification_text_dark, activity.theme)
                 } else {
                     activity.resources.getColor(R.color.notification_text_light, activity.theme)
                 }
-                
                 val buttonBgColor = if (isNightMode) {
                     activity.resources.getColor(R.color.button_background_dark, activity.theme)
                 } else {
                     activity.resources.getColor(R.color.button_background_light, activity.theme)
                 }
-                
-                // Set colors based on theme
                 notificationCard?.setCardBackgroundColor(bgColor)
-                val titleText = notificationView.findViewById<TextView>(R.id.notificationTitle)
-                val messageText = notificationView.findViewById<TextView>(R.id.notificationMessage)
-                val actionButton = notificationView.findViewById<Button>(R.id.notificationAction)
-                
-                titleText.setTextColor(textColor)
-                messageText.setTextColor(textColor)
-                actionButton.setBackgroundColor(buttonBgColor)
-                
-                // Set up the action button
-                actionButton.setOnClickListener {
-                    try {
-                        // Launch Holochain service app
-                        val launchIntent = activity.packageManager.getLaunchIntentForPackage(servicePackage)
-                        if (launchIntent != null) {
-                            activity.startActivity(launchIntent)
-                            // Remove overlay when user navigates away
-                            removeBlurOverlay()
-                        } else {
-                            Log.e(TAG, "Could not find launch intent for Holochain Service app")
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to launch Holochain Service app", e)
-                    }
-                }
-                
-                // Add the notification to the overlay with centered layout params
+                notificationView.findViewById<TextView>(R.id.notificationTitle)
+                    .setTextColor(textColor)
+                notificationView.findViewById<TextView>(R.id.notificationMessage)
+                    .setTextColor(textColor)
+                val openSettingsActionButton = notificationView.findViewById<Button>(R.id.openSettingsAction)
+                val reloadActionButton = notificationView.findViewById<Button>(R.id.reloadAction)
+                openSettingsActionButton.setBackgroundColor(buttonBgColor)
+                reloadActionButton.setBackgroundColor(buttonBgColor)
+
+                // Set layout
                 val layoutParams = FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
@@ -331,13 +264,35 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 layoutParams.gravity = Gravity.CENTER
                 layoutParams.leftMargin = 48
                 layoutParams.rightMargin = 48
-                
-                overlayView?.addView(notificationCard, layoutParams)
+
+
+                // Button Callbacks
+                openSettingsActionButton.setOnClickListener {
+                    try {
+                        // Launch Holochain service app
+                        val launchIntent = activity.packageManager.getLaunchIntentForPackage(servicePackage)
+                        if (launchIntent != null) {
+                            activity.startActivity(launchIntent)
+                        } else {
+                            Log.e(TAG, "Could not find launch intent for Holochain Service app")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to launch Holochain Service app", e)
+                    }
+                }
+                reloadActionButton.setOnClickListener {
+                    removeBlurOverlay();
+                    this.webView.reload()
+                }
+
+                // Render views
+                val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
+                overlayView!!.addView(notificationCard, layoutParams)
+                rootView.addView(overlayView)
             }
         } catch (e: Exception) {
             // Log failure but don't crash
             Log.e(TAG, "Failed to show notification", e)
         }
-    }
     }
 }
