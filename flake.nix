@@ -56,6 +56,7 @@
               hn-introspect
             ]) ++ (with pkgs; [
               nodejs_20 # For UI development
+              pnpm
               binaryen # For WASM optimisation
               # Android development
               android
