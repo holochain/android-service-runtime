@@ -31,18 +31,22 @@ class HolochainServiceClient(
           Log.d(TAG, "IHolochainService disconnected")
         }
       }
-  
+
   /// Entire process to setup an app
   ///
   /// Connect to service, install app, enable app, ensure app websocket
-  suspend fun setupApp(installAppPayload: InstallAppPayloadFfi, enableAfterInstall: Boolean): AppAuthFfi {
+  suspend fun setupApp(
+      installAppPayload: InstallAppPayloadFfi,
+      enableAfterInstall: Boolean
+  ): AppAuthFfi {
+    Log.d(TAG, "setupApp")
     this.connect()
     this.waitForConnectReady()
 
-    if(!this.isAppInstalled(installAppPayload.installedAppId!!)) {
+    if (!this.isAppInstalled(installAppPayload.installedAppId!!)) {
       this.installApp(installAppPayload)
 
-      if(enableAfterInstall) {
+      if (enableAfterInstall) {
         this.enableApp(installAppPayload.installedAppId!!)
       }
     }
@@ -52,6 +56,7 @@ class HolochainServiceClient(
 
   /// Connect to the service
   fun connect() {
+    Log.d(TAG, "connect")
     val intent = Intent()
     intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
     this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
@@ -60,9 +65,9 @@ class HolochainServiceClient(
   /// Poll until we are connected to the service, or the timeout has elapsed
   suspend fun waitForConnectReady(timeoutMs: Long = 5000L, intervalMs: Long = 5L) {
     var elapsedMs = 0L
-    while(elapsedMs <= timeoutMs) {
+    while (elapsedMs <= timeoutMs) {
       Log.d(TAG, "waitForConnectReady " + elapsedMs)
-      if(this.mService != null) break;
+      if (this.mService != null) break
 
       delay(intervalMs)
       elapsedMs += intervalMs
