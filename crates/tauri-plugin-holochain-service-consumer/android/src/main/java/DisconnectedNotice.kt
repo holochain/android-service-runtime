@@ -15,8 +15,8 @@ import androidx.cardview.widget.CardView
 
 class DisconnectedNotice(private val activity: Activity, private val servicePackage: String) {
     private var showOnLoad: Boolean = false
-    private var cardView: CardView? = null
-    private var overlayView: FrameLayout? = null
+    private var noticeView: CardView? = null
+    private var blurView: FrameLayout? = null
     private val TAG = "DisconnectedNotice"
 
     /**
@@ -42,13 +42,13 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
         activity.runOnUiThread {
             try {
                 // Clear notification reference
-                cardView = null
+                noticeView = null
                 
                 // Remove overlay
-                overlayView?.let {
+                blurView?.let {
                     val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
                     rootView.removeView(it)
-                    overlayView = null
+                    blurView = null
                     Log.d(TAG, "Blur overlay and notification removed")
                 }
             } catch (e: Exception) {
@@ -73,18 +73,18 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
             // Show blur overlay and custom notification on UI thread
             activity.runOnUiThread {
                 // Create Blur Background View
-                overlayView = FrameLayout(activity)
-                overlayView!!.layoutParams = FrameLayout.LayoutParams(
+                blurView = FrameLayout(activity)
+                blurView!!.layoutParams = FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
-                overlayView!!.background = ColorDrawable(Color.parseColor("#80000000"))
-                overlayView!!.isClickable = true
-                overlayView!!.isFocusable = true
-                overlayView!!.setOnClickListener { }
+                blurView!!.background = ColorDrawable(Color.parseColor("#80000000"))
+                blurView!!.isClickable = true
+                blurView!!.isFocusable = true
+                blurView!!.setOnClickListener { }
 
                 // Create Notice View
-                val cardView = LayoutInflater.from(activity).inflate(R.layout.disconnect_notice_card, null)  as CardView
+                val noticeView = LayoutInflater.from(activity).inflate(R.layout.disconnected_notice, null)  as CardView
                 val layoutParams = FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
@@ -92,10 +92,10 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
                 layoutParams.gravity = Gravity.CENTER
                 layoutParams.leftMargin = 48
                 layoutParams.rightMargin = 48
-                overlayView!!.addView(cardView, layoutParams)
+                blurView!!.addView(noticeView, layoutParams)
 
                 // Button Callbacks
-                cardView.findViewById<Button>(R.id.openSettingsAction).setOnClickListener {
+                noticeView.findViewById<Button>(R.id.openSettingsAction).setOnClickListener {
                     // Start android-service-runtime package
                     try {
                         val launchIntent = this.activity.packageManager.getLaunchIntentForPackage(servicePackage)
@@ -108,7 +108,7 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
                         Log.e(TAG, "Failed to launch package " + servicePackage, e)
                     }
                 }
-                cardView.findViewById<Button>(R.id.reloadAction).setOnClickListener {
+                noticeView.findViewById<Button>(R.id.reloadAction).setOnClickListener {
                     // Restart this package
                     try {
                         val packageManager = this.activity.packageManager
@@ -125,7 +125,7 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
                 }
 
                 // Attach to root view
-                activity.findViewById<ViewGroup>(android.R.id.content).addView(overlayView)
+                activity.findViewById<ViewGroup>(android.R.id.content).addView(blurView)
             }
         } catch (e: Exception) {
             // Log failure but don't crash
