@@ -28,8 +28,6 @@ import org.holochain.androidserviceruntime.holochain_service_client.HolochainSer
 
 @TauriPlugin
 class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(activity) {
-    private lateinit var webView: WebView
-    private lateinit var holochainEnvJs: String
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private val servicePackage = "org.holochain.androidserviceruntime.app"
@@ -39,8 +37,10 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         "com.plugin.holochain_service.HolochainService"
     )
     private var TAG = "HolochainServiceConsumerPlugin"
+    private var webView: WebView? = null
     private var overlayView: FrameLayout? = null
-    private var notificationCard: CardView? = null
+    private var disconnectNoticeView: CardView? = null
+    private var showDisconnectNoticeOnLoad: Boolean = false
 
     /**
      * Load the plugin, start the service
@@ -50,9 +50,9 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         super.load(webView)
         this.webView = webView
 
-        // Load holochain client injected javascript from resource file
-        val resourceInputStream = this.activity.resources.openRawResource(R.raw.holochainenv)
-        this.holochainEnvJs = resourceInputStream.bufferedReader().use { it.readText() }
+        if(showDisconnectNoticeOnLoad) {
+            showDisconnectNotice()
+        }
     }
 
     /**
@@ -61,14 +61,13 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     @Command
     fun setupApp(invoke: Invoke) {
         Log.d(TAG, "setupApp")
-        val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)
-        Log.d(TAG, "setup app args " + args)
+        val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)        
         serviceScope.launch(Dispatchers.IO) {
             try {
                 val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
-                handleCommandException(e, invoke)
+               handleCommandException(e, invoke)
             }
         }
     }
@@ -111,8 +110,9 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
      * Display the service notice if the exception is HolochainServiceNotConnectedException
      */
     private fun handleCommandException(e: Exception, invoke: Invoke) {
+        Log.d(TAG, "handleCommandException")
         if (e is HolochainServiceNotConnectedException) {
-            showServiceNotConnectedNotice()
+            showDisconnectNotice()
             invoke.reject(e.toString(), "HolochainServiceNotConnected")
         }
         else {
@@ -121,13 +121,15 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     }
     
     /**
-     * Removes the blur overlay and notification
+     * Removes the notice and blur background
      */
-    private fun removeBlurOverlay() {
+    private fun hideDisconnectNotice() {
+        Log.d(TAG, "hideDisconnectNotice")
+        showDisconnectNoticeOnLoad = false;
         activity.runOnUiThread {
             try {
                 // Clear notification reference
-                notificationCard = null
+                disconnectNoticeView = null
                 
                 // Remove overlay
                 overlayView?.let {
@@ -145,8 +147,15 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     /**
      * Shows a centered notification that Holochain Service is not running
      */
-    private fun showServiceNotConnectedNotice() {
-        Log.d(TAG, "showServiceNotConnectedNotice")
+    private fun showDisconnectNotice() {
+        Log.d(TAG, "showDisconnectNotice")
+
+        // Wait until the webView is available before displaying the notice
+        // Otherwise we are not able to reload the webview when reloadAction is pressed
+        if(this.webView == null) {
+            showDisconnectNoticeOnLoad = true
+            return;
+        }
 
         try {
             // Show blur overlay and custom notification on UI thread
@@ -170,7 +179,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 // Create Notice View
                 val inflater = LayoutInflater.from(activity)
                 val notificationView = inflater.inflate(R.layout.custom_notification, null)
-                notificationCard = notificationView as CardView
+                disconnectNoticeView = notificationView as CardView
 
                 // Set colors
                 val isNightMode = activity.resources.configuration.uiMode and
@@ -191,7 +200,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
                 } else {
                     activity.resources.getColor(R.color.button_background_light, activity.theme)
                 }
-                notificationCard?.setCardBackgroundColor(bgColor)
+                disconnectNoticeView?.setCardBackgroundColor(bgColor)
                 notificationView.findViewById<TextView>(R.id.notificationTitle)
                     .setTextColor(textColor)
                 notificationView.findViewById<TextView>(R.id.notificationMessage)
@@ -213,26 +222,37 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
 
                 // Button Callbacks
                 openSettingsActionButton.setOnClickListener {
+                    // Start android-service-runtime package
                     try {
-                        // Launch Holochain service app
-                        val launchIntent = activity.packageManager.getLaunchIntentForPackage(servicePackage)
+                        val launchIntent = this.activity.packageManager.getLaunchIntentForPackage(servicePackage)
                         if (launchIntent != null) {
-                            activity.startActivity(launchIntent)
+                            this.activity.startActivity(launchIntent)
                         } else {
-                            Log.e(TAG, "Could not find launch intent for Holochain Service app")
+                            Log.e(TAG, "Could not find launch intent for package " + servicePackage)
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "Failed to launch Holochain Service app", e)
+                        Log.e(TAG, "Failed to launch package " + servicePackage, e)
                     }
                 }
                 reloadActionButton.setOnClickListener {
-                    removeBlurOverlay();
-                    this.webView.reload()
+                    // Restart this package
+                    try {
+                        val packageManager = this.activity.packageManager
+                        val intent = packageManager.getLaunchIntentForPackage(this.activity.packageName);
+                        val componentName = intent!!.getComponent();
+                        val mainIntent = Intent.makeRestartActivityTask(componentName);
+                        
+                        mainIntent.setPackage(this.activity.packageName);
+                        this.activity.startActivity(mainIntent);
+                        Runtime.getRuntime().exit(0);
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to restart app", e)
+                    }
                 }
 
                 // Render views
                 val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
-                overlayView!!.addView(notificationCard, layoutParams)
+                overlayView!!.addView(disconnectNoticeView, layoutParams)
                 rootView.addView(overlayView)
             }
         } catch (e: Exception) {
