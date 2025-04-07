@@ -29,12 +29,17 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
         }
     }
 
+    /**
+     * Enable show on load
+     * 
+     * Call when you want to trigger loading, but the webview has not been initialized yet.
+     */
     fun enableShowOnLoad() {
         this.showOnLoad = true
     }
 
     /**
-     * Removes the notice and blur background
+     * Remove notice
      */
     fun hide() {
         Log.d(TAG, "hide")
@@ -58,7 +63,7 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
     }
 
     /**
-     * Shows a centered notification that Holochain Service is not running
+     * Display notice
      */
     fun show() {
         Log.d(TAG, "show")
@@ -70,7 +75,6 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
         }
 
         try {
-            // Show blur overlay and custom notification on UI thread
             activity.runOnUiThread {
                 // Create Blur Background View
                 blurView = FrameLayout(activity)
@@ -94,7 +98,7 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
                 layoutParams.rightMargin = 48
                 blurView!!.addView(noticeView, layoutParams)
 
-                // Button Callbacks
+                // Setup Button Callbacks
                 noticeView.findViewById<Button>(R.id.openSettingsAction).setOnClickListener {
                     // Start android-service-runtime package
                     try {
@@ -124,12 +128,11 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
                     }
                 }
 
-                // Attach to root view
+                // Render views
                 activity.findViewById<ViewGroup>(android.R.id.content).addView(blurView)
             }
         } catch (e: Exception) {
-            // Log failure but don't crash
-            Log.e(TAG, "Failed to show notification", e)
+            Log.e(TAG, "Failed to show notice", e)
         }
     }
 }
