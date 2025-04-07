@@ -3,6 +3,7 @@ package com.plugin.holochain_service
 import android.util.Log
 import android.app.Service
 import android.os.IBinder
+import android.os.Binder
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.runBlocking
@@ -12,7 +13,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
-import org.holochain.androidserviceruntime.holochain_service_client.IHolochainService
+import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceAdmin
+import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceApp
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallback
 import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
 import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
@@ -20,6 +22,7 @@ import org.holochain.androidserviceruntime.holochain_service_client.AppAuthFfiPa
 import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallFfiParcel
+import java.security.InvalidParameterException
 
 class HolochainService : Service() {
     /// The uniffi-generated holochain runtime bindings
@@ -31,8 +34,8 @@ class HolochainService : Service() {
 
     /// The IPC receiver that other activities can call into
     @OptIn(DelicateCoroutinesApi::class, ExperimentalUnsignedTypes::class)
-    private val binder = object : IHolochainService.Stub() {
-        private val TAG = "IHolochainService"
+    private val adminBinder = object : IHolochainServiceAdmin.Stub() {
+        private val TAG = "IHolochainServiceAdmin"
 
         /// Stop the conductor
         override fun stop() {
@@ -136,6 +139,68 @@ class HolochainService : Service() {
         }
     }
 
+    fun createAppBinder(installedAppId: String): IHolochainServiceApp.Stub {
+        val appBinder = object :  IHolochainServiceApp.Stub() {
+            val TAG = "IHolochainServiceApp"
+
+            /// Install an app
+            override fun installApp(
+                callback: IHolochainServiceCallback,
+                request: InstallAppPayloadFfiParcel
+            ) {
+                Log.d(TAG, "installApp")
+                serviceScope.launch(Dispatchers.IO) {
+                    callback.installApp(AppInfoFfiParcel(runtime!!.installApp(request.inner)))
+                }
+            }
+
+            /// Enable an installed app
+            override fun enableApp(
+                callback: IHolochainServiceCallback,
+                installedAppId: String
+            ) {
+                Log.d(TAG, "enableApp")
+                serviceScope.launch(Dispatchers.IO) {
+                    callback.enableApp(AppInfoFfiParcel(runtime!!.enableApp(installedAppId)))
+                }
+            }
+
+            /// Is app installed
+            override fun isAppInstalled(
+                callback: IHolochainServiceCallback,
+                installedAppId: String
+            ) {
+                Log.d(TAG, "isAppInstalled")
+                serviceScope.launch(Dispatchers.IO) {
+                    callback.isAppInstalled(runtime!!.isAppInstalled(installedAppId))
+                }
+            }
+
+            /// Get or create an app websocket with an authenticated token
+            override fun ensureAppWebsocket(
+                callback: IHolochainServiceCallback,
+                installedAppId: String
+            ) {
+                Log.d(TAG, "ensureAppWebsocket")
+                serviceScope.launch(Dispatchers.IO) {
+                    callback.ensureAppWebsocket(AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!))
+                }
+            }
+
+            /// Sign a zome call
+            override fun signZomeCall(
+                callback: IHolochainServiceCallback,
+                req: ZomeCallUnsignedFfiParcel
+            ) {
+                Log.d(TAG, "signZomeCall")
+                serviceScope.launch(Dispatchers.IO) {
+                    callback.signZomeCall(ZomeCallFfiParcel(runtime!!.signZomeCall(req.inner)))
+                }
+            }
+        }
+        return appBinder
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground()
         return START_REDELIVER_INTENT
@@ -145,7 +210,48 @@ class HolochainService : Service() {
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder = binder
+    override fun onBind(intent: Intent): IBinder? {
+        // Get the name of the package that is attempting to bind
+        var callingUid: Int = Binder.getCallingUid()
+        var clientPackageName: String = getPackageManager().getPackagesForUid(callingUid)!![0]
+
+        // Which api are they attempting to bind to?
+        var api = intent.getStringExtra("api")
+
+        Log.d(TAG, "onBind: api=" + api + " clientPackageName=" + clientPackageName)
+
+        if (api == "admin") {
+            // Only this package can call the admin api
+            if(clientPackageName == this.getPackageName()) {
+                return adminBinder as IBinder
+            } else {
+                throw UnauthorizedException("Invoking package is not authorized to access the admin api")
+            }
+        } else if (api == "app") {
+            var installedAppId = intent.getStringExtra("installedAppId")!!
+            var isAuthorized = runtime!!.isAppClientAuthorized(
+                clientPackageName,
+                installedAppId
+            )
+
+            if(isAuthorized) {
+                    return this.createAppBinder(installedAppId)
+            } else {
+                // TODO notify user to request authorization
+
+                // Authorize app client
+                runtime!!.authorizeAppClient(
+                    clientPackageName,
+                    installedAppId,
+                )
+                return this.createAppBinder(installedAppId) as IBinder
+            }
+        } else {
+            throw InvalidParameterException("Invoke extra 'api' must be 'admin' or 'app'")
+        }
+
+        return null
+    }
 
     private fun startForeground() {
         try {

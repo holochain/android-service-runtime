@@ -10,30 +10,25 @@ import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 
-class HolochainServiceNotConnectedException(
-    message: String = "Holochain service is not connected",
-    cause: Throwable? = null
-) : Exception(message, cause)
-
-class HolochainServiceClient(
+class HolochainServiceAppClient(
     private val activity: Activity,
     private val servicePackageName: String = "org.holochain.androidserviceruntime.app",
     private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
 ) {
-  private var mService: IHolochainService? = null
-  private val TAG = "HolochainServiceClient"
+  private var mService: IHolochainServiceApp? = null
+  private val TAG = "HolochainServiceAppClient"
 
   // IPC Connection to HolochainService using AIDL
   private val mConnection =
       object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-          mService = IHolochainService.Stub.asInterface(service)
-          Log.d(TAG, "IHolochainService connected")
+          mService = IHolochainServiceApp.Stub.asInterface(service)
+          Log.d(TAG, "IHolochainServiceApp connected")
         }
 
         override fun onServiceDisconnected(className: ComponentName) {
           mService = null
-          Log.d(TAG, "IHolochainService disconnected")
+          Log.d(TAG, "IHolochainServiceApp disconnected")
         }
       }
 
@@ -45,7 +40,7 @@ class HolochainServiceClient(
       enableAfterInstall: Boolean
   ): AppAuthFfi {
     Log.d(TAG, "setupApp")
-    this.connect()
+    this.connect(installAppPayload.installedAppId!!)
     this.waitForConnectReady()
 
     if (!this.isAppInstalled(installAppPayload.installedAppId!!)) {
@@ -60,9 +55,11 @@ class HolochainServiceClient(
   }
 
   /// Connect to the service
-  fun connect() {
+  fun connect(installedAppId: String) {
     Log.d(TAG, "connect")
     val intent = Intent()
+    intent.putExtra("api", "app")
+    intent.putExtra("installedAppId", installedAppId)
     intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
     this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
   }
@@ -77,22 +74,6 @@ class HolochainServiceClient(
       delay(intervalMs)
       elapsedMs += intervalMs
     }
-  }
-
-  /// Stop the service
-  fun stop() {
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
-    }
-    this.mService!!.stop()
-  }
-
-  /// Is the service ready to receive calls
-  fun isReady(): Boolean {
-    if (this.mService == null) {
-      return false
-    }
-    return this.mService!!.isReady()
   }
 
   /// Install an app
@@ -135,26 +116,6 @@ class HolochainServiceClient(
     return deferred.await()
   }
 
-  /// Uninstall an installed app
-  suspend fun uninstallApp(installedAppId: String) {
-    Log.d(TAG, "uninstallApp")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
-    }
-
-    val deferred = CompletableDeferred<Unit>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun uninstallApp() {
-            Log.d(TAG, "uninstallApp callback")
-            deferred.complete(Unit)
-          }
-        }
-    this.mService!!.uninstallApp(callbackBinder, installedAppId)
-
-    deferred.await()
-  }
-
   /// Enable an installed app
   suspend fun enableApp(installedAppId: String): AppInfoFfi {
     Log.d(TAG, "enableApp")
@@ -171,45 +132,6 @@ class HolochainServiceClient(
           }
         }
     this.mService!!.enableApp(callbackBinder, installedAppId)
-    return deferred.await()
-  }
-
-  /// Disable an installed app
-  suspend fun disableApp(installedAppId: String) {
-    Log.d(TAG, "disableApp")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
-    }
-    
-    val deferred = CompletableDeferred<Unit>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun disableApp() {
-            Log.d(TAG, "disableApp callback")
-            deferred.complete(Unit)
-          }
-        }
-    this.mService!!.disableApp(callbackBinder, installedAppId)
-    deferred.await()
-  }
-
-  /// List installed happs in conductor
-  suspend fun listApps(): List<AppInfoFfi> {
-    Log.d(TAG, "listApps")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
-    }
-
-    val deferred = CompletableDeferred<List<AppInfoFfi>>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun listApps(response: List<AppInfoFfiParcel>) {
-            Log.d(TAG, "listApps callback")
-            deferred.complete(response.map { it.inner })
-          }
-        }
-    this.mService!!.listApps(callbackBinder)
-
     return deferred.await()
   }
 

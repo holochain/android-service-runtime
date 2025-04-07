@@ -12,7 +12,7 @@ import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
-import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
+import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceAppClient
 import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceNotConnectedException
 
@@ -21,7 +21,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private val servicePackage = "org.holochain.androidserviceruntime.app"
-    private val serviceClient = HolochainServiceClient(
+    private val serviceClient = HolochainServiceAppClient(
         this.activity,
         servicePackage,
         "com.plugin.holochain_service.HolochainService"
