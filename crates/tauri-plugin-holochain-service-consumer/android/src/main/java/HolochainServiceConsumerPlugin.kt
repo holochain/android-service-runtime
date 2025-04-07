@@ -38,10 +38,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         super.load(webView)
         this.webView = webView
 
-        if(disconnectedNotice.showOnLoad) {
-            disconnectedNotice.showOnLoad = false
-            disconnectedNotice.show()
-        }
+        disconnectedNotice.load()
     }
 
     /**
@@ -102,7 +99,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         Log.d(TAG, "handleCommandException")
         if (e is HolochainServiceNotConnectedException) {
             if(this.webView == null) {
-                disconnectedNotice.showOnLoad = true
+                disconnectedNotice.enableShowOnLoad()
             } else {
                 disconnectedNotice.show()
             }

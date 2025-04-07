@@ -14,10 +14,24 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 
 class DisconnectedNotice(private val activity: Activity, private val servicePackage: String) {
-    var showOnLoad: Boolean = false
+    private var showOnLoad: Boolean = false
     private var cardView: CardView? = null
     private var overlayView: FrameLayout? = null
     private val TAG = "DisconnectedNotice"
+
+    /**
+     * Call when plugin is loaded
+     */
+    fun load() {
+        if(this.showOnLoad) {
+            this.showOnLoad = false
+            this.show()
+        }
+    }
+
+    fun enableShowOnLoad() {
+        this.showOnLoad = true
+    }
 
     /**
      * Removes the notice and blur background
@@ -52,7 +66,7 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
         // Wait until the webView is available before displaying the notice
         // Otherwise we are not able to reload the webview when reloadAction is pressed
         if(this.showOnLoad) {
-            return
+            return;
         }
 
         try {
@@ -70,40 +84,7 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
                 overlayView!!.setOnClickListener { }
 
                 // Create Notice View
-                val inflater = LayoutInflater.from(activity)
-                val notificationView = inflater.inflate(R.layout.custom_notification, null)
-                cardView = notificationView as CardView
-
-                // Set colors
-                val isNightMode = activity.resources.configuration.uiMode and
-                    android.content.res.Configuration.UI_MODE_NIGHT_MASK == 
-                    android.content.res.Configuration.UI_MODE_NIGHT_YES
-                val bgColor = if (isNightMode) {
-                    activity.resources.getColor(R.color.notification_background_dark, activity.theme)
-                } else {
-                    activity.resources.getColor(R.color.notification_background_light, activity.theme)
-                }
-                val textColor = if (isNightMode) {
-                    activity.resources.getColor(R.color.notification_text_dark, activity.theme)
-                } else {
-                    activity.resources.getColor(R.color.notification_text_light, activity.theme)
-                }
-                val buttonBgColor = if (isNightMode) {
-                    activity.resources.getColor(R.color.button_background_dark, activity.theme)
-                } else {
-                    activity.resources.getColor(R.color.button_background_light, activity.theme)
-                }
-                cardView?.setCardBackgroundColor(bgColor)
-                notificationView.findViewById<TextView>(R.id.notificationTitle)
-                    .setTextColor(textColor)
-                notificationView.findViewById<TextView>(R.id.notificationMessage)
-                    .setTextColor(textColor)
-                val openSettingsActionButton = notificationView.findViewById<Button>(R.id.openSettingsAction)
-                val reloadActionButton = notificationView.findViewById<Button>(R.id.reloadAction)
-                openSettingsActionButton.setBackgroundColor(buttonBgColor)
-                reloadActionButton.setBackgroundColor(buttonBgColor)
-
-                // Set layout
+                val cardView = LayoutInflater.from(activity).inflate(R.layout.disconnect_notice_card, null)  as CardView
                 val layoutParams = FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
@@ -111,10 +92,10 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
                 layoutParams.gravity = Gravity.CENTER
                 layoutParams.leftMargin = 48
                 layoutParams.rightMargin = 48
-
+                overlayView!!.addView(cardView, layoutParams)
 
                 // Button Callbacks
-                openSettingsActionButton.setOnClickListener {
+                cardView.findViewById<Button>(R.id.openSettingsAction).setOnClickListener {
                     // Start android-service-runtime package
                     try {
                         val launchIntent = this.activity.packageManager.getLaunchIntentForPackage(servicePackage)
@@ -127,7 +108,7 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
                         Log.e(TAG, "Failed to launch package " + servicePackage, e)
                     }
                 }
-                reloadActionButton.setOnClickListener {
+                cardView.findViewById<Button>(R.id.reloadAction).setOnClickListener {
                     // Restart this package
                     try {
                         val packageManager = this.activity.packageManager
@@ -143,10 +124,8 @@ class DisconnectedNotice(private val activity: Activity, private val servicePack
                     }
                 }
 
-                // Render views
-                val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
-                overlayView!!.addView(cardView, layoutParams)
-                rootView.addView(overlayView)
+                // Attach to root view
+                activity.findViewById<ViewGroup>(android.R.id.content).addView(overlayView)
             }
         } catch (e: Exception) {
             // Log failure but don't crash

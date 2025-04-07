@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="notification_background_dark">#2D2D2D</color>
-    <color name="notification_text_dark">#FFFFFF</color>
-    <color name="button_background_dark">#0D79D0</color>
-</resources>
