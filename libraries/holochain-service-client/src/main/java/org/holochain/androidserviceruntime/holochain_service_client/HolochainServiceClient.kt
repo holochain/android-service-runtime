@@ -68,7 +68,7 @@ class HolochainServiceClient(
   }
 
   /// Poll until we are connected to the service, or the timeout has elapsed
-  suspend fun waitForConnectReady(timeoutMs: Long = 5000L, intervalMs: Long = 5L) {
+  suspend fun waitForConnectReady(timeoutMs: Long = 100L, intervalMs: Long = 5L) {
     var elapsedMs = 0L
     while (elapsedMs <= timeoutMs) {
       Log.d(TAG, "waitForConnectReady " + elapsedMs)
