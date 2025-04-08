@@ -11,8 +11,8 @@ import kotlinx.coroutines.CompletableDeferred
 
 class HolochainServiceClient(
     private val activity: Activity,
+    private val servicePackageName: String = "org.holochain.androidserviceruntime.app",
     private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
-    private val servicePackageName: String = "org.holochain.androidserviceruntime.app"
 ) {
   private var mService: IHolochainService? = null
   private val TAG = "HolochainServiceClient"
@@ -31,12 +31,10 @@ class HolochainServiceClient(
         }
       }
 
-  /// Start the service
+  /// Connect to the service
   fun connect() {
     val intent = Intent()
     intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
-
-    this.activity.startForegroundService(intent)
     this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
   }
 

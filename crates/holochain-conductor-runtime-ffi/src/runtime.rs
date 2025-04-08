@@ -2,8 +2,15 @@ use crate::error::RuntimeResultFfi;
 use android_logger::Config;
 use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
 use holochain_conductor_runtime_types_ffi::*;
+use holochain_types::prelude::InstallAppPayload;
 use log::{debug, LevelFilter};
+use std::sync::LazyLock;
+use tokio::runtime::{Builder, Runtime as TokioRuntime};
 use url2::Url2;
+
+/// Global multi threaded tokio runtime
+pub static RT: LazyLock<TokioRuntime> =
+    LazyLock::new(|| Builder::new_multi_thread().enable_all().build().unwrap());
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
 #[derive(uniffi::Object, Clone)]
@@ -19,14 +26,15 @@ impl RuntimeFfi {
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
         debug!("RuntimeFfi::new");
 
-        let passphrase_locked = move_to_locked_mem(passphrase).expect("Failed to move password to locked memoery");
+        let passphrase_locked =
+            move_to_locked_mem(passphrase).expect("Failed to move password to locked memory");
         let runtime = Runtime::new(
-            passphrase_locked, 
+            passphrase_locked,
             RuntimeConfig {
                 data_root_path: runtime_config.data_root_path.into(),
                 bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
                 signal_url: Url2::try_parse(runtime_config.signal_url)?,
-            }
+            },
         )
         .await?;
 
@@ -61,7 +69,15 @@ impl RuntimeFfi {
     /// Install an app
     pub async fn install_app(&self, payload: InstallAppPayloadFfi) -> RuntimeResultFfi<AppInfoFfi> {
         debug!("RuntimeFfi::install_app");
-        Ok(self.0.install_app(payload.try_into()?).await?.into())
+        let payload: InstallAppPayload = payload.try_into()?;
+
+        #[cfg(not(test))]
+        let res = RT.block_on(async { self.0.install_app(payload).await });
+
+        #[cfg(test)]
+        let res = self.0.install_app(payload).await;
+
+        Ok(res?.into())
     }
 
     /// Uninstall an app
@@ -89,7 +105,7 @@ impl RuntimeFfi {
     ) -> RuntimeResultFfi<AppAuthFfi> {
         debug!("RuntimeFfi::ensure_app_websocket");
         let app_auth = self.0.ensure_app_websocket(installed_app_id).await?;
-        
+
         Ok(AppAuthFfi {
             authentication: app_auth.authentication.into(),
             port: app_auth.port,
@@ -113,12 +129,12 @@ impl RuntimeFfi {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::error::RuntimeErrorFfi;
     use std::collections::HashMap;
     use std::time::SystemTime;
     use std::time::UNIX_EPOCH;
     use tempfile::TempDir;
     use uuid::Uuid;
-    use crate::error::RuntimeErrorFfi;    
 
     const HAPP_FIXTURE: &[u8] = include_bytes!("../fixtures/forum.happ");
 
@@ -357,7 +373,7 @@ mod test {
                 zome_name: "forum".into(),
                 fn_name: "get_all_posts".into(),
                 cap_secret: None,
-                payload: vec![].into(),
+                payload: vec![],
                 nonce: [0; 32].to_vec(),
                 expires_at: i64::try_from(
                     SystemTime::now()

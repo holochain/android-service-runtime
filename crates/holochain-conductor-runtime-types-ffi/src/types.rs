@@ -6,8 +6,8 @@ use holochain_conductor_api::{
 };
 use holochain_types::{
     app::{
-        AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload,
-        PausedAppReason, RoleSettings,
+        AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload, PausedAppReason,
+        RoleSettings,
     },
     dna::{
         hash_type::{Agent, Dna},
