@@ -14,4 +14,5 @@
 - Android app logs warnings and errors to android system log.
 - The following HolochainService functions exposed via IPC are now async and do not block the main thread: listApps, installApp, uninstallApp, enableApp, disableApp, isAppInstalled, ensureAppWebsocket, and signZomeCall.
 - Run holochain-service-client tests in CI
+- Fix Ffi types to Parcelable types converstions, and tests for Parcelable types.
 - Fix inconsistent crashes on relaunch with "logger already initialized" errors.
