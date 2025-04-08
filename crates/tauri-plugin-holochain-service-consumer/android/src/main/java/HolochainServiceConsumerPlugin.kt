@@ -8,7 +8,8 @@ import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
-import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
+import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
+import org.holochain.androidserviceruntime.holochain_service_client.toJSONArrayString
 
 @TauriPlugin
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
@@ -48,8 +49,8 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun installApp(invoke: Invoke) {
         val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
-        this.serviceClient.installApp(InstallAppPayloadFfiParcel(args.toFfi()))
-        invoke.resolve()
+        val res = this.serviceClient.installApp(args.toFfi())
+        invoke.resolve(JSObject(res.toJSONObjectString()))
     }
 
     /**
@@ -72,10 +73,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     fun ensureAppWebsocket(invoke: Invoke) {
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         val res = this.serviceClient.ensureAppWebsocket(args.installedAppId)
-
-        val obj = JSObject()
-        obj.put("ensureAppWebsocket", res.inner.toJSObject())
-        invoke.resolve(obj)
+        invoke.resolve(JSObject(res.toJSONObjectString()))
     }
 
     /**
@@ -84,7 +82,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun signZomeCall(invoke: Invoke) {
         val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
-        val res = this.serviceClient.signZomeCall(ZomeCallUnsignedFfiParcel(args.toFfi()))
-        invoke.resolve(res.inner.toJSObject())
+        val res = this.serviceClient.signZomeCall(args.toFfi())
+        invoke.resolve(JSObject(res.toJSONObjectString()))
     }
 }
