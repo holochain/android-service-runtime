@@ -17,3 +17,4 @@
 - Fix Ffi types to Parcelable types converstions, and tests for Parcelable types.
 - Support Json serialization of sealed classes, cleanup and tests of Json serialization.
 - Fix inconsistent crashes on relaunch with "logger already initialized" errors.
+- Add nix flake for android + holochain development, remove reliance on p2p-shipyard flake.
