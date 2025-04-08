@@ -60,7 +60,7 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
         if let Some(auth) = auth {
             window_builder = window_builder.initialization_script(
                 format!(
-                    r#"injectHolochainClientEnv("{}", {}, {:?});"#,
+                    r#"window.injectHolochainClientEnv("{}", {}, {:?});"#,
                     app_id, auth.port, auth.authentication.token,
                 )
                 .as_str(),
