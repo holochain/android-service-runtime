@@ -16,8 +16,6 @@ import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
-import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.toParcel
 
 @TauriPlugin
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
@@ -94,7 +92,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         Log.d(TAG, "installApp")
         val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
-            serviceClient.installApp(args.toFfi().toParcel())
+            serviceClient.installApp(args.toFfi())
             invoke.resolve()
         }
     }
@@ -183,8 +181,8 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
             // Inject launcher env into web view
             injectHolochainClientEnv(
                 args.installedAppId,
-                res.inner.port.toInt(),
-                res.inner.authentication.token.toUByteArray()
+                res.port.toInt(),
+                res.authentication.token.toUByteArray()
             )
             
             val obj = JSObject() 
@@ -201,7 +199,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         Log.d(TAG, "signZomeCall")
         val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.signZomeCall(ZomeCallUnsignedFfiParcel(args.toFfi()))
+            val res = serviceClient.signZomeCall(args.toFfi())
             invoke.resolve(res.toJSObject())
         }
     }
