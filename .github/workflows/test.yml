@@ -1,11 +1,6 @@
 name: Test
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: [push, pull_request]
+
 jobs:
   test-rust-crates:
     name: Test Rust Crates
@@ -28,8 +23,8 @@ jobs:
         with:
           cache-on-failure: true
 
-      - name: Make Test
-        run: make test
+      - name: Run tests
+        run: make integration-test
 
   test-kotlin-libraries:
     name: Test Kotlin Libraries

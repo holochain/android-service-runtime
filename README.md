@@ -3,10 +3,8 @@
 An Android app and Tauri plugins that provide an integrated approach for running Holochain apps on mobile devices. This includes:
 - An Android app for managing a system-wide Holochain conductor running as an [Android Foreground Service](https://developer.android.com/develop/background-work/services/fgs). The Foreground Service can run persistently, even when the app is closed, ensuring that you can be a reliable contributor to the peer-to-peer networks of your apps.
 - A Tauri plugin used by that Android app under-the-hood, for managing the system-wide Holochain conductor service.
-- A Tauri plugin for your p2p-shipyard scaffolded app, so that it uses the system-wide Holochain conductor service, rather than bundling its own conductor.
+- A Tauri plugin for your tauri holochain app, so that it uses the system-wide Holochain conductor service, rather than bundling its own conductor.
 
-> [!IMPORTANT]  
-> This project currently uses a 3rd party library [p2p-shipyard](https://github.com/darksoil-studio/p2p-shipyard) under-the-hood, which is licensed as [Source-Available](https://en.wikipedia.org/wiki/Source-available_software). To use it in your own project, you will need a [p2p-shipyard license](https://darksoil.studio/p2p-shipyard/license/license.html).
 
 ## Components (from highest level to lowest)
 

@@ -2,81 +2,77 @@ package com.plugin.holochain_service_consumer
 
 import android.app.Activity
 import android.webkit.WebView
+import android.util.Log
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import app.tauri.annotation.Command
 import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
-import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.toParcel
+import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
+import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceNotConnectedException
 
 @TauriPlugin
-class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
-    private lateinit var webView: WebView
-    private lateinit var injectHolochainClientEnvJavascript: String
-    private lateinit var serviceClient: HolochainServiceClient
+class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(activity) {
+    private val supervisorJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(supervisorJob)
+    private val servicePackage = "org.holochain.androidserviceruntime.app"
+    private val serviceClient = HolochainServiceClient(
+        this.activity,
+        servicePackage,
+        "com.plugin.holochain_service.HolochainService"
+    )
+    private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
+    private val TAG = "HolochainServiceConsumerPlugin"
+    private var webView: WebView? = null
 
     /**
      * Load the plugin, start the service
      */
     override fun load(webView: WebView) {
+        Log.d(TAG, "load")
         super.load(webView)
         this.webView = webView
 
-        // Load holochain client injected javascript from resource file
-        val resourceInputStream = this.activity.resources.openRawResource(R.raw.injectholochainclientenv)
-        this.injectHolochainClientEnvJavascript = resourceInputStream.bufferedReader().use { it.readText() }
+        disconnectedNotice.load()
     }
 
     /**
-     * Start the service
+     * Setup an app
      */
     @Command
-    fun connect(invoke: Invoke) {
-        this.serviceClient = HolochainServiceClient(
-            this.activity,
-            "com.plugin.holochain_service.HolochainService",
-            "org.holochain.androidserviceruntime.app"
-        )
-        this.serviceClient.connect()
-        invoke.resolve()
+    fun setupApp(invoke: Invoke) {
+        Log.d(TAG, "setupApp")
+        val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)        
+        serviceScope.launch(Dispatchers.IO) {
+            try {
+                val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
+                invoke.resolve(JSObject(res.toJSONObjectString()))
+            } catch (e: Exception) {
+               handleCommandException(e, invoke)
+            }
+        }
     }
 
     /**
-     * Install an app
+     * Enable an app
      */
     @Command
-    fun installApp(invoke: Invoke) {
-        val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
-        this.serviceClient.installApp(args.toFfi().toParcel())
-        invoke.resolve()
-    }
-
-    /**
-     * Is an app with the given app_id installed
-     */
-    @Command
-    fun isAppInstalled(invoke: Invoke) {
+    fun enableApp(invoke: Invoke) {
+        Log.d(TAG, "enableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        val res = this.serviceClient.isAppInstalled(args.installedAppId)
-        val obj = JSObject()
-        obj.put("installed", res)
-        invoke.resolve(obj)
-    }
-
-    /**
-     * Get or create an app websocket with authentication token
-     */
-    @OptIn(ExperimentalUnsignedTypes::class)
-    @Command
-    fun ensureAppWebsocket(invoke: Invoke) {
-        val args = invoke.parseArgs(AppIdInvokeArg::class.java)
-        val res = this.serviceClient.ensureAppWebsocket(args.installedAppId)
-
-        val obj = JSObject()
-        obj.put("ensureAppWebsocket", res.inner.toJSObject())
-        invoke.resolve(obj)
+        serviceScope.launch(Dispatchers.IO) {
+            try {
+                val res = serviceClient.enableApp(args.installedAppId)
+                invoke.resolve(JSObject(res.toJSONObjectString()))
+            } catch (e: Exception) {
+                handleCommandException(e, invoke)
+            }
+        }
     }
 
     /**
@@ -84,8 +80,33 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
      */
     @Command
     fun signZomeCall(invoke: Invoke) {
+        Log.d(TAG, "signZomeCall")
         val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
-        val res = this.serviceClient.signZomeCall(ZomeCallUnsignedFfiParcel(args.toFfi()))
-        invoke.resolve(res.inner.toJSObject())
+        serviceScope.launch(Dispatchers.IO) {
+            try {
+                val res = serviceClient.signZomeCall(args.toFfi())
+                invoke.resolve(JSObject(res.toJSONObjectString()))
+            } catch (e: Exception) {
+                handleCommandException(e, invoke)
+            }
+        }
+    }
+
+    /**
+     * Display the service notice if the exception is HolochainServiceNotConnectedException
+     */
+    private fun handleCommandException(e: Exception, invoke: Invoke) {
+        Log.d(TAG, "handleCommandException")
+        if (e is HolochainServiceNotConnectedException) {
+            if(this.webView == null) {
+                disconnectedNotice.enableShowOnLoad()
+            } else {
+                disconnectedNotice.show()
+            }
+            invoke.reject(e.toString(), "HolochainServiceNotConnected")
+        }
+        else {
+            invoke.reject(e.toString())
+        }
     }
 }

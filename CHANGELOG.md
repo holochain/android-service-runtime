@@ -14,3 +14,13 @@
 - Android app logs warnings and errors to android system log.
 - The following HolochainService functions exposed via IPC are now async and do not block the main thread: listApps, installApp, uninstallApp, enableApp, disableApp, isAppInstalled, ensureAppWebsocket, and signZomeCall.
 - Run holochain-service-client tests in CI
+- Fix Ffi types to Parcelable types converstions, and tests for Parcelable types.
+- Support Json serialization of sealed classes, cleanup and tests of Json serialization.
+- Added example app demonstrating use of tauri-plugin-holochain-service-consumer
+- Fix inconsistent crashes on relaunch with "logger already initialized" errors.
+- Add nix flake for android + holochain development, remove reliance on p2p-shipyard flake.
+- Added example app demonstrating use of tauri-plugin-holochain-service-consumer
+- Ensure the __HC_LAUNCHER_ENV__ is defined before the webview is initialized, by moving the app setup logic from injected JS in the webview to rust run during tauri setup.
+- Add command `setupApp` to `HolochainServiceClient` that includes all logic for installing an app if necessary, enabling it, and setting up the app ws authentication.
+- Remove commands `installApp`, `connect`, `isAppInstalled`, `ensureAppWebsocket` from `tauri-plugin-holochain-service-consumer`. Their function has been replaced by a single command `setupApp`.
+- Display notice on consumer app launch when unable to connect to HolochainService.

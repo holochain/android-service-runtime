@@ -19,7 +19,8 @@ function injectHolochainClientEnv(installedAppId: string, port: number, token: U
 
         const zomeCallUnsigned = {
             provenance: request.provenance,
-            cellIdDnaHash: request.cell_id,
+            cellIdDnaHash: request.cell_id[0],
+            cellIdAgentPubKey: request.cell_id[1],
             zomeName: request.zome_name,
             fnName: request.fn_name,
             capSecret: null,
@@ -42,28 +43,7 @@ function injectHolochainClientEnv(installedAppId: string, port: number, token: U
 
         return zomeCallSigned;
     }
-};
+  };
 }
 
 (window as any).injectHolochainClientEnv = injectHolochainClientEnv;
-
-// Define function to install app, get app websocket, and inject magic config variables
-async function setupApp(installedAppId: string, source: number[], networkSeed: string) {
-  if (window.location.origin !== 'http://tauri.localhost') return;
-
-  // Check if happ is installed
-  const { installed } = await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|is_app_installed', { installedAppId });
-  
-  // Install happ if not already
-  if(!installed) {
-    await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|install_app', { installedAppId, source, roleSettings: {}, networkSeed });
-  }
-  
-  // Setup app websocket
-  const { port, token } = await (window as any).__TAURI_INTERNALS__.invoke('plugin:holochain-service-consumer|ensure_app_websocket', { installedAppId });
-
-  // Inject magic configuration variables used by @holochain/client 
-  injectHolochainClientEnv(installedAppId, port, token);
-}
-
-(window as any).setupApp = setupApp;

@@ -47,6 +47,11 @@ export const loadUninstallApp = async (appId: string) => {
   loadingUninstallApp.update((t) => { delete t[appId]; return t; });
 }
 
+export const loadIsRunning = async () => {
+  const ready = await isReady();
+  isRunning.set(ready);
+}
+
 export const toggleEnableApp = async (appInfo: AppInfo) => {
   loadingToggleEnableApp.update((t) => ({...t, [appInfo.installedAppId]: true}));
   try {

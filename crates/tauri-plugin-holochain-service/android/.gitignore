@@ -1,12 +1,11 @@
 build
 .tauri
 .gradle
-gradle
 .kotlin
 .idea
 
 src/main/jniLibs/**
-src/main/res/raw/injectholochainclientenv.js
 src/main/**/*_ffi
+src/main/res/raw/holochainenv.js
 
 lib

@@ -7,19 +7,20 @@ import org.holochain.androidserviceruntime.holochain_service_client.RoleSettings
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfi
 
 @InvokeArg
-class InstallAppPayloadFfiInvokeArg {
-    lateinit var source: ByteArray
-    lateinit var installedAppId: String
+class SetupAppConfigInvokeArg {
+    lateinit var appId: String
+    lateinit var happBundleBytes: ByteArray
     lateinit var networkSeed: String
-    lateinit var roleSettings: Map<String, RoleSettingsFfi>
+    lateinit var rolesSettings: Map<String, RoleSettingsFfi>
+    var enableAfterInstall: Boolean = true
 }
 
-fun InstallAppPayloadFfiInvokeArg.toFfi(): InstallAppPayloadFfi {
+fun SetupAppConfigInvokeArg.toInstallAppPayloadFfi(): InstallAppPayloadFfi {
     return InstallAppPayloadFfi(
-        this.source,
-        this.installedAppId,
-        this.networkSeed,
-        this.roleSettings,
+        source = this.happBundleBytes,
+        installedAppId = this.appId,
+        networkSeed = this.networkSeed,
+        rolesSettings = this.rolesSettings,
     )
 }
 
@@ -31,7 +32,8 @@ class AppIdInvokeArg {
 @InvokeArg
 class ZomeCallUnsignedFfiInvokeArg {
     lateinit var provenance: ByteArray
-    lateinit var cellId: CellIdFfi
+    lateinit var cellIdDnaHash: ByteArray
+    lateinit var cellIdAgentPubKey: ByteArray
     lateinit var zomeName: String
     lateinit var fnName: String
     var capSecret: ByteArray? = null
@@ -43,7 +45,10 @@ class ZomeCallUnsignedFfiInvokeArg {
 fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi {
     return ZomeCallUnsignedFfi(
         this.provenance,
-        this.cellId,
+        CellIdFfi(
+            dnaHash = this.cellIdDnaHash,
+            agentPubKey = this.cellIdAgentPubKey
+        ),
         this.zomeName,
         this.fnName,
         this.capSecret,

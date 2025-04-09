@@ -17,7 +17,7 @@ export default [
       },
       {
         // Android resource filenames must be lowercase and have only a single '.' extension
-        file: "android/src/main/res/raw/injectholochainclientenv.js",
+        file: "android/src/main/res/raw/holochainenv.js",
         format: 'esm'
       },
     ],

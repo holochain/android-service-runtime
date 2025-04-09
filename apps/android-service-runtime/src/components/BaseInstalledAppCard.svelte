@@ -3,7 +3,7 @@
   import { type AppInfo } from "tauri-plugin-holochain-service-api";
   import BaseLabelled from "./BaseLabelled.svelte";
   import BaseInstalledAppCardAdvanced from "./BaseInstalledAppCardAdvanced.svelte";
-	import BaseLoadingToggle from './BaseLoadingToggle.svelte';
+  import BaseLoadingToggle from './BaseLoadingToggle.svelte';
 
   export let appInfo: AppInfo;
   export let loadingToggleEnable: boolean = false;
@@ -12,8 +12,6 @@
 	const dispatch = createEventDispatcher<{
     toggleEnable: {}
 	}>();
-
-  $: appInfo, showAdvanced = false;
 </script>
 
 <div class="px-4 py-8 bg-base-200 border-b-2 border-solid border-gray-300">

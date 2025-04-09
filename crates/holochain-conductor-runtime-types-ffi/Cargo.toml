@@ -13,3 +13,4 @@ holochain_conductor_api = { workspace = true }
 holochain_types = { workspace = true }
 uniffi = { workspace = true, features = ["tokio" ] }
 url2 = { workspace = true }
+serde = { workspace = true }
