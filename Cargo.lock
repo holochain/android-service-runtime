@@ -3259,6 +3259,7 @@ version = "0.1.0"
 dependencies = [
  "holochain_conductor_api",
  "holochain_types",
+ "serde",
  "uniffi",
  "url2",
 ]
@@ -8768,6 +8769,7 @@ name = "tauri-plugin-holochain-service-consumer"
 version = "0.1.0"
 dependencies = [
  "bytes",
+ "holochain-conductor-runtime-types-ffi",
  "serde",
  "tauri",
  "tauri-build",
