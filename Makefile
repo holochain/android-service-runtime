@@ -1,12 +1,12 @@
-.PHONY: all test unit static lint fmt
+.PHONY: all test integration-test static lint fmt
 
 SHELL = /usr/bin/env sh -eu
 
 all: test
 
-test: static unit
+test: static integration-test
 
-unit:
+integration-test:
 	RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime -- --nocapture
 	RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime-ffi -- --nocapture
 
