@@ -15,11 +15,6 @@ export default [
         file: "dist-js/holochain-env/index.min.js",
         format: 'esm',
       },
-      {
-        // Android resource filenames must be lowercase and have only a single '.' extension
-        file: "android/src/main/res/raw/holochainenv.js",
-        format: 'esm'
-      },
     ],
     plugins: [
       terser(),      

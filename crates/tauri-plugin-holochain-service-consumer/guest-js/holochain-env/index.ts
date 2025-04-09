@@ -43,7 +43,7 @@ function injectHolochainClientEnv(installedAppId: string, port: number, token: U
 
         return zomeCallSigned;
     }
-};
+  };
 }
 
 (window as any).injectHolochainClientEnv = injectHolochainClientEnv;

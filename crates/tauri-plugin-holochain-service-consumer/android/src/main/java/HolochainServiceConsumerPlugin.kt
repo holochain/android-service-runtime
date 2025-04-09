@@ -14,19 +14,21 @@ import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
 import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
+import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceNotConnectedException
 
 @TauriPlugin
 class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(activity) {
-    private lateinit var webView: WebView
-    private lateinit var injectHolochainClientEnvJavascript: String
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
-    private var serviceClient = HolochainServiceClient(
+    private val servicePackage = "org.holochain.androidserviceruntime.app"
+    private val serviceClient = HolochainServiceClient(
         this.activity,
-        "org.holochain.androidserviceruntime.app",
+        servicePackage,
         "com.plugin.holochain_service.HolochainService"
     )
-    private var TAG = "HolochainServiceConsumerPlugin"
+    private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
+    private val TAG = "HolochainServiceConsumerPlugin"
+    private var webView: WebView? = null
 
     /**
      * Load the plugin, start the service
@@ -36,21 +38,23 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         super.load(webView)
         this.webView = webView
 
-        // Load holochain client injected javascript from resource file
-        val resourceInputStream = this.activity.resources.openRawResource(R.raw.holochainenv)
-        this.injectHolochainClientEnvJavascript = resourceInputStream.bufferedReader().use { it.readText() }
+        disconnectedNotice.load()
     }
+
     /**
      * Setup an app
      */
     @Command
     fun setupApp(invoke: Invoke) {
         Log.d(TAG, "setupApp")
-        val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)
-        Log.d(TAG, "setup app args " + args)
+        val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)        
         serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
-            invoke.resolve(JSObject(res.toJSONObjectString()))
+            try {
+                val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
+                invoke.resolve(JSObject(res.toJSONObjectString()))
+            } catch (e: Exception) {
+               handleCommandException(e, invoke)
+            }
         }
     }
 
@@ -62,8 +66,12 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         Log.d(TAG, "enableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.enableApp(args.installedAppId)
-            invoke.resolve(JSObject(res.toJSONObjectString()))
+            try {
+                val res = serviceClient.enableApp(args.installedAppId)
+                invoke.resolve(JSObject(res.toJSONObjectString()))
+            } catch (e: Exception) {
+                handleCommandException(e, invoke)
+            }
         }
     }
 
@@ -75,8 +83,30 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         Log.d(TAG, "signZomeCall")
         val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.signZomeCall(args.toFfi())
-            invoke.resolve(JSObject(res.toJSONObjectString()))
+            try {
+                val res = serviceClient.signZomeCall(args.toFfi())
+                invoke.resolve(JSObject(res.toJSONObjectString()))
+            } catch (e: Exception) {
+                handleCommandException(e, invoke)
+            }
+        }
+    }
+
+    /**
+     * Display the service notice if the exception is HolochainServiceNotConnectedException
+     */
+    private fun handleCommandException(e: Exception, invoke: Invoke) {
+        Log.d(TAG, "handleCommandException")
+        if (e is HolochainServiceNotConnectedException) {
+            if(this.webView == null) {
+                disconnectedNotice.enableShowOnLoad()
+            } else {
+                disconnectedNotice.show()
+            }
+            invoke.reject(e.toString(), "HolochainServiceNotConnected")
+        }
+        else {
+            invoke.reject(e.toString())
         }
     }
 }

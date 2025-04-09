@@ -10,6 +10,11 @@ import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 
+class HolochainServiceNotConnectedException(
+    message: String = "Holochain service is not connected",
+    cause: Throwable? = null
+) : Exception(message, cause)
+
 class HolochainServiceClient(
     private val activity: Activity,
     private val servicePackageName: String = "org.holochain.androidserviceruntime.app",
@@ -63,7 +68,7 @@ class HolochainServiceClient(
   }
 
   /// Poll until we are connected to the service, or the timeout has elapsed
-  suspend fun waitForConnectReady(timeoutMs: Long = 5000L, intervalMs: Long = 5L) {
+  suspend fun waitForConnectReady(timeoutMs: Long = 100L, intervalMs: Long = 5L) {
     var elapsedMs = 0L
     while (elapsedMs <= timeoutMs) {
       Log.d(TAG, "waitForConnectReady " + elapsedMs)
@@ -76,17 +81,26 @@ class HolochainServiceClient(
 
   /// Stop the service
   fun stop() {
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
+    }
     this.mService!!.stop()
   }
 
   /// Is the service ready to receive calls
   fun isReady(): Boolean {
+    if (this.mService == null) {
+      return false
+    }
     return this.mService!!.isReady()
   }
 
   /// Install an app
   suspend fun installApp(payload: InstallAppPayloadFfi): AppInfoFfi {
     Log.d(TAG, "installApp")
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
+    }
 
     val deferred = CompletableDeferred<AppInfoFfi>()
     var callbackBinder =
@@ -104,6 +118,9 @@ class HolochainServiceClient(
   /// Is an app with the given app_id installed
   suspend fun isAppInstalled(installedAppId: String): Boolean {
     Log.d(TAG, "isAppInstalled")
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
+    }
 
     val deferred = CompletableDeferred<Boolean>()
     var callbackBinder =
@@ -121,6 +138,9 @@ class HolochainServiceClient(
   /// Uninstall an installed app
   suspend fun uninstallApp(installedAppId: String) {
     Log.d(TAG, "uninstallApp")
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
+    }
 
     val deferred = CompletableDeferred<Unit>()
     var callbackBinder =
@@ -138,6 +158,10 @@ class HolochainServiceClient(
   /// Enable an installed app
   suspend fun enableApp(installedAppId: String): AppInfoFfi {
     Log.d(TAG, "enableApp")
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
+    }
+    
     val deferred = CompletableDeferred<AppInfoFfi>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
@@ -153,6 +177,10 @@ class HolochainServiceClient(
   /// Disable an installed app
   suspend fun disableApp(installedAppId: String) {
     Log.d(TAG, "disableApp")
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
+    }
+    
     val deferred = CompletableDeferred<Unit>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
@@ -168,6 +196,9 @@ class HolochainServiceClient(
   /// List installed happs in conductor
   suspend fun listApps(): List<AppInfoFfi> {
     Log.d(TAG, "listApps")
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
+    }
 
     val deferred = CompletableDeferred<List<AppInfoFfi>>()
     var callbackBinder =
@@ -185,6 +216,9 @@ class HolochainServiceClient(
   /// Get or create an app websocket with authentication token
   suspend fun ensureAppWebsocket(installedAppId: String): AppAuthFfi {
     Log.d(TAG, "ensureAppWebsocket")
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
+    }
 
     val deferred = CompletableDeferred<AppAuthFfi>()
     var callbackBinder =
@@ -202,6 +236,9 @@ class HolochainServiceClient(
   /// Sign a zome call
   suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
     Log.d(TAG, "signZomeCall")
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
+    }
 
     val deferred = CompletableDeferred<ZomeCallFfi>()
     var callbackBinder =

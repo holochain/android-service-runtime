@@ -23,3 +23,4 @@
 - Ensure the __HC_LAUNCHER_ENV__ is defined before the webview is initialized, by moving the app setup logic from injected JS in the webview to rust run during tauri setup.
 - Add command `setupApp` to `HolochainServiceClient` that includes all logic for installing an app if necessary, enabling it, and setting up the app ws authentication.
 - Remove commands `installApp`, `connect`, `isAppInstalled`, `ensureAppWebsocket` from `tauri-plugin-holochain-service-consumer`. Their function has been replaced by a single command `setupApp`.
+- Display notice on consumer app launch when unable to connect to HolochainService.

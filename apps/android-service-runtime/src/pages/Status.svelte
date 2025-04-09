@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { loadingLaunch, toggleLaunch, isRunning } from "../stores/holochain";
+  import { loadingLaunch, toggleLaunch, isRunning, loadIsRunning } from "../stores/holochain";
   import BaseLoadingToggle from "../components/BaseLoadingToggle.svelte";
+  
+  loadIsRunning();
 </script>
 
 <h4 class="mx-4">Service Status</h4>
