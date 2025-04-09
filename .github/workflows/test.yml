@@ -23,8 +23,8 @@ jobs:
         with:
           cache-on-failure: true
 
-      - name: Make Test
-        run: make test
+      - name: Run tests
+        run: make integration-test
 
   test-kotlin-libraries:
     name: Test Kotlin Libraries
