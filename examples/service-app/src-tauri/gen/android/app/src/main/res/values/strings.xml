@@ -1,4 +1,0 @@
-<resources>
-    <string name="app_name">tauri-plugin-holochain-service-example-app</string>
-    <string name="main_activity_title">tauri-plugin-holochain-service-example-app</string>
-</resources>

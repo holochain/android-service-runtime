@@ -1,3 +1,3 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-install-app", "allow-is-app-installed", "allow-sign-zome-call", "allow-app-websocket-auth"]
+permissions = ["allow-connect", "allow-install-app", "allow-enable-app", "allow-is-app-installed", "allow-sign-zome-call", "allow-ensure-app-websocket"]

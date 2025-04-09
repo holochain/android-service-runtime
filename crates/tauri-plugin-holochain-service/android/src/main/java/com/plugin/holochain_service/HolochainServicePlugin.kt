@@ -3,7 +3,9 @@ package com.plugin.holochain_service
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.webkit.WebView
 import android.util.Log
 import kotlinx.coroutines.launch
@@ -15,18 +17,25 @@ import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
+import app.tauri.plugin.JSArray
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceClient
-import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.toParcel
+import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
+import org.holochain.androidserviceruntime.holochain_service_client.toJSONArrayString
 
 @TauriPlugin
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     private lateinit var webView: WebView
     private lateinit var injectHolochainClientEnvJavascript: String
-    private lateinit var serviceClient: HolochainServiceClient
+    private val packageName = "org.holochain.androidserviceruntime.app"
+    private val className = "com.plugin.holochain_service.HolochainService"
+    private var serviceClient = HolochainServiceClient(
+        this.activity,
+        this.packageName,
+        this.className,
+    )
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
-    private var TAG = "HolochainServicePlugin"
+    private val TAG = "HolochainServicePlugin"
 
     /**
      * Load the plugin, start the service
@@ -37,7 +46,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         this.webView = webView
 
         // Load holochain client injected javascript from resource file
-        val resourceInputStream = this.activity.resources.openRawResource(R.raw.injectholochainclientenv)
+        val resourceInputStream = this.activity.resources.openRawResource(R.raw.holochainenv)
         this.injectHolochainClientEnvJavascript = resourceInputStream.bufferedReader().use { it.readText() }
 
         // Create notification channel
@@ -55,11 +64,12 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun start(invoke: Invoke) {
         Log.d(TAG, "start")
-        this.serviceClient = HolochainServiceClient(
-            this.activity,
-            "com.plugin.holochain_service.HolochainService",
-            "org.holochain.androidserviceruntime.app"
-        )
+
+        // Start service
+        val intent = Intent()
+        intent.setComponent(ComponentName(this.packageName, this.className))
+        this.activity.startForegroundService(intent)
+
         this.serviceClient.connect()
         invoke.resolve()
     }
@@ -94,7 +104,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         Log.d(TAG, "installApp")
         val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
-            serviceClient.installApp(args.toFfi().toParcel())
+            serviceClient.installApp(args.toFfi())
             invoke.resolve()
         }
     }
@@ -136,9 +146,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.enableApp(args.installedAppId)
-            val obj = JSObject()
-            obj.put("enabled", res)
-            invoke.resolve()
+            invoke.resolve(JSObject(res.toJSONObjectString()))
         }
     }
 
@@ -163,8 +171,8 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         Log.d(TAG, "listApps")
         serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.listApps()
-            val obj = JSObject() 
-            obj.put("installedApps", res.toJSArray())
+            val obj = JSObject()
+            obj.put("installedApps", JSArray(res.toJSONArrayString()))
             invoke.resolve(obj)
         }
     }
@@ -183,13 +191,11 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
             // Inject launcher env into web view
             injectHolochainClientEnv(
                 args.installedAppId,
-                res.inner.port.toInt(),
-                res.inner.authentication.token.toUByteArray()
+                res.port.toInt(),
+                res.authentication.token.toUByteArray()
             )
-            
-            val obj = JSObject() 
-            obj.put("ensureAppWebsocket", res.toJSObject())
-            invoke.resolve(obj)
+
+            invoke.resolve(JSObject(res.toJSONObjectString()))
         }
     }
 
@@ -201,8 +207,8 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         Log.d(TAG, "signZomeCall")
         val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
-            val res = serviceClient.signZomeCall(ZomeCallUnsignedFfiParcel(args.toFfi()))
-            invoke.resolve(res.toJSObject())
+            val res = serviceClient.signZomeCall(args.toFfi())
+            invoke.resolve(JSObject(res.toJSONObjectString()))
         }
     }
 
@@ -216,7 +222,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         this.webView.evaluateJavascript(this.injectHolochainClientEnvJavascript, null)
 
         // Inject holochain client env
-        val tokenJsArray = appWebsocketToken.toMutableList().toJSArray() 
+        val tokenJsArray = appWebsocketToken.toMutableList().toJSONArrayString()
         this.webView.evaluateJavascript(
             """injectHolochainClientEnv("$appId", ${appWebsocketPort}, ${tokenJsArray}) """,
             null

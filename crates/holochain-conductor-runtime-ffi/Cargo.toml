@@ -15,9 +15,10 @@ holochain_conductor_api = { workspace = true }
 holochain_types = { workspace = true }
 log = { workspace = true }
 android_logger = { workspace = true }
-uniffi = { workspace = true, features = ["tokio" ] }
+uniffi = { workspace = true, features = ["tokio"] }
 thiserror = { workspace = true }
 url2 = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
 
 [dev-dependencies]
 tempfile = { workspace = true }
