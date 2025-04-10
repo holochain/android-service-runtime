@@ -50,6 +50,9 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)        
         serviceScope.launch(Dispatchers.IO) {
             try {
+                serviceClient.connect()
+                serviceClient.waitForConnectReady();
+
                 val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {

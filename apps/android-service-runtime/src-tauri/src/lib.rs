@@ -3,7 +3,6 @@
 use log::LevelFilter;
 use simple_logger::SimpleLogger;
 use std::sync::LazyLock;
-use std::sync::Once;
 
 static LOGGER: LazyLock<SimpleLogger> = LazyLock::new(|| SimpleLogger::new());
 

@@ -3,6 +3,8 @@ package org.holochain.androidserviceruntime.holochain_service_client
 open class IHolochainServiceCallbackStub : IHolochainServiceCallback.Stub() {
   override fun listApps(response: List<AppInfoFfiParcel>) {}
 
+  override fun setupApp(response: AppAuthFfiParcel) {}
+
   override fun installApp(response: AppInfoFfiParcel) {}
 
   override fun uninstallApp() {}

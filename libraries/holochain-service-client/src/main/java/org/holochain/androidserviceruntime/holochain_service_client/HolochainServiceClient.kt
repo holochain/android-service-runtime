@@ -38,13 +38,11 @@ class HolochainServiceClient(
       }
 
   /// Connect to the service
-  suspend fun connect() {
+  fun connect() {
     Log.d(TAG, "connect")
     val intent = Intent()
     intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
     this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
-
-    this.waitForConnectReady()
   }
 
   /// Entire process to setup an app
@@ -61,15 +59,15 @@ class HolochainServiceClient(
       throw HolochainServiceNotConnectedException()
     }
 
-    val deferred = CompletableDeferred<AppInfoFfi>()
+    val deferred = CompletableDeferred<AppAuthFfi>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
-          override fun setupApp(response: AppInfoFfiParcel) {
+          override fun setupApp(response: AppAuthFfiParcel) {
             Log.d(TAG, "setupApp callback")
             deferred.complete(response.inner)
           }
         }
-    this.mService!!.setupApp(callbackBinder, InstallAppPayloadFfiParcel(payload), enableAfterInstall)
+    this.mService!!.setupApp(callbackBinder, InstallAppPayloadFfiParcel(installAppPayload), enableAfterInstall)
 
     return deferred.await()
   }
@@ -249,7 +247,8 @@ class HolochainServiceClient(
   }
 
   /// Poll until we are connected to the service, or the timeout has elapsed
-  private suspend fun waitForConnectReady(timeoutMs: Long = 100L, intervalMs: Long = 5L) {
+  suspend fun waitForConnectReady(timeoutMs: Long = 100L) {
+    var intervalMs = 5L
     var elapsedMs = 0L
     while (elapsedMs <= timeoutMs) {
       Log.d(TAG, "waitForConnectReady " + elapsedMs)

@@ -1,4 +1,4 @@
-use holochain::conductor::api::{AppAuthenticationTokenIssued, AppInfo};
+use holochain::conductor::api::AppAuthenticationTokenIssued;
 
 /// An app websocket port with an authentication token
 #[derive(Clone, Debug)]

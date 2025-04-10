@@ -1,7 +1,6 @@
 use crate::{RuntimeConfig, RuntimeError, RuntimeResult, AppAuth, DEVICE_SEED_LAIR_TAG};
 use holochain::conductor::api::AppAuthenticationTokenIssued;
 use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
-use holochain::prelude::AppBundleSource;
 use holochain::{
     conductor::{
         api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo, ZomeCall},
@@ -185,11 +184,11 @@ impl Runtime {
         payload: InstallAppPayload,
         enable_after_install: bool
     ) -> RuntimeResult<AppAuth> {
-        // This is a workaround because we cannot clone AppBundleSource,
+        // This is a temporary workaround because we cannot clone AppBundleSource,
         // which is needed to read the actual app name from the manifest
         // See https://github.com/holochain/holochain/pull/4882
-        let installed_app_id = payload.installed_app_id.ok()
-            .map_err(RuntimeError::InstalledAppIdNotSpecified)?;
+        let installed_app_id = payload.installed_app_id.clone()
+            .ok_or(RuntimeError::InstalledAppIdNotSpecified)?;
      
         if !self.is_app_installed(installed_app_id.clone()).await? {
             let _ = self.install_app(payload).await?;
