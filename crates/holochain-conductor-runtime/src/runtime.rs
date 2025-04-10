@@ -1,4 +1,4 @@
-use crate::{RuntimeConfig, RuntimeError, RuntimeResult, AppAuth, DEVICE_SEED_LAIR_TAG};
+use crate::{AppAuth, RuntimeConfig, RuntimeError, RuntimeResult, DEVICE_SEED_LAIR_TAG};
 use holochain::conductor::api::AppAuthenticationTokenIssued;
 use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
 use holochain::{
@@ -176,20 +176,22 @@ impl Runtime {
     }
 
     /// Full process to setup an app
-    /// 
+    ///
     /// Check if app is installed, if not install it, then optionally enable it.
     /// Then ensure there is an app websocket and authentication for it.
     pub async fn setup_app(
         &self,
         payload: InstallAppPayload,
-        enable_after_install: bool
+        enable_after_install: bool,
     ) -> RuntimeResult<AppAuth> {
         // This is a temporary workaround because we cannot clone AppBundleSource,
         // which is needed to read the actual app name from the manifest
         // See https://github.com/holochain/holochain/pull/4882
-        let installed_app_id = payload.installed_app_id.clone()
+        let installed_app_id = payload
+            .installed_app_id
+            .clone()
             .ok_or(RuntimeError::InstalledAppIdNotSpecified)?;
-     
+
         if !self.is_app_installed(installed_app_id.clone()).await? {
             let _ = self.install_app(payload).await?;
             if enable_after_install {
@@ -197,7 +199,7 @@ impl Runtime {
             }
         }
 
-        self.ensure_app_websocket(installed_app_id).await     
+        self.ensure_app_websocket(installed_app_id).await
     }
 
     async fn req_admin_api(&self, request: AdminRequest) -> RuntimeResult<AdminResponse> {
@@ -642,15 +644,18 @@ mod test {
         .unwrap();
 
         let res = runtime
-            .setup_app(InstallAppPayload {
-                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
-                agent_key: None,
-                installed_app_id: Some("my-app-1".into()),
-                network_seed: Some(Uuid::new_v4().to_string()),
-                roles_settings: Some(HashMap::new()),
-                ignore_genesis_failure: false,
-                allow_throwaway_random_agent_key: false,
-            }, false)
+            .setup_app(
+                InstallAppPayload {
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    agent_key: None,
+                    installed_app_id: Some("my-app-1".into()),
+                    network_seed: Some(Uuid::new_v4().to_string()),
+                    roles_settings: Some(HashMap::new()),
+                    ignore_genesis_failure: false,
+                    allow_throwaway_random_agent_key: false,
+                },
+                false,
+            )
             .await;
         assert!(res.is_ok());
 
@@ -658,15 +663,18 @@ mod test {
         assert_eq!(apps.len(), 1);
 
         let res = runtime
-            .setup_app(InstallAppPayload {
-                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
-                agent_key: None,
-                installed_app_id: Some("my-app-2".into()),
-                network_seed: Some(Uuid::new_v4().to_string()),
-                roles_settings: Some(HashMap::new()),
-                ignore_genesis_failure: false,
-                allow_throwaway_random_agent_key: false,
-            }, false)
+            .setup_app(
+                InstallAppPayload {
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    agent_key: None,
+                    installed_app_id: Some("my-app-2".into()),
+                    network_seed: Some(Uuid::new_v4().to_string()),
+                    roles_settings: Some(HashMap::new()),
+                    ignore_genesis_failure: false,
+                    allow_throwaway_random_agent_key: false,
+                },
+                false,
+            )
             .await;
         assert!(res.is_ok());
 
@@ -690,19 +698,25 @@ mod test {
         .unwrap();
 
         let res = runtime
-            .setup_app(InstallAppPayload {
-                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
-                agent_key: None,
-                installed_app_id: Some("my-app-1".into()),
-                network_seed: Some(Uuid::new_v4().to_string()),
-                roles_settings: Some(HashMap::new()),
-                ignore_genesis_failure: false,
-                allow_throwaway_random_agent_key: false,
-            }, false)
+            .setup_app(
+                InstallAppPayload {
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    agent_key: None,
+                    installed_app_id: Some("my-app-1".into()),
+                    network_seed: Some(Uuid::new_v4().to_string()),
+                    roles_settings: Some(HashMap::new()),
+                    ignore_genesis_failure: false,
+                    allow_throwaway_random_agent_key: false,
+                },
+                false,
+            )
             .await;
         assert!(res.is_ok());
         let apps = runtime.list_apps().await.unwrap();
-        assert!(matches!(apps.first().unwrap().status, AppInfoStatus::Disabled { .. }));
+        assert!(matches!(
+            apps.first().unwrap().status,
+            AppInfoStatus::Disabled { .. }
+        ));
     }
 
     #[tokio::test(flavor = "multi_thread")]
@@ -721,19 +735,25 @@ mod test {
         .unwrap();
 
         let res = runtime
-            .setup_app(InstallAppPayload {
-                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
-                agent_key: None,
-                installed_app_id: Some("my-app-1".into()),
-                network_seed: Some(Uuid::new_v4().to_string()),
-                roles_settings: Some(HashMap::new()),
-                ignore_genesis_failure: false,
-                allow_throwaway_random_agent_key: false,
-            }, true)
+            .setup_app(
+                InstallAppPayload {
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    agent_key: None,
+                    installed_app_id: Some("my-app-1".into()),
+                    network_seed: Some(Uuid::new_v4().to_string()),
+                    roles_settings: Some(HashMap::new()),
+                    ignore_genesis_failure: false,
+                    allow_throwaway_random_agent_key: false,
+                },
+                true,
+            )
             .await;
         assert!(res.is_ok());
 
         let apps = runtime.list_apps().await.unwrap();
-        assert!(matches!(apps.first().unwrap().status, AppInfoStatus::Running));
+        assert!(matches!(
+            apps.first().unwrap().status,
+            AppInfoStatus::Running
+        ));
     }
 }

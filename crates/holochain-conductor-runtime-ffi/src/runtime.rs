@@ -113,15 +113,23 @@ impl RuntimeFfi {
     }
 
     /// Setup app
-    pub async fn setup_app(&self, payload: InstallAppPayloadFfi, enable_after_install: bool) -> RuntimeResultFfi<AppAuthFfi> {
+    pub async fn setup_app(
+        &self,
+        payload: InstallAppPayloadFfi,
+        enable_after_install: bool,
+    ) -> RuntimeResultFfi<AppAuthFfi> {
         debug!("RuntimeFfi::setup_app");
         let payload: InstallAppPayload = payload.try_into()?;
 
         #[cfg(not(test))]
-        let app_auth = RT.block_on(async { self.0.setup_app(payload.into(), enable_after_install).await })?;
+        let app_auth =
+            RT.block_on(async { self.0.setup_app(payload, enable_after_install).await })?;
 
         #[cfg(test)]
-        let app_auth = self.0.setup_app(payload.into(), enable_after_install).await?;
+        let app_auth = self
+            .0
+            .setup_app(payload.into(), enable_after_install)
+            .await?;
 
         Ok(AppAuthFfi {
             authentication: app_auth.authentication.into(),
@@ -466,7 +474,7 @@ mod test {
         assert!(res.is_err());
         assert!(matches!(res, Err(RuntimeErrorFfi::Runtime { .. })))
     }
-    
+
     #[tokio::test(flavor = "multi_thread")]
     async fn test_setup_app() {
         let tmp_dir = TempDir::new().unwrap();
@@ -483,12 +491,15 @@ mod test {
         .unwrap();
 
         let res = runtime
-            .setup_app(InstallAppPayloadFfi {
-                source: HAPP_FIXTURE.to_vec(),
-                installed_app_id: Some("my-app-1".into()),
-                network_seed: Some(Uuid::new_v4().to_string()),
-                roles_settings: Some(HashMap::new()),
-            }, true)
+            .setup_app(
+                InstallAppPayloadFfi {
+                    source: HAPP_FIXTURE.to_vec(),
+                    installed_app_id: Some("my-app-1".into()),
+                    network_seed: Some(Uuid::new_v4().to_string()),
+                    roles_settings: Some(HashMap::new()),
+                },
+                true,
+            )
             .await;
         assert!(res.is_ok());
 

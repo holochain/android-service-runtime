@@ -40,7 +40,9 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
     ///
     /// This can be safely called whether or not the app is installed.
     pub fn connect_setup_app(&self, config: SetupAppConfig) -> crate::Result<AppAuthFfi> {
-        Ok(self.0.run_mobile_plugin::<AppAuthFfi>("connectSetupApp", config)?)
+        Ok(self
+            .0
+            .run_mobile_plugin::<AppAuthFfi>("connectSetupApp", config)?)
     }
 
     /// Build a window that opens the main UI for your Tauri app.
@@ -77,7 +79,7 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
     }
 
     /// Setup a holochain app, then create the main window builder which will inject the holochain env JS on initialization.
-    /// 
+    ///
     /// Note you must call `.build()` on the returned WebviewWindowBuilder to actually build the window.
     pub fn setup_app_main_window(
         &self,
@@ -85,7 +87,7 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
     ) -> tauri::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
         let app_auth = self.connect_setup_app(config.clone()).ok();
         let window_builder = self.main_window_builder(config.app_id, app_auth.clone())?;
-        
+
         Ok(window_builder)
     }
 }
