@@ -6,6 +6,7 @@ import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallFfiP
 
 interface IHolochainServiceCallback {
     void listApps(in List<AppInfoFfiParcel> response);
+    void setupApp(in AppAuthFfiParcel response);
     void installApp(in AppInfoFfiParcel response);
     void uninstallApp();
     void enableApp(in AppInfoFfiParcel response);

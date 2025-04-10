@@ -45,6 +45,18 @@ class HolochainService : Service() {
             Log.d(TAG, "isReady")
             return runtime != null
         }
+
+        /// Setup an app
+        override fun setupApp(
+            callback: IHolochainServiceCallback,
+            payload: InstallAppPayloadFfiParcel,
+            enableAfterInstall: Boolean
+        ) {
+            Log.d(TAG, "setupApp")
+            serviceScope.launch(Dispatchers.IO) {
+                callback.setupApp(AppAuthFfiParcel(runtime!!.setupApp(payload.inner, enableAfterInstall)))
+            }
+        }
         
         /// Install an app
         override fun installApp(

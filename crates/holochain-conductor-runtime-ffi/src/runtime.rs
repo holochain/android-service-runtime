@@ -72,12 +72,12 @@ impl RuntimeFfi {
         let payload: InstallAppPayload = payload.try_into()?;
 
         #[cfg(not(test))]
-        let res = RT.block_on(async { self.0.install_app(payload).await });
+        let res = RT.block_on(async { self.0.install_app(payload).await })?;
 
         #[cfg(test)]
-        let res = self.0.install_app(payload).await;
+        let res = self.0.install_app(payload).await?;
 
-        Ok(res?.into())
+        Ok(res.into())
     }
 
     /// Uninstall an app
@@ -105,6 +105,23 @@ impl RuntimeFfi {
     ) -> RuntimeResultFfi<AppAuthFfi> {
         debug!("RuntimeFfi::ensure_app_websocket");
         let app_auth = self.0.ensure_app_websocket(installed_app_id).await?;
+
+        Ok(AppAuthFfi {
+            authentication: app_auth.authentication.into(),
+            port: app_auth.port,
+        })
+    }
+
+    /// Setup app
+    pub async fn setup_app(&self, payload: InstallAppPayloadFfi, enable_after_install: bool) -> RuntimeResultFfi<AppAuthFfi> {
+        debug!("RuntimeFfi::setup_app");
+        let payload: InstallAppPayload = payload.try_into()?;
+
+        #[cfg(not(test))]
+        let app_auth = RT.block_on(async { self.0.setup_app(payload.into(), enable_after_install).await })?;
+
+        #[cfg(test)]
+        let app_auth = self.0.setup_app(payload.into(), enable_after_install).await?;
 
         Ok(AppAuthFfi {
             authentication: app_auth.authentication.into(),
@@ -448,5 +465,34 @@ mod test {
         let res = runtime.enable_app("non-existant-app-1".into()).await;
         assert!(res.is_err());
         assert!(matches!(res, Err(RuntimeErrorFfi::Runtime { .. })))
+    }
+    
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_setup_app() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
+        let runtime = RuntimeFfi::start(
+            vec![0, 0, 0, 0],
+            RuntimeConfigFfi {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let res = runtime
+            .setup_app(InstallAppPayloadFfi {
+                source: HAPP_FIXTURE.to_vec(),
+                installed_app_id: Some("my-app-1".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+            }, true)
+            .await;
+        assert!(res.is_ok());
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 1);
     }
 }

@@ -1,6 +1,6 @@
 use holochain::{
     conductor::{api::AdminResponse, error::ConductorError, interface::error::InterfaceError},
-    prelude::CellId,
+    prelude::{AppBundleError, CellId},
 };
 use kitsune_p2p_types::dependencies::lair_keystore_api::dependencies::one_err::OneErr;
 use thiserror::Error;
@@ -27,6 +27,12 @@ pub enum RuntimeError {
 
     #[error("Lair Error")]
     Lair(OneErr),
+
+    #[error("App Bundle Error")]
+    AppBundle(#[from] AppBundleError),
+
+    #[error("InstalledAppId must be specified when installing an app")]
+    InstalledAppIdNotSpecified,
 }
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;

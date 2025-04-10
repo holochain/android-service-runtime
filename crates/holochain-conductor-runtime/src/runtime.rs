@@ -1,6 +1,7 @@
-use crate::{RuntimeConfig, RuntimeError, RuntimeResult, DEVICE_SEED_LAIR_TAG};
+use crate::{RuntimeConfig, RuntimeError, RuntimeResult, AppAuth, DEVICE_SEED_LAIR_TAG};
 use holochain::conductor::api::AppAuthenticationTokenIssued;
 use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
+use holochain::prelude::AppBundleSource;
 use holochain::{
     conductor::{
         api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo, ZomeCall},
@@ -13,13 +14,7 @@ use kitsune_p2p_types::dependencies::lair_keystore_api::dependencies::sodoken::B
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-/// An app websocket port with an authentication token
-#[derive(Clone, Debug)]
-pub struct AppAuth {
-    pub authentication: AppAuthenticationTokenIssued,
-    pub port: u16,
-}
-
+/// Map of app ids to their associated app websocket & authentication
 pub type AppAuths = Arc<RwLock<HashMap<InstalledAppId, AppAuth>>>;
 
 /// Slim wrapper around holochain Conductor with calls wrapping AdminInterfaceApi requests
@@ -179,6 +174,31 @@ impl Runtime {
                 Ok(app_auth)
             }
         }
+    }
+
+    /// Full process to setup an app
+    /// 
+    /// Check if app is installed, if not install it, then optionally enable it.
+    /// Then ensure there is an app websocket and authentication for it.
+    pub async fn setup_app(
+        &self,
+        payload: InstallAppPayload,
+        enable_after_install: bool
+    ) -> RuntimeResult<AppAuth> {
+        // This is a workaround because we cannot clone AppBundleSource,
+        // which is needed to read the actual app name from the manifest
+        // See https://github.com/holochain/holochain/pull/4882
+        let installed_app_id = payload.installed_app_id.ok()
+            .map_err(RuntimeError::InstalledAppIdNotSpecified)?;
+     
+        if !self.is_app_installed(installed_app_id.clone()).await? {
+            let _ = self.install_app(payload).await?;
+            if enable_after_install {
+                let _ = self.enable_app(installed_app_id.clone()).await?;
+            }
+        }
+
+        self.ensure_app_websocket(installed_app_id).await     
     }
 
     async fn req_admin_api(&self, request: AdminRequest) -> RuntimeResult<AdminResponse> {
@@ -605,5 +625,116 @@ mod test {
         let res = runtime.enable_app("non-existant-app-1".into()).await;
         assert!(res.is_err());
         assert!(matches!(res, Err(RuntimeError::AdminApiBadResponse { .. })))
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_setup_app_installs_when_app_id_different() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().to_path_buf();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let res = runtime
+            .setup_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                agent_key: None,
+                installed_app_id: Some("my-app-1".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+                allow_throwaway_random_agent_key: false,
+            }, false)
+            .await;
+        assert!(res.is_ok());
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 1);
+
+        let res = runtime
+            .setup_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                agent_key: None,
+                installed_app_id: Some("my-app-2".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+                allow_throwaway_random_agent_key: false,
+            }, false)
+            .await;
+        assert!(res.is_ok());
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 2);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_setup_app_does_not_enable_after_install() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().to_path_buf();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let res = runtime
+            .setup_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                agent_key: None,
+                installed_app_id: Some("my-app-1".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+                allow_throwaway_random_agent_key: false,
+            }, false)
+            .await;
+        assert!(res.is_ok());
+        let apps = runtime.list_apps().await.unwrap();
+        assert!(matches!(apps.first().unwrap().status, AppInfoStatus::Disabled { .. }));
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_setup_app_does_enable_after_install() {
+        let tmp_dir = TempDir::new().unwrap();
+        let tmp_dir_path = tmp_dir.path().to_path_buf();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let res = runtime
+            .setup_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                agent_key: None,
+                installed_app_id: Some("my-app-1".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+                allow_throwaway_random_agent_key: false,
+            }, true)
+            .await;
+        assert!(res.is_ok());
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert!(matches!(apps.first().unwrap().status, AppInfoStatus::Running));
     }
 }

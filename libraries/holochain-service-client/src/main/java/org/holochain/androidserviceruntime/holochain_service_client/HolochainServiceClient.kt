@@ -37,46 +37,41 @@ class HolochainServiceClient(
         }
       }
 
+  /// Connect to the service
+  suspend fun connect() {
+    Log.d(TAG, "connect")
+    val intent = Intent()
+    intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
+    this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
+
+    this.waitForConnectReady()
+  }
+
   /// Entire process to setup an app
   ///
-  /// Connect to service, install app, enable app, ensure app websocket
+  /// Check if app is installed.
+  /// If not, install it and (optionally) enable it.
+  /// Then ensure there is an app websocket available for it
   suspend fun setupApp(
       installAppPayload: InstallAppPayloadFfi,
       enableAfterInstall: Boolean
   ): AppAuthFfi {
     Log.d(TAG, "setupApp")
-    this.connect()
-    this.waitForConnectReady()
-
-    if (!this.isAppInstalled(installAppPayload.installedAppId!!)) {
-      this.installApp(installAppPayload)
-
-      if (enableAfterInstall) {
-        this.enableApp(installAppPayload.installedAppId!!)
-      }
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
     }
 
-    return this.ensureAppWebsocket(installAppPayload.installedAppId!!)
-  }
+    val deferred = CompletableDeferred<AppInfoFfi>()
+    var callbackBinder =
+        object : IHolochainServiceCallbackStub() {
+          override fun setupApp(response: AppInfoFfiParcel) {
+            Log.d(TAG, "setupApp callback")
+            deferred.complete(response.inner)
+          }
+        }
+    this.mService!!.setupApp(callbackBinder, InstallAppPayloadFfiParcel(payload), enableAfterInstall)
 
-  /// Connect to the service
-  fun connect() {
-    Log.d(TAG, "connect")
-    val intent = Intent()
-    intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
-    this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
-  }
-
-  /// Poll until we are connected to the service, or the timeout has elapsed
-  suspend fun waitForConnectReady(timeoutMs: Long = 100L, intervalMs: Long = 5L) {
-    var elapsedMs = 0L
-    while (elapsedMs <= timeoutMs) {
-      Log.d(TAG, "waitForConnectReady " + elapsedMs)
-      if (this.mService != null) break
-
-      delay(intervalMs)
-      elapsedMs += intervalMs
-    }
+    return deferred.await()
   }
 
   /// Stop the service
@@ -251,5 +246,17 @@ class HolochainServiceClient(
     this.mService!!.signZomeCall(callbackBinder, ZomeCallUnsignedFfiParcel(args))
 
     return deferred.await()
+  }
+
+  /// Poll until we are connected to the service, or the timeout has elapsed
+  private suspend fun waitForConnectReady(timeoutMs: Long = 100L, intervalMs: Long = 5L) {
+    var elapsedMs = 0L
+    while (elapsedMs <= timeoutMs) {
+      Log.d(TAG, "waitForConnectReady " + elapsedMs)
+      if (this.mService != null) break
+
+      delay(intervalMs)
+      elapsedMs += intervalMs
+    }
   }
 }
