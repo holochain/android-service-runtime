@@ -72,6 +72,16 @@ class HolochainServiceClient(
     return deferred.await()
   }
 
+  /// Connect to service, wait for connection to be ready, and setupApp
+  suspend fun connectSetupApp(
+      installAppPayload: InstallAppPayloadFfi,
+      enableAfterInstall: Boolean
+  ): AppAuthFfi {
+    this.connect()
+    this.waitForConnectReady();
+    return this.setupApp(installAppPayload, enableAfterInstall)
+  }
+
   /// Stop the service
   fun stop() {
     if (this.mService == null) {

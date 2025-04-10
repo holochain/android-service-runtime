@@ -42,18 +42,15 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     }
 
     /**
-     * Setup an app
+     * Connect to service, wait for connection to be ready, then setup an app
      */
     @Command
-    fun setupApp(invoke: Invoke) {
-        Log.d(TAG, "setupApp")
+    fun connectSetupApp(invoke: Invoke) {
+        Log.d(TAG, "connectSetupApp")
         val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)        
         serviceScope.launch(Dispatchers.IO) {
             try {
-                serviceClient.connect()
-                serviceClient.waitForConnectReady();
-
-                val res = serviceClient.setupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
+                val res = serviceClient.connectSetupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
                handleCommandException(e, invoke)

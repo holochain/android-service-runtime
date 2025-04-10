@@ -39,8 +39,8 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
     /// 5. Ensure there is an app websocket and return its authentication config
     ///
     /// This can be safely called whether or not the app is installed.
-    pub fn setup_app(&self, config: SetupAppConfig) -> crate::Result<AppAuthFfi> {
-        Ok(self.0.run_mobile_plugin::<AppAuthFfi>("setupApp", config)?)
+    pub fn connect_setup_app(&self, config: SetupAppConfig) -> crate::Result<AppAuthFfi> {
+        Ok(self.0.run_mobile_plugin::<AppAuthFfi>("connectSetupApp", config)?)
     }
 
     /// Build a window that opens the main UI for your Tauri app.
@@ -83,7 +83,7 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
         &self,
         config: SetupAppConfig,
     ) -> tauri::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
-        let app_auth = self.setup_app(config.clone()).ok();
+        let app_auth = self.connect_setup_app(config.clone()).ok();
         let window_builder = self.main_window_builder(config.app_id, app_auth.clone())?;
         
         Ok(window_builder)
