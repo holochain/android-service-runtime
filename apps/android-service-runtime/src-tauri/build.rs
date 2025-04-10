@@ -41,6 +41,4 @@ r#"<activity
 </activity>"#.to_string(),
   )
   .expect("Failed to update AndroidManifest.xml");
-
-    ()
 }

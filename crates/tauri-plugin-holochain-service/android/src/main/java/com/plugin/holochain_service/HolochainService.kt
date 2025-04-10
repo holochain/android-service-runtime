@@ -48,6 +48,18 @@ class HolochainService : Service() {
             Log.d(TAG, "isReady")
             return runtime != null
         }
+
+        /// Setup an app
+        override fun setupApp(
+            callback: IHolochainServiceCallback,
+            payload: InstallAppPayloadFfiParcel,
+            enableAfterInstall: Boolean
+        ) {
+            Log.d(TAG, "setupApp")
+            serviceScope.launch(Dispatchers.IO) {
+                callback.setupApp(AppAuthFfiParcel(runtime!!.setupApp(payload.inner, enableAfterInstall)))
+            }
+        }
         
         /// Install an app
         override fun installApp(
@@ -143,17 +155,18 @@ class HolochainService : Service() {
         val appBinder = object :  IHolochainServiceApp.Stub() {
             val TAG = "IHolochainServiceApp"
 
-            /// Install an app
-            override fun installApp(
+            /// Setup an app
+            override fun setupApp(
                 callback: IHolochainServiceCallback,
-                request: InstallAppPayloadFfiParcel
+                payload: InstallAppPayloadFfiParcel,
+                enableAfterInstall: Boolean
             ) {
-                Log.d(TAG, "installApp")
+                Log.d(TAG, "setupApp")
                 serviceScope.launch(Dispatchers.IO) {
-                    callback.installApp(AppInfoFfiParcel(runtime!!.installApp(request.inner)))
+                    callback.setupApp(AppAuthFfiParcel(runtime!!.setupApp(payload.inner, enableAfterInstall)))
                 }
             }
-
+        
             /// Enable an installed app
             override fun enableApp(
                 callback: IHolochainServiceCallback,
@@ -162,17 +175,6 @@ class HolochainService : Service() {
                 Log.d(TAG, "enableApp")
                 serviceScope.launch(Dispatchers.IO) {
                     callback.enableApp(AppInfoFfiParcel(runtime!!.enableApp(installedAppId)))
-                }
-            }
-
-            /// Is app installed
-            override fun isAppInstalled(
-                callback: IHolochainServiceCallback,
-                installedAppId: String
-            ) {
-                Log.d(TAG, "isAppInstalled")
-                serviceScope.launch(Dispatchers.IO) {
-                    callback.isAppInstalled(runtime!!.isAppInstalled(installedAppId))
                 }
             }
 
@@ -221,7 +223,7 @@ class HolochainService : Service() {
         Log.d(TAG, "onBind: api=" + api + " clientPackageName=" + clientPackageName)
 
         if (api == "admin") {
-            // Only this package can call the admin api
+            // Only the current package can call the admin api
             if(clientPackageName == this.getPackageName()) {
                 return adminBinder as IBinder
             } else {

@@ -5,9 +5,8 @@ import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPa
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel;
 
 interface IHolochainServiceApp {
-    void installApp(IHolochainServiceCallback callback, in InstallAppPayloadFfiParcel request);
+    void setupApp(IHolochainServiceCallback callback, in InstallAppPayloadFfiParcel request, boolean enableAfterInstall);
     void enableApp(IHolochainServiceCallback callback, String installedAppId);
-    void isAppInstalled(IHolochainServiceCallback callback, String installedAppId);
     void ensureAppWebsocket(IHolochainServiceCallback callback, String installedAppId);
     void signZomeCall(IHolochainServiceCallback callback, in ZomeCallUnsignedFfiParcel request);
 }

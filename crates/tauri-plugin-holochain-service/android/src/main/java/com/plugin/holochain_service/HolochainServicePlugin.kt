@@ -229,7 +229,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         // Inject holochain client env
         val tokenJsArray = appWebsocketToken.toMutableList().toJSONArrayString()
         this.webView.evaluateJavascript(
-            """injectHolochainClientEnv("$appId", ${appWebsocketPort}, ${tokenJsArray}) """,
+            """window.injectHolochainClientEnv("$appId", ${appWebsocketPort}, ${tokenJsArray}) """,
             null
         )
     }

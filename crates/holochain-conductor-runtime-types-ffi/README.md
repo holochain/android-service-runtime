@@ -1,6 +1,6 @@
-# holochain_runtime_types_uniffi
+# holochain-conductor-runtime-types-ffi
 
-This crate contains wrappers around types used in requests & responses of p2p-shipyard's `holochain_runtime`.
+This crate contains wrappers around types used in requests & responses of `holochain-conductor-runtime`.
 
 It generates FFI bindings for Kotlin.
 
