@@ -213,20 +213,31 @@ impl Runtime {
         self.ensure_app_websocket(installed_app_id).await
     }
 
-    pub fn authorize_app_client(&self, client_uid: ClientId, installed_app_id: InstalledAppId) -> RuntimeResult<()> {
+    pub fn authorize_app_client(
+        &self,
+        client_uid: ClientId,
+        installed_app_id: InstalledAppId,
+    ) -> RuntimeResult<()> {
         let mut app_clients = self.authorized_app_clients.write().unwrap();
         let mut app_ids = match app_clients.clone().get(&client_uid) {
             Some(a) => a.clone(),
-            None => vec!()
+            None => vec![],
         };
         app_ids.push(installed_app_id);
         app_clients.insert(client_uid, app_ids.clone());
         Ok(())
     }
 
-    pub fn is_app_client_authorized(&self, client_uid: ClientId, installed_app_id: InstalledAppId) -> RuntimeResult<bool> {
+    pub fn is_app_client_authorized(
+        &self,
+        client_uid: ClientId,
+        installed_app_id: InstalledAppId,
+    ) -> RuntimeResult<bool> {
         let app_clients = self.authorized_app_clients.read().unwrap();
-        Ok(app_clients.get(&client_uid).map(|app_ids| app_ids.contains(&installed_app_id)).unwrap_or_else(|| false))
+        Ok(app_clients
+            .get(&client_uid)
+            .map(|app_ids| app_ids.contains(&installed_app_id))
+            .unwrap_or_else(|| false))
     }
 
     async fn req_admin_api(&self, request: AdminRequest) -> RuntimeResult<AdminResponse> {
