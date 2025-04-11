@@ -35,7 +35,11 @@ class HolochainServiceAppClient(
   /// Connect to the service
   fun connect(installedAppId: String) {
     Log.d(TAG, "connect")
-    val intent = Intent()
+    
+    // Giving the intent a unique action ensures the HolochainService `onBind()` callback is triggered.
+    val packageName: String = this.activity.getPackageName()
+    val intent = Intent("$packageName:$installedAppId")
+
     intent.putExtra("api", "app")
     intent.putExtra("installedAppId", installedAppId)
     intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))

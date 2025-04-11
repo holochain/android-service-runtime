@@ -35,7 +35,11 @@ class HolochainServiceAdminClient(
   /// Connect to the service
   fun connect() {
     Log.d(TAG, "connect")
-    val intent = Intent()
+
+    // Giving the intent a unique action ensures the HolochainService `onBind()` callback is triggered.
+    val packageName: String = this.activity.getPackageName()
+    val intent = Intent(packageName)
+
     intent.putExtra("api", "admin")
     intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
     this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
