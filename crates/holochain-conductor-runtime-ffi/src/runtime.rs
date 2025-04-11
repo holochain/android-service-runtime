@@ -135,7 +135,7 @@ impl RuntimeFfi {
         #[cfg(test)]
         let app_auth = self
             .0
-            .setup_app(payload.into(), enable_after_install)
+            .setup_app(payload, enable_after_install)
             .await?;
 
         Ok(AppAuthFfi {
@@ -174,7 +174,7 @@ mod test {
         runtime
             .install_app(InstallAppPayloadFfi {
                 source: HAPP_FIXTURE.to_vec(),
-                installed_app_id: Some(app_id.into()),
+                installed_app_id: app_id.into(),
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
             })
@@ -244,7 +244,7 @@ mod test {
         let res = runtime
             .install_app(InstallAppPayloadFfi {
                 source: HAPP_FIXTURE.to_vec(),
-                installed_app_id: Some("my-app-1".into()),
+                installed_app_id: "my-app-1".into(),
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
             })
@@ -501,7 +501,7 @@ mod test {
             .setup_app(
                 InstallAppPayloadFfi {
                     source: HAPP_FIXTURE.to_vec(),
-                    installed_app_id: Some("my-app-1".into()),
+                    installed_app_id: "my-app-1".into(),
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                 },
