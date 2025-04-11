@@ -290,7 +290,7 @@ class ParcelablesTest {
         InstallAppPayloadFfiParcel(
             InstallAppPayloadFfi(
                 source = ByteArray(5000) { Random.nextInt(256).toByte() },
-                installedAppId = null,
+                installedAppId = "app-id",
                 networkSeed = null,
                 rolesSettings = null))
 
