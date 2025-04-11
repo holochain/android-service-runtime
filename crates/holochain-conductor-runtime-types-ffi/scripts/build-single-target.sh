@@ -2,6 +2,8 @@
 
 TARGET=$1
 
+cargo build -p holochain-conductor-runtime-types-ffi
+
 cargo ndk --manifest-path ./Cargo.toml -t $TARGET \
   -o ../tauri-plugin-holochain-service/android/src/main/jniLibs \
   build --release
