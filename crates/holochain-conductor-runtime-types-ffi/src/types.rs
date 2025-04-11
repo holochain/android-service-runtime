@@ -393,7 +393,7 @@ impl From<RoleSettingsFfi> for RoleSettings {
 pub struct InstallAppPayloadFfi {
     /// Raw bytes of encoded AppBundle
     pub source: Vec<u8>,
-    pub installed_app_id: String
+    pub installed_app_id: String,
     pub network_seed: Option<String>,
     pub roles_settings: Option<HashMap<String, RoleSettingsFfi>>,
 }
