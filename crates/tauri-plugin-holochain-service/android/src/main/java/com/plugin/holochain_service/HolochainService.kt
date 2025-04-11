@@ -170,6 +170,8 @@ class HolochainService : Service() {
             }
         }
 
+        // We cannot call Binder.getCallingUid() within the onBind callback,
+        // so instead we check the authorization within each IPC call
         private fun expectAuthorized() {
             val clientUid = Binder.getCallingUid()
             val clientPackageName = HolochainService@packageManager.getNameForUid(clientUid)
@@ -241,6 +243,8 @@ class HolochainService : Service() {
             }
         }
 
+        // We cannot call Binder.getCallingUid() within the onBind callback,
+        // so instead we check the authorization within each IPC call
         private fun expectAuthorized(installedAppId: String) {
             val clientUid = Binder.getCallingUid()
             val clientPackageName = packageManager.getNameForUid(clientUid)
