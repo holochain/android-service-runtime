@@ -1,16 +1,11 @@
 use crate::error::RuntimeResultFfi;
+use crate::multi_thread::MultiThreadRun;
 use android_logger::Config;
 use holochain_conductor_runtime::{move_to_locked_mem, Runtime, RuntimeConfig};
 use holochain_conductor_runtime_types_ffi::*;
 use holochain_types::prelude::InstallAppPayload;
 use log::{debug, LevelFilter};
-use std::sync::LazyLock;
-use tokio::runtime::{Builder, Runtime as TokioRuntime};
 use url2::Url2;
-
-/// Global multi threaded tokio runtime
-pub static RT: LazyLock<TokioRuntime> =
-    LazyLock::new(|| Builder::new_multi_thread().enable_all().build().unwrap());
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
 #[derive(uniffi::Object, Clone)]
@@ -70,12 +65,7 @@ impl RuntimeFfi {
     pub async fn install_app(&self, payload: InstallAppPayloadFfi) -> RuntimeResultFfi<AppInfoFfi> {
         debug!("RuntimeFfi::install_app");
         let payload: InstallAppPayload = payload.try_into()?;
-
-        #[cfg(not(test))]
-        let res = RT.block_on(async { self.0.install_app(payload).await })?;
-
-        #[cfg(test)]
-        let res = self.0.install_app(payload).await?;
+        let res = MultiThreadRun::exec(self.0.install_app(payload)).await?;
 
         Ok(res.into())
     }
@@ -117,8 +107,8 @@ impl RuntimeFfi {
     /// Check if app is installed, if not install it, then optionally enable it.
     /// Then ensure there is an app websocket and authentication for it.
     ///
-    /// If an app is already installed, it will not be enabled. It is only enabled after a successful install. 
-    /// The reasoning is that if an app is disabled after that point, 
+    /// If an app is already installed, it will not be enabled. It is only enabled after a successful install.
+    /// The reasoning is that if an app is disabled after that point,
     /// it is assumed to have been manually disabled in the admin interface, which we don't want to override.
     pub async fn setup_app(
         &self,
@@ -127,16 +117,8 @@ impl RuntimeFfi {
     ) -> RuntimeResultFfi<AppAuthFfi> {
         debug!("RuntimeFfi::setup_app");
         let payload: InstallAppPayload = payload.try_into()?;
-
-        #[cfg(not(test))]
         let app_auth =
-            RT.block_on(async { self.0.setup_app(payload, enable_after_install).await })?;
-
-        #[cfg(test)]
-        let app_auth = self
-            .0
-            .setup_app(payload, enable_after_install)
-            .await?;
+            MultiThreadRun::exec(self.0.setup_app(payload, enable_after_install)).await?;
 
         Ok(AppAuthFfi {
             authentication: app_auth.authentication.into(),
