@@ -10,9 +10,9 @@ use holochain::{
 };
 use holochain_types::websocket::AllowedOrigins;
 use kitsune_p2p_types::dependencies::lair_keystore_api::dependencies::sodoken::BufRead;
+use log::debug;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use log::debug;
 
 /// Map of app ids to their associated app websocket & authentication
 pub type AppAuths = Arc<RwLock<HashMap<InstalledAppId, AppAuth>>>;
@@ -194,7 +194,10 @@ impl Runtime {
             .ok_or(RuntimeError::InstalledAppIdNotSpecified)?;
 
         if self.is_app_installed(installed_app_id.clone()).await? {
-            debug!("App {} is already installed, skipping install and enable", installed_app_id.clone());
+            debug!(
+                "App {} is already installed, skipping install and enable",
+                installed_app_id.clone()
+            );
         } else {
             let _ = self.install_app(payload).await?;
             if enable_after_install {
