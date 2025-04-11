@@ -194,8 +194,8 @@ impl Runtime {
             .ok_or(RuntimeError::InstalledAppIdNotSpecified)?;
 
         if self.is_app_installed(installed_app_id.clone()).await? {
-            debug!("App {} is already installed, skipping install and enable")
-        else {
+            debug!("App {} is already installed, skipping install and enable", installed_app_id.clone());
+        } else {
             let _ = self.install_app(payload).await?;
             if enable_after_install {
                 let _ = self.enable_app(installed_app_id.clone()).await?;
