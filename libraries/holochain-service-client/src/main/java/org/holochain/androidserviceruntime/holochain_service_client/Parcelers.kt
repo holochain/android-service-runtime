@@ -53,7 +53,7 @@ object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
     sourceSharedMemory.close()
 
     return InstallAppPayloadFfi(
-        source, parcel.readString(), parcel.readString(), readRoleSettingsMap(parcel))
+        source, parcel.readString()!!, parcel.readString(), readRoleSettingsMap(parcel))
   }
 
   override fun InstallAppPayloadFfi.write(parcel: Parcel, flags: Int) {
