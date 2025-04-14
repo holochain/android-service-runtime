@@ -7,6 +7,7 @@ import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsi
 interface IHolochainService {
     void stop();
     boolean isReady();
+    void setupApp(IHolochainServiceCallback callback, in InstallAppPayloadFfiParcel request, boolean enableAfterInstall);
     void installApp(IHolochainServiceCallback callback, in InstallAppPayloadFfiParcel request);
     void uninstallApp(IHolochainServiceCallback callback, String installedAppId);
     void enableApp(IHolochainServiceCallback callback, String installedAppId);

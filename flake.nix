@@ -49,6 +49,11 @@
             packages = [
               rust
             ] ++ (with inputs'.holonix.packages; [
+              # For the example-client-app
+              holochain
+              lair-keystore
+              hc-launch
+              hc-scaffold
               hn-introspect
             ]) ++ (with pkgs; [
               nodejs_20 # For UI development

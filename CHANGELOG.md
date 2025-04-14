@@ -24,3 +24,4 @@
 - Add command `setupApp` to `HolochainServiceClient` that includes all logic for installing an app if necessary, enabling it, and setting up the app ws authentication.
 - Remove commands `installApp`, `connect`, `isAppInstalled`, `ensureAppWebsocket` from `tauri-plugin-holochain-service-consumer`. Their function has been replaced by a single command `setupApp`.
 - Display notice on consumer app launch when unable to connect to HolochainService.
+- Refactor setupApp implementation by moving core logic into the `holochain-service-runtime` crate, rename `tauri-plugin-holochain-service-consumer` command from `setupApp` to `connectSetupApp`.

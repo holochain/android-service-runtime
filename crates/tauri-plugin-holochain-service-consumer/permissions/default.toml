@@ -1,3 +1,3 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-setup-app", "allow-enable-app", "allow-sign-zome-call"]
+permissions = ["allow-connect-setup-app", "allow-enable-app", "allow-sign-zome-call"]

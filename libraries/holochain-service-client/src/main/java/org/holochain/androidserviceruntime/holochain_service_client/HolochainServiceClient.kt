@@ -37,28 +37,6 @@ class HolochainServiceClient(
         }
       }
 
-  /// Entire process to setup an app
-  ///
-  /// Connect to service, install app, enable app, ensure app websocket
-  suspend fun setupApp(
-      installAppPayload: InstallAppPayloadFfi,
-      enableAfterInstall: Boolean
-  ): AppAuthFfi {
-    Log.d(TAG, "setupApp")
-    this.connect()
-    this.waitForConnectReady()
-
-    if (!this.isAppInstalled(installAppPayload.installedAppId!!)) {
-      this.installApp(installAppPayload)
-
-      if (enableAfterInstall) {
-        this.enableApp(installAppPayload.installedAppId!!)
-      }
-    }
-
-    return this.ensureAppWebsocket(installAppPayload.installedAppId!!)
-  }
-
   /// Connect to the service
   fun connect() {
     Log.d(TAG, "connect")
@@ -67,16 +45,44 @@ class HolochainServiceClient(
     this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
   }
 
-  /// Poll until we are connected to the service, or the timeout has elapsed
-  suspend fun waitForConnectReady(timeoutMs: Long = 100L, intervalMs: Long = 5L) {
-    var elapsedMs = 0L
-    while (elapsedMs <= timeoutMs) {
-      Log.d(TAG, "waitForConnectReady " + elapsedMs)
-      if (this.mService != null) break
-
-      delay(intervalMs)
-      elapsedMs += intervalMs
+  /// Full process to setup an app
+  ///
+  /// Check if app is installed, if not install it, then optionally enable it.
+  /// Then ensure there is an app websocket and authentication for it.
+  ///
+  /// If an app is already installed, it will not be enabled. It is only enabled after a successful install. 
+  /// The reasoning is that if an app is disabled after that point, 
+  /// it is assumed to have been manually disabled in the admin interface, which we don't want to override.
+  suspend fun setupApp(
+      installAppPayload: InstallAppPayloadFfi,
+      enableAfterInstall: Boolean
+  ): AppAuthFfi {
+    Log.d(TAG, "setupApp")
+    if (this.mService == null) {
+      throw HolochainServiceNotConnectedException()
     }
+
+    val deferred = CompletableDeferred<AppAuthFfi>()
+    var callbackBinder =
+        object : IHolochainServiceCallbackStub() {
+          override fun setupApp(response: AppAuthFfiParcel) {
+            Log.d(TAG, "setupApp callback")
+            deferred.complete(response.inner)
+          }
+        }
+    this.mService!!.setupApp(callbackBinder, InstallAppPayloadFfiParcel(installAppPayload), enableAfterInstall)
+
+    return deferred.await()
+  }
+
+  /// Connect to service, wait for connection to be ready, and setupApp
+  suspend fun connectSetupApp(
+      installAppPayload: InstallAppPayloadFfi,
+      enableAfterInstall: Boolean
+  ): AppAuthFfi {
+    this.connect()
+    this.waitForConnectReady();
+    return this.setupApp(installAppPayload, enableAfterInstall)
   }
 
   /// Stop the service
@@ -251,5 +257,18 @@ class HolochainServiceClient(
     this.mService!!.signZomeCall(callbackBinder, ZomeCallUnsignedFfiParcel(args))
 
     return deferred.await()
+  }
+
+  /// Poll until we are connected to the service, or the timeout has elapsed
+  suspend fun waitForConnectReady(timeoutMs: Long = 100L) {
+    var intervalMs = 5L
+    var elapsedMs = 0L
+    while (elapsedMs <= timeoutMs) {
+      Log.d(TAG, "waitForConnectReady " + elapsedMs)
+      if (this.mService != null) break
+
+      delay(intervalMs)
+      elapsedMs += intervalMs
+    }
   }
 }
