@@ -10,6 +10,7 @@ use holochain::{
 };
 use holochain_types::websocket::AllowedOrigins;
 use kitsune_p2p_types::dependencies::lair_keystore_api::dependencies::sodoken::BufRead;
+use log::debug;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -190,6 +191,10 @@ impl Runtime {
     ///
     /// Check if app is installed, if not install it, then optionally enable it.
     /// Then ensure there is an app websocket and authentication for it.
+    ///
+    /// If an app is already installed, it will not be enabled. It is only enabled after a successful install.
+    /// The reasoning is that if an app is disabled after that point,
+    /// it is assumed to have been manually disabled in the admin interface, which we don't want to override.
     pub async fn setup_app(
         &self,
         payload: InstallAppPayload,
@@ -203,7 +208,12 @@ impl Runtime {
             .clone()
             .ok_or(RuntimeError::InstalledAppIdNotSpecified)?;
 
-        if !self.is_app_installed(installed_app_id.clone()).await? {
+        if self.is_app_installed(installed_app_id.clone()).await? {
+            debug!(
+                "App {} is already installed, skipping install and enable",
+                installed_app_id.clone()
+            );
+        } else {
             let _ = self.install_app(payload).await?;
             if enable_after_install {
                 let _ = self.enable_app(installed_app_id.clone()).await?;

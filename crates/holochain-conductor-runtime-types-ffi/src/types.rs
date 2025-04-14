@@ -393,7 +393,7 @@ impl From<RoleSettingsFfi> for RoleSettings {
 pub struct InstallAppPayloadFfi {
     /// Raw bytes of encoded AppBundle
     pub source: Vec<u8>,
-    pub installed_app_id: Option<String>,
+    pub installed_app_id: String,
     pub network_seed: Option<String>,
     pub roles_settings: Option<HashMap<String, RoleSettingsFfi>>,
 }
@@ -404,7 +404,7 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
         Ok(InstallAppPayload {
             source: AppBundleSource::Bytes(self.source),
             agent_key: None,
-            installed_app_id: self.installed_app_id,
+            installed_app_id: Some(self.installed_app_id),
             network_seed: self.network_seed,
             roles_settings: self
                 .roles_settings

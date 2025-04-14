@@ -51,9 +51,12 @@ object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
     // Clear the shared memory
     SharedMemory.unmap(sourceBuffer)
     sourceSharedMemory.close()
+    
+    val installedAppId = parcel.readString()
+    if(installedAppId == null) throw IllegalArgumentException("installedAppId must not be null")
 
     return InstallAppPayloadFfi(
-        source, parcel.readString(), parcel.readString(), readRoleSettingsMap(parcel))
+        source, installedAppId!!, parcel.readString(), readRoleSettingsMap(parcel))
   }
 
   override fun InstallAppPayloadFfi.write(parcel: Parcel, flags: Int) {
