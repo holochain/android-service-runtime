@@ -56,7 +56,7 @@ object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
     if(installedAppId == null) throw IllegalArgumentException("installedAppId must not be null")
 
     return InstallAppPayloadFfi(
-        source, parcel.readString()!!, parcel.readString(), readRoleSettingsMap(parcel))
+        source, installedAppId!!, parcel.readString(), readRoleSettingsMap(parcel))
   }
 
   override fun InstallAppPayloadFfi.write(parcel: Parcel, flags: Int) {
