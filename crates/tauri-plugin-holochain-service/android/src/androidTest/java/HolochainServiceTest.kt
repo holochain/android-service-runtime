@@ -1,25 +1,16 @@
 package com.plugin.holochain_service
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
-import android.os.IBinder
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.ServiceTestRule
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.runBlocking
-import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfi
-import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceAdmin
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceApp
-import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallback
-import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallbackStub
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.security.InvalidParameterException
-
 
 class HolochainServiceTest {
 
@@ -27,7 +18,7 @@ class HolochainServiceTest {
     val serviceRule = ServiceTestRule()
 
     @Test
-    fun bind_intentWithoutApiFails() {
+    fun bindIntentWithoutApiFails() {
         val intent = Intent(
             ApplicationProvider.getApplicationContext<Context>(),
             HolochainService::class.java
@@ -39,7 +30,7 @@ class HolochainServiceTest {
     }
 
     @Test
-    fun bind_intentWithApiAdmin() {
+    fun bindIntentWithApiAdmin() {
         val serviceIntent = Intent(
             ApplicationProvider.getApplicationContext<Context>(),
             HolochainService::class.java
@@ -51,7 +42,7 @@ class HolochainServiceTest {
     }
 
     @Test
-    fun bind_intentWithApiAppFails() {
+    fun bindIntentWithApiAppFails() {
         val intent = Intent(
             ApplicationProvider.getApplicationContext<Context>(),
             HolochainService::class.java
@@ -64,7 +55,7 @@ class HolochainServiceTest {
     }
 
     @Test
-    fun bind_intentWithApiAppAndInstalledAppId() {
+    fun bindIntentWithApiAppAndInstalledAppId() {
         val serviceIntent = Intent(
             ApplicationProvider.getApplicationContext<Context>(),
             HolochainService::class.java
