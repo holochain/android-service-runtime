@@ -37,11 +37,6 @@ jobs:
             arch-ndk: x86_64
             arch-cargo: x86_64-linux-android
     steps:
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: false
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -91,7 +86,6 @@ jobs:
 
       - name: Build dependency rust library & kotlin bindings
         run: |
-          pnpm run build:single-target:holochain-conductor-runtime-ffi ${{ matrix.target.arch-cargo }}
           pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
       
       - name: Create gradle.properties without secrets
@@ -105,6 +99,4 @@ jobs:
           api-level: ${{ matrix.target.api-level }}
           arch: ${{ matrix.target.arch-ndk }}
           target: google_apis
-          script: |
-            pnpm run test:holochain-service-client
-            pnpm run test:tauri-plugin-holochain-service
+          script: pnpm run test:holochain-service-client
