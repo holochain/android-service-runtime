@@ -17,11 +17,21 @@ use std::sync::{Arc, RwLock};
 /// Map of app ids to their associated app websocket & authentication
 pub type AppAuths = Arc<RwLock<HashMap<InstalledAppId, AppAuth>>>;
 
+/// A unique identifier representing the client instance
+/// For example if the client is an android app, the client id would be the package name
+/// i.e. "org.holochain.androidserviceclient.app"
+#[derive(Eq, Hash, PartialEq, Clone, Debug)]
+pub struct ClientId(pub String);
+
+/// A map of ClientIds authorized to make app api requests to the specified InstalledAppIds
+pub type AuthorizedAppClients = Arc<RwLock<HashMap<ClientId, Vec<InstalledAppId>>>>;
+
 /// Slim wrapper around holochain Conductor with calls wrapping AdminInterfaceApi requests
 #[derive(Clone)]
 pub struct Runtime {
     conductor: ConductorHandle,
     app_auths: AppAuths,
+    authorized_app_clients: AuthorizedAppClients,
 }
 
 impl Runtime {
@@ -51,6 +61,7 @@ impl Runtime {
         Ok(Self {
             conductor,
             app_auths: Arc::new(RwLock::new(HashMap::new())),
+            authorized_app_clients: Arc::new(RwLock::new(HashMap::new())),
         })
     }
 
@@ -210,6 +221,33 @@ impl Runtime {
         }
 
         self.ensure_app_websocket(installed_app_id).await
+    }
+
+    pub fn authorize_app_client(
+        &self,
+        client_uid: ClientId,
+        installed_app_id: InstalledAppId,
+    ) -> RuntimeResult<()> {
+        let mut app_clients = self.authorized_app_clients.write().unwrap();
+        let mut app_ids = match app_clients.clone().get(&client_uid) {
+            Some(a) => a.clone(),
+            None => vec![],
+        };
+        app_ids.push(installed_app_id);
+        app_clients.insert(client_uid, app_ids.clone());
+        Ok(())
+    }
+
+    pub fn is_app_client_authorized(
+        &self,
+        client_uid: ClientId,
+        installed_app_id: InstalledAppId,
+    ) -> RuntimeResult<bool> {
+        let app_clients = self.authorized_app_clients.read().unwrap();
+        Ok(app_clients
+            .get(&client_uid)
+            .map(|app_ids| app_ids.contains(&installed_app_id))
+            .unwrap_or_else(|| false))
     }
 
     async fn req_admin_api(&self, request: AdminRequest) -> RuntimeResult<AdminResponse> {

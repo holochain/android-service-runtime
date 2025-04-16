@@ -10,37 +10,37 @@ import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 
-class HolochainServiceNotConnectedException(
-    message: String = "Holochain service is not connected",
-    cause: Throwable? = null
-) : Exception(message, cause)
-
-class HolochainServiceClient(
+class HolochainServiceAdminClient(
     private val activity: Activity,
     private val servicePackageName: String = "org.holochain.androidserviceruntime.app",
     private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
 ) {
-  private var mService: IHolochainService? = null
-  private val TAG = "HolochainServiceClient"
+  private var mService: IHolochainServiceAdmin? = null
+  private val TAG = "HolochainServiceAdminClient"
 
   // IPC Connection to HolochainService using AIDL
   private val mConnection =
       object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
-          mService = IHolochainService.Stub.asInterface(service)
-          Log.d(TAG, "IHolochainService connected")
+          mService = IHolochainServiceAdmin.Stub.asInterface(service)
+          Log.d(TAG, "IHolochainServiceAdmin connected")
         }
 
         override fun onServiceDisconnected(className: ComponentName) {
           mService = null
-          Log.d(TAG, "IHolochainService disconnected")
+          Log.d(TAG, "IHolochainServiceAdmin disconnected")
         }
       }
 
   /// Connect to the service
   fun connect() {
     Log.d(TAG, "connect")
-    val intent = Intent()
+
+    // Giving the intent a unique action ensures the HolochainService `onBind()` callback is triggered.
+    val packageName: String = this.activity.getPackageName()
+    val intent = Intent(packageName)
+
+    intent.putExtra("api", "admin")
     intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
     this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
   }

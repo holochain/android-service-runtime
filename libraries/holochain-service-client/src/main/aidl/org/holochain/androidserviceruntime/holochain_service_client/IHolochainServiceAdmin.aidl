@@ -4,7 +4,7 @@ import org.holochain.androidserviceruntime.holochain_service_client.IHolochainSe
 import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfiParcel;
 import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel;
 
-interface IHolochainService {
+interface IHolochainServiceAdmin {
     void stop();
     boolean isReady();
     void setupApp(IHolochainServiceCallback callback, in InstallAppPayloadFfiParcel request, boolean enableAfterInstall);

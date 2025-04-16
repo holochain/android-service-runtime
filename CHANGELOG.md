@@ -25,3 +25,4 @@
 - Remove commands `installApp`, `connect`, `isAppInstalled`, `ensureAppWebsocket` from `tauri-plugin-holochain-service-consumer`. Their function has been replaced by a single command `setupApp`.
 - Display notice on consumer app launch when unable to connect to HolochainService.
 - Refactor setupApp implementation by moving core logic into the `holochain-service-runtime` crate, rename `tauri-plugin-holochain-service-consumer` command from `setupApp` to `connectSetupApp`.
+- Split HolochainService IPC binders into "admin" and "app" binders. Restrict admin binder calls to only the same android package as the service. Restrict app binder calls to only authorized package + happ pairs. Currently new package + happ pairs are authorized automatically.
