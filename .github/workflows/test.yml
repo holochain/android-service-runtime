@@ -103,6 +103,10 @@ jobs:
           touch libraries/holochain-service/gradle.properties
           printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service/gradle.properties
 
+      - name: Publish holochain-service-client to mavenLocal
+        run: |
+          pnpm run publish:local:holochain-service-client
+
       - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
