@@ -15,8 +15,10 @@
       "android:start": "cd examples/end-user-happ && nix develop .#androidDev --command bash -c \"pnpm run tauri android dev\"",
       "publish:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew publish",
       "publish:local:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew publishToMavenLocal",
+      "publish:holochain-service": "cd libraries/holochain-service && ./gradlew publish",
+      "publish:local:holochain-service": "cd libraries/holochain-service && ./gradlew publishToMavenLocal",
       "test:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew connectedDebugAndroidTest",
-      "test:tauri-plugin-holochain-service": "cd crates/tauri-plugin-holochain-service/android && ./gradlew connectedDebugAndroidTest"
+      "test:holochain-service": "cd libraries/holochain-service && ./gradlew connectedDebugAndroidTest"
     },
     "dependencies": {
       "tslib": "^2.7.0"

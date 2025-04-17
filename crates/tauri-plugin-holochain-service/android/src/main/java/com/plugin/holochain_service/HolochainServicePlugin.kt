@@ -18,6 +18,7 @@ import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import app.tauri.plugin.JSArray
+import org.holochain.androidserviceruntime.holochain_service.HolochainService
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceAdminClient
 import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
 import org.holochain.androidserviceruntime.holochain_service_client.toJSONArrayString
@@ -26,13 +27,7 @@ import org.holochain.androidserviceruntime.holochain_service_client.toJSONArrayS
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     private lateinit var webView: WebView
     private lateinit var injectHolochainClientEnvJavascript: String
-    private val packageName = "org.holochain.androidserviceruntime.app"
-    private val className = "com.plugin.holochain_service.HolochainService"
-    private var serviceClient = HolochainServiceAdminClient(
-        this.activity,
-        this.packageName,
-        this.className,
-    )
+    private var serviceClient = HolochainServiceAdminClient(this.activity)
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private val TAG = "HolochainServicePlugin"
@@ -71,7 +66,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
 
         // Start service
         val intent = Intent()
-        intent.setComponent(ComponentName(this.packageName, this.className))
+        intent.setComponent(ComponentName(this.activity, HolochainService::class.java))
         this.activity.startForegroundService(intent)
 
         // Connect to service

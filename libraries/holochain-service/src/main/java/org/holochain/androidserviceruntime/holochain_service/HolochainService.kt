@@ -1,4 +1,4 @@
-package com.plugin.holochain_service
+package org.holochain.androidserviceruntime.holochain_service
 
 import android.util.Log
 import android.app.Service
@@ -11,7 +11,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.plugin.holochain_service.holochain_conductor_runtime_ffi.RuntimeFfi
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceAdmin
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceApp
 import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallback

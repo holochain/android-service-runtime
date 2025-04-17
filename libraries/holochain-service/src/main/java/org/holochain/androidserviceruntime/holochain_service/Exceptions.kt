@@ -1,4 +1,4 @@
-package com.plugin.holochain_service
+package org.holochain.androidserviceruntime.holochain_service
 
 class UnauthorizedException(
     message: String = "Unauthorized",
