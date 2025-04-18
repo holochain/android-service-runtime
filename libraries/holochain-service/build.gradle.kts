@@ -42,8 +42,7 @@ mavenPublishing {
 
   pom {
     name.set("Holochain Service Client")
-    description.set(
-        "An Android Foreground Service that runs a Holochain conductor.")
+    description.set("An Android Foreground Service that runs a Holochain conductor.")
     inceptionYear.set("2025")
     url.set("https://github.com/holochain/android-service-runtime/")
     licenses {
