@@ -105,11 +105,11 @@ jobs:
 
       - name: Build holochain-service-client
         run: |
-          cd libraries/holochain-service-client && ./gradlew sync && ./gradlew build
+          cd libraries/holochain-service-client && ./gradlew build
 
       - name: Build holochain-service
         run: |
-          cd libraries/holochain-service && ./gradlew sync && ./gradlew build
+          cd libraries/holochain-service && ./gradlew build
 
       - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
