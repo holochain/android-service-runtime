@@ -179,7 +179,11 @@ class HolochainService : Service() {
         enableAfterInstall: Boolean
     ) {
       Log.d(TAG, "setupApp")
-      this.expectAuthorized(installedAppId)
+      this.expectAuthorized()
+
+      if(payload.inner.installedAppId !== installedAppId) {
+        throw UnauthorizedException("Only the installedAppId specified in the AppBinder can be installed: expected $installedAppId but received ${payload.inner.installedAppId}")
+      }
 
       serviceScope.launch(Dispatchers.IO) {
         callback.setupApp(AppAuthFfiParcel(runtime!!.setupApp(payload.inner, enableAfterInstall)))
@@ -187,9 +191,9 @@ class HolochainService : Service() {
     }
 
     /// Enable an installed app
-    override fun enableApp(callback: IHolochainServiceCallback, installedAppId: String) {
+    override fun enableApp(callback: IHolochainServiceCallback) {
       Log.d(TAG, "enableApp")
-      this.expectAuthorized(installedAppId)
+      this.expectAuthorized()
 
       serviceScope.launch(Dispatchers.IO) {
         callback.enableApp(AppInfoFfiParcel(runtime!!.enableApp(installedAppId)))
@@ -197,9 +201,9 @@ class HolochainService : Service() {
     }
 
     /// Get or create an app websocket with an authenticated token
-    override fun ensureAppWebsocket(callback: IHolochainServiceCallback, installedAppId: String) {
+    override fun ensureAppWebsocket(callback: IHolochainServiceCallback) {
       Log.d(TAG, "ensureAppWebsocket")
-      this.expectAuthorized(installedAppId)
+      this.expectAuthorized()
 
       serviceScope.launch(Dispatchers.IO) {
         callback.ensureAppWebsocket(AppAuthFfiParcel(runtime?.ensureAppWebsocket(installedAppId)!!))
@@ -209,7 +213,7 @@ class HolochainService : Service() {
     /// Sign a zome call
     override fun signZomeCall(callback: IHolochainServiceCallback, req: ZomeCallUnsignedFfiParcel) {
       Log.d(TAG, "signZomeCall")
-      this.expectAuthorized(installedAppId)
+      this.expectAuthorized()
 
       serviceScope.launch(Dispatchers.IO) {
         callback.signZomeCall(ZomeCallFfiParcel(runtime!!.signZomeCall(req.inner)))
@@ -218,7 +222,7 @@ class HolochainService : Service() {
 
     // We cannot call Binder.getCallingUid() within the onBind callback,
     // so instead we check the authorization within each IPC call
-    private fun expectAuthorized(installedAppId: String) {
+    private fun expectAuthorized() {
       val clientUid = Binder.getCallingUid()
       val clientPackageName =
           packageManager.getNameForUid(clientUid)
@@ -227,21 +231,22 @@ class HolochainService : Service() {
 
       Log.d(
           TAG,
-          "AppBinder expectAuthorized clientPackageName=$clientPackageName installedAppId=$installedAppId")
+          "AppBinder expectAuthorized clientPackageName=$clientPackageName installedAppId=${installedAppId}")
       var isAuthorized = runtime!!.isAppClientAuthorized(clientPackageName, installedAppId)
 
       if (!isAuthorized) {
         Log.d(
             TAG,
-            "authorizeAppClient clientPackageName=$clientPackageName installedAppId=$installedAppId")
+            "authorizeAppClient clientPackageName=$clientPackageName installedAppId=${installedAppId}")
         // TODO notify user to request authorization
-        runtime!!.authorizeAppClient(clientPackageName, installedAppId)
 
-        // TODO If user does not provide authorization
-        // throw UnauthorizedException("Package is not authorized to access the AppBinder
-        // clientPackageName=$clientPackageName installedAppId=$installedAppId")
+        throw UnauthorizedException("Package is not authorized to access the AppBinder clientPackageName=$clientPackageName installedAppId=${this.installedAppId}")
       }
     }
+  }
+
+  internal fun authorizeAppClient(clientPackageName: String, installedAppId: String) {
+    runtime!!.authorizeAppClient(clientPackageName, installedAppId)
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

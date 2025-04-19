@@ -98,7 +98,7 @@ class HolochainServiceAppClient(
             deferred.complete(response.inner)
           }
         }
-    this.mService!!.enableApp(callbackBinder, installedAppId)
+    this.mService!!.enableApp(callbackBinder)
     return deferred.await()
   }
 
