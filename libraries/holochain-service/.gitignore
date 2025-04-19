@@ -1,0 +1,11 @@
+build
+.tauri
+.gradle
+.kotlin
+.idea
+
+src/main/jniLibs/**
+src/main/res/raw/
+src/main/**/*_ffi.kt
+
+gradle.properties
