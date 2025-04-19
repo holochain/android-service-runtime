@@ -1,4 +1,4 @@
-package com.plugin.holochain_service
+package org.holochain.androidserviceruntime.holochain_service
 
 import android.content.Context
 import android.content.Intent
@@ -31,13 +31,13 @@ class HolochainServiceTest {
 
     @Test
     fun bindIntentWithApiAdmin() {
-        val serviceIntent = Intent(
+        val intent = Intent(
             ApplicationProvider.getApplicationContext<Context>(),
             HolochainService::class.java
         )
-        serviceIntent.putExtra("api", "admin")
+        intent.putExtra("api", "admin")
 
-        val binder = serviceRule.bindService(serviceIntent)
+        val binder = HolochainService().onBind(intent)
         assert(binder is IHolochainServiceAdmin)
     }
 
@@ -56,14 +56,14 @@ class HolochainServiceTest {
 
     @Test
     fun bindIntentWithApiAppAndInstalledAppId() {
-        val serviceIntent = Intent(
+        val intent = Intent(
             ApplicationProvider.getApplicationContext<Context>(),
             HolochainService::class.java
         )
-        serviceIntent.putExtra("api", "app")
-        serviceIntent.putExtra("installedAppId", "my-app-1")
+        intent.putExtra("api", "app")
+        intent.putExtra("installedAppId", "my-app-1")
 
-        val binder = serviceRule.bindService(serviceIntent)
+        val binder = HolochainService().onBind(intent)
         assert(binder is IHolochainServiceApp)
     }
 
