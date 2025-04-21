@@ -42,7 +42,7 @@ mavenPublishing {
   coordinates("org.holochain.androidserviceruntime", "holochain-service", "0.0.11")
 
   pom {
-    name.set("Holochain Service Client")
+    name.set("Holochain Service")
     description.set("An Android Foreground Service that runs a Holochain conductor.")
     inceptionYear.set("2025")
     url.set("https://github.com/holochain/android-service-runtime/")
