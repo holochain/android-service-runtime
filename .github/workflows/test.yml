@@ -95,6 +95,8 @@ jobs:
           pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
           pnpm run build:single-target:holochain-conductor-runtime-ffi ${{ matrix.target.arch-cargo }}
 
+          pnpm run lint:fix:holochain-service
+
       - name: Create gradle.properties without secrets
         run: |
           touch libraries/holochain-service-client/gradle.properties
@@ -105,11 +107,13 @@ jobs:
 
       - name: Build holochain-service-client
         run: |
-          cd libraries/holochain-service-client && ./gradlew build
+          pnpm run lint:fix:holochain-service-client
+          pnpm run build:holochain-service-client
 
       - name: Build holochain-service
         run: |
-          cd libraries/holochain-service && ./gradlew build
+          pnpm run lint:fix:holochain-service
+          pnpm run build:holochain-service
 
       - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
