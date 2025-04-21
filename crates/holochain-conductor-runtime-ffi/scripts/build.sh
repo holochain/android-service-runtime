@@ -2,7 +2,7 @@
 
 cargo build -p holochain-conductor-runtime-ffi
 
-cargo ndk --manifest-path ./Cargo.toml -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 \
+cargo ndk --manifest-path ./Cargo.toml -t arm64-v8a -t x86 -t x86_64 \
  -o ../../libraries/holochain-service/src/main/jniLibs \
   build --release
 
