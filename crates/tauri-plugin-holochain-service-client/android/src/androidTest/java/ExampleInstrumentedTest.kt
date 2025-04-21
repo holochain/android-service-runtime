@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.plugin.holochain_service_consumer", appContext.packageName)
+        assertEquals("com.plugin.holochain_service_client", appContext.packageName)
     }
 }

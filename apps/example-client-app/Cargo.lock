@@ -1413,7 +1413,7 @@ dependencies = [
  "log",
  "tauri",
  "tauri-build",
- "tauri-plugin-holochain-service-consumer",
+ "tauri-plugin-holochain-service-client",
  "tauri-plugin-log",
  "uuid",
 ]
@@ -5929,7 +5929,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-holochain-service-consumer"
+name = "tauri-plugin-holochain-service-client"
 version = "0.1.0"
 dependencies = [
  "bytes",

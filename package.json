@@ -8,7 +8,7 @@
       "build:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew build",
       "build:holochain-service": "cd libraries/holochain-service && ./gradlew build",
       "build:tauri-plugin-holochain-service": "pnpm run --dir crates/tauri-plugin-holochain-service build",
-      "build:tauri-plugin-holochain-service-consumer": "pnpm run --dir crates/tauri-plugin-holochain-service-consumer build",
+      "build:tauri-plugin-holochain-service-client": "pnpm run --dir crates/tauri-plugin-holochain-service-client build",
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
       "lint:fix:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew ktFmtFormat",
       "lint:fix:holochain-service": "cd libraries/holochain-service && ./gradlew ktFmtFormat",
@@ -19,7 +19,7 @@
       "test:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew connectedDebugAndroidTest",
       "test:holochain-service": "cd libraries/holochain-service && ./gradlew connectedDebugAndroidTest",
       "start:android-service-runtime": "pnpm run publish:local:holochain-service-client && pnpm run build:tauri-plugin-holochain-service && pnpm run --dir apps/android-service-runtime start:android",
-      "start:example-client-app": "pnpm run publish:local:holochain-service-client && pnpm run build:tauri-plugin-holochain-service-consumer && pnpm run --dir apps/example-client-app start:android"
+      "start:example-client-app": "pnpm run publish:local:holochain-service-client && pnpm run build:tauri-plugin-holochain-service-client && pnpm run --dir apps/example-client-app start:android"
     },
     "dependencies": {
       "tslib": "^2.7.0"

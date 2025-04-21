@@ -107,7 +107,7 @@ importers:
         specifier: ^5.3.3
         version: 5.8.2
 
-  crates/tauri-plugin-holochain-service-consumer:
+  crates/tauri-plugin-holochain-service-client:
     dependencies:
       '@holochain/client':
         specifier: 0.18.0

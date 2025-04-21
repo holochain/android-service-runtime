@@ -1,4 +1,4 @@
-package com.plugin.holochain_service_consumer
+package com.plugin.holochain_service_client
 
 import android.app.Activity
 import android.webkit.WebView
@@ -17,7 +17,7 @@ import org.holochain.androidserviceruntime.holochain_service_client.toJSONObject
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceNotConnectedException
 
 @TauriPlugin
-class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(activity) {
+class HolochainServiceClientPlugin(private val activity: Activity): Plugin(activity) {
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private val servicePackage = "org.holochain.androidserviceruntime.app"
@@ -27,7 +27,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
         "com.plugin.holochain_service.HolochainService"
     )
     private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
-    private val TAG = "HolochainServiceConsumerPlugin"
+    private val TAG = "HolochainServiceClientPlugin"
     private var webView: WebView? = null
 
     /**

@@ -1,12 +1,12 @@
 [package]
-name = "tauri-plugin-holochain-service-consumer"
+name = "tauri-plugin-holochain-service-client"
 version = "0.1.0"
 authors = [ "You" ]
 description = ""
 edition = "2021"
 rust-version = "1.70"
 exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
-links = "tauri-plugin-holochain-service-consumer"
+links = "tauri-plugin-holochain-service-client"
 
 [dependencies]
 holochain-conductor-runtime-types-ffi = { path = "../holochain-conductor-runtime-types-ffi" }

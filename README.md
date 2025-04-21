@@ -22,7 +22,7 @@ Uses the [tauri-plugin-holochain-service](#tauri-plugin-holochain-service) under
 
 A Tauri plugin for building Android apps that run a Holochain conductor as an [Foreground Service](https://developer.android.com/develop/background-work/services/fgs)
 
-#### tauri-plugin-holochain-service-consumer
+#### tauri-plugin-holochain-service-client
 
 A Tauri plugin for building Android apps that make use of the android-service-runtime Android app, instead of bundling their own conductor.
 

@@ -1,5 +1,5 @@
 {
-  "name": "tauri-plugin-holochain-service-consumer-api",
+  "name": "tauri-plugin-holochain-service-client-api",
   "version": "0.1.0",
   "author": "You",
   "description": "",

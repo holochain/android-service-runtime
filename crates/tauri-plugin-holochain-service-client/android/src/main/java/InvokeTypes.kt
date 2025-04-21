@@ -1,4 +1,4 @@
-package com.plugin.holochain_service_consumer
+package com.plugin.holochain_service_client
 
 import app.tauri.annotation.InvokeArg
 import org.holochain.androidserviceruntime.holochain_service_client.CellIdFfi
