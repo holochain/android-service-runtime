@@ -95,8 +95,6 @@ jobs:
           pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
           pnpm run build:single-target:holochain-conductor-runtime-ffi ${{ matrix.target.arch-cargo }}
 
-          pnpm run lint:fix:holochain-service
-
       - name: Create gradle.properties without secrets
         run: |
           touch libraries/holochain-service-client/gradle.properties
@@ -109,6 +107,10 @@ jobs:
         run: |
           pnpm run lint:fix:holochain-service-client
           pnpm run build:holochain-service-client
+
+      - name: Publish holochain-service-client to mavenLocal
+        run: |
+          pnpm run publish:local:holochain-service-client
 
       - name: Build holochain-service
         run: |
