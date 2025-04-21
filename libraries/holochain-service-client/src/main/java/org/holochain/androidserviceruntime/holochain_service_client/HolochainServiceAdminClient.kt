@@ -36,7 +36,8 @@ class HolochainServiceAdminClient(
   fun connect() {
     Log.d(TAG, "connect")
 
-    // Giving the intent a unique action ensures the HolochainService `onBind()` callback is triggered.
+    // Giving the intent a unique action ensures the HolochainService `onBind()` callback is
+    // triggered.
     val packageName: String = this.activity.getPackageName()
     val intent = Intent(packageName)
 
@@ -50,9 +51,11 @@ class HolochainServiceAdminClient(
   /// Check if app is installed, if not install it, then optionally enable it.
   /// Then ensure there is an app websocket and authentication for it.
   ///
-  /// If an app is already installed, it will not be enabled. It is only enabled after a successful install. 
-  /// The reasoning is that if an app is disabled after that point, 
-  /// it is assumed to have been manually disabled in the admin interface, which we don't want to override.
+  /// If an app is already installed, it will not be enabled. It is only enabled after a successful
+  // install.
+  /// The reasoning is that if an app is disabled after that point,
+  /// it is assumed to have been manually disabled in the admin interface, which we don't want to
+  // override.
   suspend fun setupApp(
       installAppPayload: InstallAppPayloadFfi,
       enableAfterInstall: Boolean
@@ -70,7 +73,8 @@ class HolochainServiceAdminClient(
             deferred.complete(response.inner)
           }
         }
-    this.mService!!.setupApp(callbackBinder, InstallAppPayloadFfiParcel(installAppPayload), enableAfterInstall)
+    this.mService!!.setupApp(
+        callbackBinder, InstallAppPayloadFfiParcel(installAppPayload), enableAfterInstall)
 
     return deferred.await()
   }
@@ -81,7 +85,7 @@ class HolochainServiceAdminClient(
       enableAfterInstall: Boolean
   ): AppAuthFfi {
     this.connect()
-    this.waitForConnectReady();
+    this.waitForConnectReady()
     return this.setupApp(installAppPayload, enableAfterInstall)
   }
 
@@ -167,7 +171,7 @@ class HolochainServiceAdminClient(
     if (this.mService == null) {
       throw HolochainServiceNotConnectedException()
     }
-    
+
     val deferred = CompletableDeferred<AppInfoFfi>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
@@ -186,7 +190,7 @@ class HolochainServiceAdminClient(
     if (this.mService == null) {
       throw HolochainServiceNotConnectedException()
     }
-    
+
     val deferred = CompletableDeferred<Unit>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {

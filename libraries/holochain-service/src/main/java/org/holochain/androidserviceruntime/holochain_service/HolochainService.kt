@@ -181,8 +181,9 @@ class HolochainService : Service() {
       Log.d(TAG, "setupApp")
       this.expectAuthorized()
 
-      if(payload.inner.installedAppId !== installedAppId) {
-        throw UnauthorizedException("Only the installedAppId specified in the AppBinder can be installed: expected $installedAppId but received ${payload.inner.installedAppId}")
+      if (payload.inner.installedAppId !== installedAppId) {
+        throw UnauthorizedException(
+            "Only the installedAppId specified in the AppBinder can be installed: expected $installedAppId but received ${payload.inner.installedAppId}")
       }
 
       serviceScope.launch(Dispatchers.IO) {
@@ -240,7 +241,8 @@ class HolochainService : Service() {
             "authorizeAppClient clientPackageName=$clientPackageName installedAppId=${installedAppId}")
         // TODO notify user to request authorization
 
-        throw UnauthorizedException("Package is not authorized to access the AppBinder clientPackageName=$clientPackageName installedAppId=${this.installedAppId}")
+        throw UnauthorizedException(
+            "Package is not authorized to access the AppBinder clientPackageName=$clientPackageName installedAppId=${this.installedAppId}")
       }
     }
   }
