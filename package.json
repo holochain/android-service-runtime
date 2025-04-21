@@ -10,8 +10,6 @@
       "build:tauri-plugin-holochain-service": "pnpm run --dir crates/tauri-plugin-holochain-service build",
       "build:tauri-plugin-holochain-service-consumer": "pnpm run --dir crates/tauri-plugin-holochain-service-consumer build",
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
-      "lint:fix:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew formatKotlin",
-      "lint:fix:holochain-service": "cd libraries/holochain-service && ./gradlew formatKotlin",
       "publish:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew publish",
       "publish:local:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew publishToMavenLocal",
       "publish:holochain-service": "cd libraries/holochain-service && ./gradlew publish",
