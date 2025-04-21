@@ -30,7 +30,11 @@ A Tauri plugin for building Android apps that make use of the android-service-ru
 
 #### holochain-service-client
 
-A Kotlin library containing a client class and types needed for connecting to the HolochainService in[tauri-plugin-holochain-service].
+A Kotlin library `org.holochain.androidserviceruntime.holochain_service_client` containing a client class and types needed for connecting to the HolochainService in [holochain-service].
+
+#### holochain-service
+
+A Kotlin library `org.holochain.androidserviceruntime.holochain_service` containing the HolochainService class, which runs an Android Foreground Service that wraps calls to the [holochain-conductor-runtime-ffi] and exposes an IPC interface for interacting with it.
 
 ### Rust Crates
 

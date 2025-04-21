@@ -11,7 +11,7 @@ Add the library to your dependencies list in your project's `build.gradle.kts`
 ```kotlin
 dependencies {
     ...
-    implementation("org.holochain.androidserviceruntime:holochain-service:0.0.1")
+    implementation("org.holochain.androidserviceruntime:holochain-service:0.0.11")
 }
 ```
 
@@ -24,7 +24,7 @@ The library can be published to a local maven repository for use in development.
 To publish the library to the local Maven repository, run:
 
 ```bash
-pnpm run build:holochain-conductor-runtime-types-ffi && pnpm run publish:local:holochain-service
+pnpm run build:holochain-conductor-runtime-types-ffi && pnpm run publish:local:holochain-service-client && pnpm run build:holochain-conductor-runtime-ffi && pnpm run publish:local:holochain-service
 ```
 
 ### Clear local Maven Repository
@@ -40,7 +40,7 @@ rm -rf ~/.m2/repository/org/holochain
 To run the test suite:
 
 ```bash
-pnpm run build:holochain-conductor-runtime-types-ffi && pnpm run test:holochain-service
+pnpm run build:holochain-conductor-runtime-types-ffi && pnpm run publish:local:holochain-service-client && pnpm run build:holochain-conductor-runtime-ffi && pnpm run test:holochain-service
 ```
 
 ## Publishing
