@@ -110,7 +110,6 @@ jobs:
 
       - name: Build holochain-service-client
         run: |
-          pnpm run lint:fix:holochain-service-client
           pnpm run build:holochain-service-client
 
       - name: Publish holochain-service-client to mavenLocal
@@ -119,7 +118,6 @@ jobs:
 
       - name: Build holochain-service
         run: |
-          pnpm run lint:fix:holochain-service
           pnpm run build:holochain-service
 
       - name: Run tests
