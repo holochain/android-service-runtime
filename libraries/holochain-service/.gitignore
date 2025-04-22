@@ -9,3 +9,4 @@ src/main/res/raw/
 src/main/**/*_ffi.kt
 
 gradle.properties
+local.properties
