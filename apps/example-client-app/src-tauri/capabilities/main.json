@@ -9,6 +9,6 @@
   "permissions": [
     "core:window:default",
     "core:app:default",
-    "holochain-service-consumer:default"
+    "holochain-service-client:default"
   ]
 }

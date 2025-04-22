@@ -28,7 +28,7 @@ function injectHolochainClientEnv(installedAppId: string, port: number, token: U
             nonce,
             expiresAt,
         };
-        const response = await (window as any).__TAURI_INTERNALS__.invoke("plugin:holochain-service-consumer|sign_zome_call", zomeCallUnsigned);
+        const response = await (window as any).__TAURI_INTERNALS__.invoke("plugin:holochain-service-client|sign_zome_call", zomeCallUnsigned);
         const zomeCallSigned = {
             provenance: request.provenance,
             cell_id: request.cell_id,

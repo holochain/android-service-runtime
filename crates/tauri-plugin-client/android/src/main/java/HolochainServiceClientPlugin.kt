@@ -18,7 +18,7 @@ import org.holochain.androidserviceruntime.client.HolochainServiceNotConnectedEx
 import org.holochain.androidserviceruntime.client.toJSONObjectString
 
 @TauriPlugin
-class HolochainServiceConsumerPlugin(
+class HolochainServiceClientPlugin(
     private val activity: Activity,
 ) : Plugin(activity) {
     private val supervisorJob = SupervisorJob()
@@ -30,7 +30,7 @@ class HolochainServiceConsumerPlugin(
             ComponentName(servicePackage, "org.holochain.androidserviceruntime.service.HolochainService"),
         )
     private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
-    private val logTag = "HolochainServiceConsumerPlugin"
+    private val logTag = "HolochainServiceClientPlugin"
     private var webView: WebView? = null
 
     /**

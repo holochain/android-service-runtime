@@ -78,5 +78,5 @@ export async function isAppInstalled(installedAppId: string): Promise<boolean> {
 }
 
 export async function ensureAppWebsocket(installedAppId: string): Promise<{port: number, authentication: {token: Uint8Array, expiresAt?: number}} | null> {
-  return await invoke<{port: number, authentication: {token: Uint8Array, expiresAt?: number}}>('plugin:holochain-service-consumer|ensure_app_websocket', { installedAppId });
+  return await invoke<{port: number, authentication: {token: Uint8Array, expiresAt?: number}}>('plugin:holochain-service|ensure_app_websocket', { installedAppId });
 }

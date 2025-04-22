@@ -6,7 +6,7 @@ mod types;
 
 pub use error::{Error, Result};
 pub use holochain_conductor_runtime_types_ffi::AppAuthFfi;
-use mobile::HolochainServiceConsumer;
+use mobile::HolochainServiceClient;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Manager, Runtime,
@@ -14,13 +14,13 @@ use tauri::{
 pub use types::SetupAppConfig;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`]
-pub trait HolochainServiceConsumerExt<R: Runtime> {
-    fn holochain_service_consumer(&self) -> &HolochainServiceConsumer<R>;
+pub trait HolochainServiceClientExt<R: Runtime> {
+    fn holochain_service_client(&self) -> &HolochainServiceClient<R>;
 }
 
-impl<R: Runtime, T: Manager<R>> crate::HolochainServiceConsumerExt<R> for T {
-    fn holochain_service_consumer(&self) -> &HolochainServiceConsumer<R> {
-        self.state::<HolochainServiceConsumer<R>>().inner()
+impl<R: Runtime, T: Manager<R>> crate::HolochainServiceClientExt<R> for T {
+    fn holochain_service_client(&self) -> &HolochainServiceClient<R> {
+        self.state::<HolochainServiceClient<R>>().inner()
     }
 }
 

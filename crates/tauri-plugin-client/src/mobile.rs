@@ -11,25 +11,25 @@ use tauri::{
 const PLUGIN_IDENTIFIER: &str = "org.holochain.androidserviceruntime.plugin.client";
 
 #[cfg(target_os = "ios")]
-tauri::ios_plugin_binding!(init_plugin_holochain_service_consumer);
+tauri::ios_plugin_binding!(init_plugin_holochain_service_client);
 
 // initializes the Kotlin or Swift plugin classes
 pub fn init<R: Runtime, C: DeserializeOwned>(
     _app: &AppHandle<R>,
     api: PluginApi<R, C>,
-) -> crate::Result<HolochainServiceConsumer<R>> {
+) -> crate::Result<HolochainServiceClient<R>> {
     #[cfg(target_os = "android")]
     let handle =
-        api.register_android_plugin(PLUGIN_IDENTIFIER, "HolochainServiceConsumerPlugin")?;
+        api.register_android_plugin(PLUGIN_IDENTIFIER, "HolochainServiceClientPlugin")?;
     #[cfg(target_os = "ios")]
     let handle = api.register_ios_plugin(init_plugin_holochain_service - consumer)?;
-    Ok(HolochainServiceConsumer(handle))
+    Ok(HolochainServiceClient(handle))
 }
 
-/// Access to the holochain-service-consumer APIs.
-pub struct HolochainServiceConsumer<R: Runtime>(pub PluginHandle<R>);
+/// Access to the holochain-service-client APIs.
+pub struct HolochainServiceClient<R: Runtime>(pub PluginHandle<R>);
 
-impl<R: Runtime> HolochainServiceConsumer<R> {
+impl<R: Runtime> HolochainServiceClient<R> {
     /// Runs the entire process to setup a holochain app
     ///
     /// 1. Connect to holochain service
@@ -71,7 +71,7 @@ impl<R: Runtime> HolochainServiceConsumer<R> {
 
         // Attach necessary capabilities to window
         let mut capability_builder =
-            CapabilityBuilder::new("default").permission("holochain-service-consumer:default");
+            CapabilityBuilder::new("default").permission("holochain-service-client:default");
         capability_builder = capability_builder.window(label);
         self.0.app().add_capability(capability_builder)?;
 
