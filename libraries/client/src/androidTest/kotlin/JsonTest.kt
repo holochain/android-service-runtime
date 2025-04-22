@@ -1,5 +1,3 @@
-package com.plugin.holochain_service
-
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.holochain.androidserviceruntime.client.AppInfoStatusFfi
 import org.holochain.androidserviceruntime.client.CellIdFfi
@@ -15,7 +13,8 @@ import org.holochain.androidserviceruntime.client.toJSONArray
 import org.holochain.androidserviceruntime.client.toJSONObject
 import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.Byte

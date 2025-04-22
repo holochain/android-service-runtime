@@ -30,14 +30,14 @@ class HolochainServiceConsumerPlugin(
             "com.plugin.holochain_service.HolochainService",
         )
     private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
-    private val TAG = "HolochainServiceConsumerPlugin"
+    private val logTag = "HolochainServiceConsumerPlugin"
     private var webView: WebView? = null
 
     /**
      * Load the plugin, start the service
      */
     override fun load(webView: WebView) {
-        Log.d(TAG, "load")
+        Log.d(logTag, "load")
         super.load(webView)
         this.webView = webView
 
@@ -49,7 +49,7 @@ class HolochainServiceConsumerPlugin(
      */
     @Command
     fun connectSetupApp(invoke: Invoke) {
-        Log.d(TAG, "connectSetupApp")
+        Log.d(logTag, "connectSetupApp")
         val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             try {
@@ -66,7 +66,7 @@ class HolochainServiceConsumerPlugin(
      */
     @Command
     fun enableApp(invoke: Invoke) {
-        Log.d(TAG, "enableApp")
+        Log.d(logTag, "enableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             try {
@@ -83,7 +83,7 @@ class HolochainServiceConsumerPlugin(
      */
     @Command
     fun signZomeCall(invoke: Invoke) {
-        Log.d(TAG, "signZomeCall")
+        Log.d(logTag, "signZomeCall")
         val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             try {
@@ -102,7 +102,7 @@ class HolochainServiceConsumerPlugin(
         e: Exception,
         invoke: Invoke,
     ) {
-        Log.d(TAG, "handleCommandException")
+        Log.d(logTag, "handleCommandException")
         if (e is HolochainServiceNotConnectedException) {
             if (this.webView == null) {
                 disconnectedNotice.enableShowOnLoad()

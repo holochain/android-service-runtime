@@ -16,7 +16,7 @@ class HolochainServiceAppClient(
     private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
 ) {
     private var mService: IHolochainServiceApp? = null
-    private val TAG = "HolochainServiceAppClient"
+    private val logTag = "HolochainServiceAppClient"
 
     // IPC Connection to HolochainService using AIDL
     private val mConnection =
@@ -26,18 +26,18 @@ class HolochainServiceAppClient(
                 service: IBinder,
             ) {
                 mService = IHolochainServiceApp.Stub.asInterface(service)
-                Log.d(TAG, "IHolochainServiceApp connected")
+                Log.d(logTag, "IHolochainServiceApp connected")
             }
 
             override fun onServiceDisconnected(className: ComponentName) {
                 mService = null
-                Log.d(TAG, "IHolochainServiceApp disconnected")
+                Log.d(logTag, "IHolochainServiceApp disconnected")
             }
         }
 
     // / Connect to the service
     fun connect(installedAppId: String) {
-        Log.d(TAG, "connect")
+        Log.d(logTag, "connect")
 
         // Giving the intent a unique action ensures the HolochainService `onBind()` callback is
         // triggered.
@@ -59,7 +59,7 @@ class HolochainServiceAppClient(
         installAppPayload: InstallAppPayloadFfi,
         enableAfterInstall: Boolean,
     ): AppAuthFfi {
-        Log.d(TAG, "setupApp")
+        Log.d(logTag, "setupApp")
         if (this.mService == null) {
             throw HolochainServiceNotConnectedException()
         }
@@ -68,7 +68,7 @@ class HolochainServiceAppClient(
         var callbackBinder =
             object : IHolochainServiceCallbackStub() {
                 override fun setupApp(response: AppAuthFfiParcel) {
-                    Log.d(TAG, "setupApp callback")
+                    Log.d(logTag, "setupApp callback")
                     deferred.complete(response.inner)
                 }
             }
@@ -93,7 +93,7 @@ class HolochainServiceAppClient(
 
     // / Enable an installed app
     suspend fun enableApp(installedAppId: String): AppInfoFfi {
-        Log.d(TAG, "enableApp")
+        Log.d(logTag, "enableApp")
         if (this.mService == null) {
             throw HolochainServiceNotConnectedException()
         }
@@ -102,7 +102,7 @@ class HolochainServiceAppClient(
         var callbackBinder =
             object : IHolochainServiceCallbackStub() {
                 override fun enableApp(response: AppInfoFfiParcel) {
-                    Log.d(TAG, "enableApp callback")
+                    Log.d(logTag, "enableApp callback")
                     deferred.complete(response.inner)
                 }
             }
@@ -112,7 +112,7 @@ class HolochainServiceAppClient(
 
     // / Sign a zome call
     suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
-        Log.d(TAG, "signZomeCall")
+        Log.d(logTag, "signZomeCall")
         if (this.mService == null) {
             throw HolochainServiceNotConnectedException()
         }
@@ -121,7 +121,7 @@ class HolochainServiceAppClient(
         var callbackBinder =
             object : IHolochainServiceCallbackStub() {
                 override fun signZomeCall(response: ZomeCallFfiParcel) {
-                    Log.d(TAG, "signZomeCall callback")
+                    Log.d(logTag, "signZomeCall callback")
                     deferred.complete(response.inner)
                 }
             }
@@ -137,7 +137,7 @@ class HolochainServiceAppClient(
     ) {
         var elapsedMs = 0L
         while (elapsedMs <= timeoutMs) {
-            Log.d(TAG, "waitForConnectReady " + elapsedMs)
+            Log.d(logTag, "waitForConnectReady " + elapsedMs)
             if (this.mService != null) break
 
             delay(intervalMs)

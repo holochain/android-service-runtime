@@ -24,7 +24,7 @@ import java.security.InvalidParameterException
 
 class HolochainService : Service() {
     // / The uniffi-generated holochain runtime bindings
-    private val TAG = "HolochainService"
+    private val logTag = "HolochainService"
     private var runtime: RuntimeFfi? = null
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
@@ -32,11 +32,11 @@ class HolochainService : Service() {
     private val appBinders = mutableMapOf<String, AppBinder>()
 
     private inner class AdminBinder : IHolochainServiceAdmin.Stub() {
-        private val TAG = "IHolochainServiceAdmin"
+        private val logTag = "IHolochainServiceAdmin"
 
         // / Stop the conductor
         override fun stop() {
-            Log.d(TAG, "shutdown")
+            Log.d(logTag, "shutdown")
             this.expectAuthorized()
 
             this@HolochainService.stopForeground()
@@ -44,7 +44,7 @@ class HolochainService : Service() {
 
         // / Is the conductor started and ready to receive calls
         override fun isReady(): Boolean {
-            Log.d(TAG, "isReady")
+            Log.d(logTag, "isReady")
             this.expectAuthorized()
 
             return runtime != null
@@ -56,7 +56,7 @@ class HolochainService : Service() {
             payload: InstallAppPayloadFfiParcel,
             enableAfterInstall: Boolean,
         ) {
-            Log.d(TAG, "setupApp")
+            Log.d(logTag, "setupApp")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -69,7 +69,7 @@ class HolochainService : Service() {
             callback: IHolochainServiceCallback,
             request: InstallAppPayloadFfiParcel,
         ) {
-            Log.d(TAG, "installApp")
+            Log.d(logTag, "installApp")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -82,7 +82,7 @@ class HolochainService : Service() {
             callback: IHolochainServiceCallback,
             installedAppId: String,
         ) {
-            Log.d(TAG, "uninstallApp")
+            Log.d(logTag, "uninstallApp")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -96,7 +96,7 @@ class HolochainService : Service() {
             callback: IHolochainServiceCallback,
             installedAppId: String,
         ) {
-            Log.d(TAG, "enableApp")
+            Log.d(logTag, "enableApp")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -109,7 +109,7 @@ class HolochainService : Service() {
             callback: IHolochainServiceCallback,
             installedAppId: String,
         ) {
-            Log.d(TAG, "disableApp")
+            Log.d(logTag, "disableApp")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -120,7 +120,7 @@ class HolochainService : Service() {
 
         // / List installed apps
         override fun listApps(callback: IHolochainServiceCallback) {
-            Log.d(TAG, "listApps")
+            Log.d(logTag, "listApps")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -133,7 +133,7 @@ class HolochainService : Service() {
             callback: IHolochainServiceCallback,
             installedAppId: String,
         ) {
-            Log.d(TAG, "isAppInstalled")
+            Log.d(logTag, "isAppInstalled")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -146,7 +146,7 @@ class HolochainService : Service() {
             callback: IHolochainServiceCallback,
             installedAppId: String,
         ) {
-            Log.d(TAG, "ensureAppWebsocket")
+            Log.d(logTag, "ensureAppWebsocket")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -159,7 +159,7 @@ class HolochainService : Service() {
             callback: IHolochainServiceCallback,
             req: ZomeCallUnsignedFfiParcel,
         ) {
-            Log.d(TAG, "signZomeCall")
+            Log.d(logTag, "signZomeCall")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -177,7 +177,7 @@ class HolochainService : Service() {
                         "Unable to get name of package binding to AdminBinder uid=$clientUid",
                     )
 
-            Log.d(TAG, "AdminBinder expectAuthorized clientPackageName=$clientPackageName")
+            Log.d(logTag, "AdminBinder expectAuthorized clientPackageName=$clientPackageName")
 
             if (clientPackageName != HolochainService@ packageName) {
                 // TODO notify user to request authorization
@@ -192,7 +192,7 @@ class HolochainService : Service() {
     private inner class AppBinder(
         private val installedAppId: String,
     ) : IHolochainServiceApp.Stub() {
-        private val TAG = "IHolochainServiceApp installedAppId=$installedAppId"
+        private val logTag = "IHolochainServiceApp installedAppId=$installedAppId"
 
         // / Setup an app
         override fun setupApp(
@@ -200,7 +200,7 @@ class HolochainService : Service() {
             payload: InstallAppPayloadFfiParcel,
             enableAfterInstall: Boolean,
         ) {
-            Log.d(TAG, "setupApp")
+            Log.d(logTag, "setupApp")
             this.expectAuthorized()
 
             if (payload.inner.installedAppId !== installedAppId) {
@@ -216,7 +216,7 @@ class HolochainService : Service() {
 
         // / Enable an installed app
         override fun enableApp(callback: IHolochainServiceCallback) {
-            Log.d(TAG, "enableApp")
+            Log.d(logTag, "enableApp")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -226,7 +226,7 @@ class HolochainService : Service() {
 
         // / Get or create an app websocket with an authenticated token
         override fun ensureAppWebsocket(callback: IHolochainServiceCallback) {
-            Log.d(TAG, "ensureAppWebsocket")
+            Log.d(logTag, "ensureAppWebsocket")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -239,7 +239,7 @@ class HolochainService : Service() {
             callback: IHolochainServiceCallback,
             req: ZomeCallUnsignedFfiParcel,
         ) {
-            Log.d(TAG, "signZomeCall")
+            Log.d(logTag, "signZomeCall")
             this.expectAuthorized()
 
             serviceScope.launch(Dispatchers.IO) {
@@ -258,14 +258,14 @@ class HolochainService : Service() {
                     )
 
             Log.d(
-                TAG,
+                logTag,
                 "AppBinder expectAuthorized clientPackageName=$clientPackageName installedAppId=$installedAppId",
             )
             var isAuthorized = runtime!!.isAppClientAuthorized(clientPackageName, installedAppId)
 
             if (!isAuthorized) {
                 Log.d(
-                    TAG,
+                    logTag,
                     "authorizeAppClient clientPackageName=$clientPackageName installedAppId=$installedAppId",
                 )
                 // TODO notify user to request authorization
@@ -299,7 +299,7 @@ class HolochainService : Service() {
 
     override fun onBind(intent: Intent): IBinder? {
         var api = intent.getStringExtra("api")
-        Log.d(TAG, "onBind: api=$api action=${intent.action}")
+        Log.d(logTag, "onBind: api=$api action=${intent.action}")
 
         when (api) {
             "admin" -> {
@@ -351,10 +351,10 @@ class HolochainService : Service() {
 
             serviceScope.launch(Dispatchers.IO) {
                 runtime = RuntimeFfi.start(passphrase, config)
-                Log.d(TAG, "Holochain started successfully")
+                Log.d(logTag, "Holochain started successfully")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Holochain failed to start $e")
+            Log.e(logTag, "Holochain failed to start $e")
         }
     }
 

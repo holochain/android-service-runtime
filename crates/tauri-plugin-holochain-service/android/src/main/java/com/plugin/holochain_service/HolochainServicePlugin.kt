@@ -18,10 +18,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import org.holochain.androidserviceruntime.service.HolochainService
 import org.holochain.androidserviceruntime.client.HolochainServiceAdminClient
 import org.holochain.androidserviceruntime.client.toJSONArrayString
 import org.holochain.androidserviceruntime.client.toJSONObjectString
+import org.holochain.androidserviceruntime.service.HolochainService
 
 @TauriPlugin
 class HolochainServicePlugin(
@@ -32,13 +32,13 @@ class HolochainServicePlugin(
     private var serviceClient = HolochainServiceAdminClient(this.activity)
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
-    private val TAG = "HolochainServicePlugin"
+    private val logTag = "HolochainServicePlugin"
 
     /**
      * Load the plugin, start the service
      */
     override fun load(webView: WebView) {
-        Log.d(TAG, "load")
+        Log.d(logTag, "load")
         super.load(webView)
         this.webView = webView
 
@@ -66,7 +66,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun start(invoke: Invoke) {
-        Log.d(TAG, "start")
+        Log.d(logTag, "start")
 
         // Start service
         val intent = Intent()
@@ -83,7 +83,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun stop(invoke: Invoke) {
-        Log.d(TAG, "stop")
+        Log.d(logTag, "stop")
         this.serviceClient.stop()
         invoke.resolve()
     }
@@ -93,7 +93,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun isReady(invoke: Invoke) {
-        Log.d(TAG, "isReady")
+        Log.d(logTag, "isReady")
         val res = this.serviceClient.isReady()
         val obj = JSObject()
         obj.put("ready", res)
@@ -105,7 +105,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun installApp(invoke: Invoke) {
-        Log.d(TAG, "installApp")
+        Log.d(logTag, "installApp")
         val args = invoke.parseArgs(InstallAppPayloadFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             serviceClient.installApp(args.toFfi())
@@ -118,7 +118,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun isAppInstalled(invoke: Invoke) {
-        Log.d(TAG, "isAppInstalled")
+        Log.d(logTag, "isAppInstalled")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.isAppInstalled(args.installedAppId)
@@ -133,7 +133,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun uninstallApp(invoke: Invoke) {
-        Log.d(TAG, "uninstallApp")
+        Log.d(logTag, "uninstallApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             serviceClient.uninstallApp(args.installedAppId)
@@ -146,7 +146,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun enableApp(invoke: Invoke) {
-        Log.d(TAG, "enableApp")
+        Log.d(logTag, "enableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.enableApp(args.installedAppId)
@@ -159,7 +159,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun disableApp(invoke: Invoke) {
-        Log.d(TAG, "disableApp")
+        Log.d(logTag, "disableApp")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             serviceClient.disableApp(args.installedAppId)
@@ -172,7 +172,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun listApps(invoke: Invoke) {
-        Log.d(TAG, "listApps")
+        Log.d(logTag, "listApps")
         serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.listApps()
             val obj = JSObject()
@@ -187,7 +187,7 @@ class HolochainServicePlugin(
     @OptIn(ExperimentalUnsignedTypes::class)
     @Command
     fun ensureAppWebsocket(invoke: Invoke) {
-        Log.d(TAG, "ensureAppWebsocket")
+        Log.d(logTag, "ensureAppWebsocket")
         val args = invoke.parseArgs(AppIdInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.ensureAppWebsocket(args.installedAppId)
@@ -208,7 +208,7 @@ class HolochainServicePlugin(
      */
     @Command
     fun signZomeCall(invoke: Invoke) {
-        Log.d(TAG, "signZomeCall")
+        Log.d(logTag, "signZomeCall")
         val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             val res = serviceClient.signZomeCall(args.toFfi())
@@ -225,7 +225,7 @@ class HolochainServicePlugin(
         appWebsocketPort: Int,
         appWebsocketToken: UByteArray,
     ) {
-        Log.d(TAG, "injectHolochainClientEnv")
+        Log.d(logTag, "injectHolochainClientEnv")
         // Declare js helper function for injecting holochain client env, bundled with dependencies
         this.webView.evaluateJavascript(this.injectHolochainClientEnvJavascript, null)
 
