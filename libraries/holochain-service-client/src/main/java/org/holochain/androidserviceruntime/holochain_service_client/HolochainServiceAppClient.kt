@@ -12,8 +12,7 @@ import kotlinx.coroutines.delay
 
 class HolochainServiceAppClient(
     private val activity: Activity,
-    private val servicePackageName: String = "org.holochain.androidserviceruntime.app",
-    private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
+    private val serviceComponentName: ComponentName
 ) {
   private var mService: IHolochainServiceApp? = null
   private val TAG = "HolochainServiceAppClient"
@@ -35,14 +34,15 @@ class HolochainServiceAppClient(
   /// Connect to the service
   fun connect(installedAppId: String) {
     Log.d(TAG, "connect")
-    
-    // Giving the intent a unique action ensures the HolochainService `onBind()` callback is triggered.
+
+    // Giving the intent a unique action ensures the HolochainService `onBind()` callback is
+    // triggered.
     val packageName: String = this.activity.getPackageName()
     val intent = Intent("$packageName:$installedAppId")
 
     intent.putExtra("api", "app")
     intent.putExtra("installedAppId", installedAppId)
-    intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
+    intent.setComponent(serviceComponentName)
     this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
   }
 
@@ -68,7 +68,8 @@ class HolochainServiceAppClient(
             deferred.complete(response.inner)
           }
         }
-    this.mService!!.setupApp(callbackBinder, InstallAppPayloadFfiParcel(installAppPayload), enableAfterInstall)
+    this.mService!!.setupApp(
+        callbackBinder, InstallAppPayloadFfiParcel(installAppPayload), enableAfterInstall)
 
     return deferred.await()
   }
@@ -79,17 +80,17 @@ class HolochainServiceAppClient(
       enableAfterInstall: Boolean
   ): AppAuthFfi {
     this.connect(installAppPayload.installedAppId!!)
-    this.waitForConnectReady();
+    this.waitForConnectReady()
     return this.setupApp(installAppPayload, enableAfterInstall)
   }
-  
+
   /// Enable an installed app
   suspend fun enableApp(installedAppId: String): AppInfoFfi {
     Log.d(TAG, "enableApp")
     if (this.mService == null) {
       throw HolochainServiceNotConnectedException()
     }
-    
+
     val deferred = CompletableDeferred<AppInfoFfi>()
     var callbackBinder =
         object : IHolochainServiceCallbackStub() {
@@ -98,7 +99,7 @@ class HolochainServiceAppClient(
             deferred.complete(response.inner)
           }
         }
-    this.mService!!.enableApp(callbackBinder, installedAppId)
+    this.mService!!.enableApp(callbackBinder)
     return deferred.await()
   }
 

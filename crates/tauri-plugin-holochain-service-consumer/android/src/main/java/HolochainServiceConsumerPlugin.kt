@@ -3,6 +3,7 @@ package com.plugin.holochain_service_consumer
 import android.app.Activity
 import android.webkit.WebView
 import android.util.Log
+import android.content.ComponentName
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
@@ -23,8 +24,7 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     private val servicePackage = "org.holochain.androidserviceruntime.app"
     private val serviceClient = HolochainServiceAppClient(
         this.activity,
-        servicePackage,
-        "com.plugin.holochain_service.HolochainService"
+        ComponentName(servicePackage, "org.holochain.androidserviceruntime.holochain_service.HolochainService")
     )
     private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
     private val TAG = "HolochainServiceConsumerPlugin"

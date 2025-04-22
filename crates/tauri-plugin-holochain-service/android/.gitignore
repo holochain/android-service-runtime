@@ -3,6 +3,7 @@ build
 .gradle
 .kotlin
 .idea
+*.iml
 
 src/main/jniLibs/**
 src/main/**/*_ffi

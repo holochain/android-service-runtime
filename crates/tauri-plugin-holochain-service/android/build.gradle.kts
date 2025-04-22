@@ -50,6 +50,7 @@ java {
 dependencies {
     // Subprojects
     implementation(project(":tauri-android"))
+    implementation("org.holochain.androidserviceruntime:holochain-service:0.0.11")
     implementation("org.holochain.androidserviceruntime:holochain-service-client:0.0.11")
     // Kotlin
     implementation("androidx.core:core-ktx:1.7.0")
@@ -63,8 +64,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.1.10")
     // Tests
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test:core:1.6.1")
-    androidTestImplementation("androidx.test:runner:1.6.2")
-    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

@@ -3,12 +3,11 @@ import com.vanniktech.maven.publish.SonatypeHost
 plugins {
   id("com.android.library")
   id("org.jetbrains.kotlin.android")
-  id("org.jetbrains.kotlin.plugin.parcelize")
   id("com.vanniktech.maven.publish") version ("0.30.0")
 }
 
 android {
-  namespace = "org.holochain.androidserviceruntime.holochain_service_client"
+  namespace = "org.holochain.androidserviceruntime.holochain_service"
   compileSdk = 34
 
   defaultConfig {
@@ -39,12 +38,11 @@ mavenPublishing {
       signAllPublications()
   }
 
-  coordinates("org.holochain.androidserviceruntime", "holochain-service-client", "0.0.11")
+  coordinates("org.holochain.androidserviceruntime", "holochain-service", "0.0.11")
 
   pom {
-    name.set("Holochain Service Client")
-    description.set(
-        "Client for binding and making calls to the HolochainService provided by android-service-runtime app.")
+    name.set("Holochain Service")
+    description.set("An Android Foreground Service that runs a Holochain conductor.")
     inceptionYear.set("2025")
     url.set("https://github.com/holochain/android-service-runtime/")
     licenses {
@@ -70,6 +68,8 @@ mavenPublishing {
 }
 
 dependencies {
+  // Subprojects
+  implementation("org.holochain.androidserviceruntime:holochain-service-client:0.0.11")
   // Kotlin
   implementation("androidx.core:core-ktx:1.7.0")
   implementation("androidx.appcompat:appcompat:1.6.0")
@@ -82,6 +82,8 @@ dependencies {
   implementation("org.jetbrains.kotlin:kotlin-reflect:2.1.10")
   // Tests
   testImplementation("junit:junit:4.13.2")
-  androidTestImplementation("androidx.test.ext:junit:1.1.5")
-  androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+  androidTestImplementation("androidx.test.ext:junit:1.2.1")
+  androidTestImplementation("androidx.test:core:1.6.1")
+  androidTestImplementation("androidx.test:runner:1.6.2")
+  androidTestImplementation("androidx.test:rules:1.6.1")
 }

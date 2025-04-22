@@ -1,9 +1,9 @@
 #/usr/bin/env bash
 
-cargo build -p holochain-conductor-runtime-types-ffi
+cargo build -p holochain-conductor-runtime-types-ffi --release
 
-cargo ndk --manifest-path ./Cargo.toml -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 \
-  -o ../tauri-plugin-holochain-service/android/src/main/jniLibs \
+cargo ndk --manifest-path ./Cargo.toml -t arm64-v8a -t x86 -t x86_64 \
+  -o ../../libraries/holochain-service-client/src/main/jniLibs \
   build --release
 
 cargo run -p uniffi-bindgen-cli --release generate \

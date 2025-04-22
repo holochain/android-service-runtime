@@ -1,5 +1,10 @@
 name: Test
-on: [push, pull_request]
+
+on:
+  pull_request:
+    branches:
+      - main
+      - main-*
 
 jobs:
   test-rust-crates:
@@ -90,14 +95,18 @@ jobs:
         run: |
           cargo install cargo-ndk
 
-      - name: Build dependency rust library & kotlin bindings
+      - name: Build holochain-service-client and publish to mavenLocal
         run: |
           pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
-      
-      - name: Create gradle.properties without secrets
+          cp libraries/holochain-service-client/gradle.properties.ci libraries/holochain-service-client/gradle.properties
+          pnpm run build:holochain-service-client
+          pnpm run publish:local:holochain-service-client
+
+      - name: Build holochain-service
         run: |
-          touch libraries/holochain-service-client/gradle.properties
-          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service-client/gradle.properties
+          pnpm run build:single-target:holochain-conductor-runtime-ffi ${{ matrix.target.arch-cargo }}
+          cp libraries/holochain-service/gradle.properties.ci libraries/holochain-service/gradle.properties
+          pnpm run build:holochain-service
 
       - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
@@ -105,4 +114,6 @@ jobs:
           api-level: ${{ matrix.target.api-level }}
           arch: ${{ matrix.target.arch-ndk }}
           target: google_apis
-          script: pnpm run test:holochain-service-client
+          script: |
+            pnpm run test:holochain-service-client
+            pnpm run test:holochain-service
