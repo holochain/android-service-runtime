@@ -3,7 +3,6 @@ import com.vanniktech.maven.publish.SonatypeHost
 plugins {
   id("com.android.library")
   id("org.jetbrains.kotlin.android")
-  id("org.jetbrains.kotlin.plugin.parcelize")
   id("com.vanniktech.maven.publish") version ("0.30.0")
 }
 
