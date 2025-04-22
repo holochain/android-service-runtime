@@ -15,7 +15,7 @@ kotlinter {
 }
 
 android {
-  namespace = "org.holochain.androidserviceruntime.holochain_service"
+  namespace = "org.holochain.androidserviceruntime.service"
   compileSdk = 34
 
   defaultConfig {

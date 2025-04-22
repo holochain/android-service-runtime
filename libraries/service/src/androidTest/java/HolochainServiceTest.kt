@@ -1,4 +1,4 @@
-package org.holochain.androidserviceruntime.holochain_service
+package org.holochain.androidserviceruntime.service
 
 import android.content.Context
 import android.content.Intent

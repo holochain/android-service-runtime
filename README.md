@@ -34,7 +34,7 @@ A Kotlin library `org.holochain.androidserviceruntime.client` containing a clien
 
 #### holochain-service
 
-A Kotlin library `org.holochain.androidserviceruntime.holochain_service` containing the HolochainService class, which runs an Android Foreground Service that wraps calls to the [holochain-conductor-runtime-ffi] and exposes an IPC interface for interacting with it.
+A Kotlin library `org.holochain.androidserviceruntime.service` containing the HolochainService class, which runs an Android Foreground Service that wraps calls to the [holochain-conductor-runtime-ffi] and exposes an IPC interface for interacting with it.
 
 ### Rust Crates
 

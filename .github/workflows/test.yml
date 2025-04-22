@@ -105,8 +105,8 @@ jobs:
           touch libraries/client/gradle.properties
           printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/client/gradle.properties
 
-          touch libraries/holochain-service/gradle.properties
-          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service/gradle.properties
+          touch libraries/service/gradle.properties
+          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/service/gradle.properties
 
       - name: Build client
         run: |
@@ -118,7 +118,7 @@ jobs:
 
       - name: Build holochain-service
         run: |
-          pnpm run build:holochain-service
+          pnpm run build:service
 
       - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
@@ -128,4 +128,4 @@ jobs:
           target: google_apis
           script: |
             pnpm run test:client
-            pnpm run test:holochain-service
+            pnpm run test:service
