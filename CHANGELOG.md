@@ -6,7 +6,7 @@
 - Split out types from holochain-conductor-runtime-ffi into separate crate holochain-conductor-runtime-types-ffi
 - Create standalone kotlin library containing the types and client for binding and calling the HolochainService: `org.holochain.androidserviceruntime.client`
 - Gradle setup for publishing standalone kotlin library to Maven Central
-- Use published release in both tauri-plugin-holochain-service and tauri-plugin-holochain-service-consumer
+- Use published release in both tauri-plugin-holochain-service and tauri-plugin-holochain-service-client
 - Minor fixes for android-service-runtime to get it working again
 - Add function `isReady` to check that the conductor is available, expose in client and tauri-plugin-holochain-service
 - Move uniffi-bindgen cli tool for generating bindings into its own crate, remove from *-ffi crates (see https://mozilla.github.io/uniffi-rs/0.27/tutorial/foreign_language_bindings.html#running-uniffi-bindgen-using-a-library-file-recommended)
@@ -16,14 +16,14 @@
 - Run client tests in CI
 - Fix Ffi types to Parcelable types converstions, and tests for Parcelable types.
 - Support Json serialization of sealed classes, cleanup and tests of Json serialization.
-- Added example app demonstrating use of tauri-plugin-holochain-service-consumer
+- Added example app demonstrating use of tauri-plugin-holochain-service-client
 - Fix inconsistent crashes on relaunch with "logger already initialized" errors.
 - Add nix flake for android + holochain development, remove reliance on p2p-shipyard flake.
-- Added example app demonstrating use of tauri-plugin-holochain-service-consumer
+- Added example app demonstrating use of tauri-plugin-holochain-service-client
 - Ensure the __HC_LAUNCHER_ENV__ is defined before the webview is initialized, by moving the app setup logic from injected JS in the webview to rust run during tauri setup.
 - Add command `setupApp` to `HolochainServiceClient` that includes all logic for installing an app if necessary, enabling it, and setting up the app ws authentication.
-- Remove commands `installApp`, `connect`, `isAppInstalled`, `ensureAppWebsocket` from `tauri-plugin-holochain-service-consumer`. Their function has been replaced by a single command `setupApp`.
+- Remove commands `installApp`, `connect`, `isAppInstalled`, `ensureAppWebsocket` from `tauri-plugin-holochain-service-client`. Their function has been replaced by a single command `setupApp`.
 - Display notice on consumer app launch when unable to connect to HolochainService.
-- Refactor setupApp implementation by moving core logic into the `holochain-service-runtime` crate, rename `tauri-plugin-holochain-service-consumer` command from `setupApp` to `connectSetupApp`.
+- Refactor setupApp implementation by moving core logic into the `holochain-service-runtime` crate, rename `tauri-plugin-holochain-service-client` command from `setupApp` to `connectSetupApp`.
 - Split HolochainService IPC binders into "admin" and "app" binders. Restrict admin binder calls to only the same android package as the service. Restrict app binder calls to only authorized package + happ pairs. Currently new package + happ pairs are authorized automatically.
 - Extract HolochainService into standalone kotlin library `org.holochain.androidserviceruntime.service` to simplify testing. Run tests in CI.

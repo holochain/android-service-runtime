@@ -7,21 +7,21 @@
       "build:single-target:holochain-conductor-runtime-types-ffi": "cd crates/holochain-conductor-runtime-types-ffi && ./scripts/build-single-target.sh",
       "build:client": "cd libraries/client && ./gradlew build",
       "build:service": "cd libraries/service && ./gradlew build",
-      "build:tauri-plugin-holochain-service": "pnpm run --dir crates/tauri-plugin-holochain-service build",
-      "build:tauri-plugin-holochain-service-consumer": "pnpm run --dir crates/tauri-plugin-holochain-service-consumer build",
+      "build:tauri-plugin-service": "pnpm run --dir crates/tauri-plugin-service build",
+      "build:tauri-plugin-client": "pnpm run --dir crates/tauri-plugin-client build",
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
       "lint:fix:client": "cd libraries/client && ./gradlew formatKotlin",
       "lint:fix:service": "cd libraries/service && ./gradlew formatKotlin",
-      "lint:fix:tauri-plugin-holochain-service": "cd crates/tauri-plugin-holochain-service/android && ./gradlew formatKotlin",
-      "lint:fix:tauri-plugin-holochain-service-consumer": "cd crates/tauri-plugin-holochain-service-consumer/android && ./gradlew formatKotlin",
+      "lint:fix:tauri-plugin-service": "cd crates/tauri-plugin-service/android && ./gradlew formatKotlin",
+      "lint:fix:tauri-plugin-client": "cd crates/tauri-plugin-client/android && ./gradlew formatKotlin",
       "publish:client": "cd libraries/client && ./gradlew publish",
       "publish:local:client": "cd libraries/client && ./gradlew publishToMavenLocal",
       "publish:service": "cd libraries/service && ./gradlew publish",
       "publish:local:service": "cd libraries/service && ./gradlew publishToMavenLocal",
       "test:client": "cd libraries/client && ./gradlew connectedDebugAndroidTest",
       "test:service": "cd libraries/service && ./gradlew connectedDebugAndroidTest",
-      "start:android-service-runtime": "pnpm run publish:local:client && pnpm run build:tauri-plugin-holochain-service && pnpm run --dir apps/android-service-runtime start:android",
-      "start:example-client-app": "pnpm run publish:local:client && pnpm run build:tauri-plugin-holochain-service-consumer && pnpm run --dir apps/example-client-app start:android"
+      "start:android-service-runtime": "pnpm run publish:local:client && pnpm run build:tauri-plugin-service && pnpm run --dir apps/android-service-runtime start:android",
+      "start:example-client-app": "pnpm run publish:local:client && pnpm run build:tauri-plugin-client && pnpm run --dir apps/example-client-app start:android"
     },
     "dependencies": {
       "tslib": "^2.7.0"

@@ -3,8 +3,8 @@ members = [
     "crates/holochain-conductor-runtime",
     "crates/holochain-conductor-runtime-ffi",
     "crates/holochain-conductor-runtime-types-ffi",
-    "crates/tauri-plugin-holochain-service",
-    "crates/tauri-plugin-holochain-service-consumer",
+    "crates/tauri-plugin-service",
+    "crates/tauri-plugin-client",
     "crates/uniffi-bindgen-cli",
     "apps/android-service-runtime/src-tauri"
 ]

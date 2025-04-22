@@ -8766,7 +8766,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tauri-plugin-holochain-service-consumer"
+name = "tauri-plugin-holochain-service-client"
 version = "0.1.0"
 dependencies = [
  "bytes",

@@ -1,6 +1,6 @@
 packages:
-  - crates/tauri-plugin-holochain-service
-  - crates/tauri-plugin-holochain-service-consumer
+  - crates/tauri-plugin-service
+  - crates/tauri-plugin-client
   - apps/android-service-runtime
   - '!**/android/**'
   - '!**/dist-js/**'

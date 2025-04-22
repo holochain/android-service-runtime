@@ -19,7 +19,7 @@ tauri-build = { version = "2.0.3", default-features = false , features = [] }
 
 [dependencies]
 tauri = { version = "2.2.2", features = [] }
-tauri-plugin-holochain-service-consumer = { path = "../../../crates/tauri-plugin-holochain-service-consumer" }
+tauri-plugin-holochain-service-client = { path = "../../../crates/tauri-plugin-client" }
 
 log = "0.4"
 tauri-plugin-log = "2.0.2"
