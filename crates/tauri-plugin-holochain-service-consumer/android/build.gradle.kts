@@ -1,14 +1,14 @@
+import org.jmailen.gradle.kotlinter.tasks.ConfigurableKtLintTask
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("org.jmailen.kotlinter") version("5.0.1")
 }
 
-// We are violating some of ktlint's rules.
-// Thus, we still allow builds with format and lint violations.
-kotlinter {
-    ignoreFormatFailures = true
-    ignoreLintFailures = true
+// The uniffi-generated kotlin bindings violate some linter rules
+tasks.withType<ConfigurableKtLintTask> {
+    exclude("**/*_ffi.kt")
 }
 
 android {
