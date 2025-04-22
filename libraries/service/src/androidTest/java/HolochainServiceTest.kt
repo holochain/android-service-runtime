@@ -6,7 +6,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.ServiceTestRule
 import org.holochain.androidserviceruntime.client.IHolochainServiceAdmin
 import org.holochain.androidserviceruntime.client.IHolochainServiceApp
-import org.junit.Assert.assert
 import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
