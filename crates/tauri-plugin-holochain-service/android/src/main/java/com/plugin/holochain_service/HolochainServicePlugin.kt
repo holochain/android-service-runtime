@@ -1,4 +1,4 @@
-package com.plugin.holochain_service
+package org.holochain.androidserviceruntime.plugin.service
 
 import android.app.Activity
 import android.app.NotificationChannel

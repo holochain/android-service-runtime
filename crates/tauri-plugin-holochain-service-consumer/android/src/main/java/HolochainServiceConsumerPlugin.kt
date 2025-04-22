@@ -1,4 +1,4 @@
-package com.plugin.holochain_service_consumer
+package org.holochain.androidserviceruntime.plugin.client
 
 import android.app.Activity
 import android.util.Log
@@ -27,7 +27,7 @@ class HolochainServiceConsumerPlugin(
         HolochainServiceAppClient(
             this.activity,
             servicePackage,
-            "com.plugin.holochain_service.HolochainService",
+            "org.holochain.androidserviceruntime.plugin.service.HolochainService",
         )
     private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
     private val logTag = "HolochainServiceConsumerPlugin"

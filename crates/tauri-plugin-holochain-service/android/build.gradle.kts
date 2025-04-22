@@ -12,7 +12,7 @@ tasks.withType<ConfigurableKtLintTask> {
 }
 
 android {
-    namespace = "com.plugin.holochain_service"
+    namespace = "org.holochain.androidserviceruntime.plugin.service"
     compileSdk = 34
 
     defaultConfig {

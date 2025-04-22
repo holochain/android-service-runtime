@@ -5,7 +5,7 @@ use tauri::{
 };
 
 #[cfg(target_os = "android")]
-const PLUGIN_IDENTIFIER: &str = "com.plugin.holochain_service";
+const PLUGIN_IDENTIFIER: &str = "org.holochain.androidserviceruntime.plugin.service";
 
 #[cfg(target_os = "ios")]
 tauri::ios_plugin_binding!(init_plugin_holochain_service);

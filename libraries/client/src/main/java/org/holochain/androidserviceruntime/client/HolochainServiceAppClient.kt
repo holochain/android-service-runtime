@@ -13,7 +13,7 @@ import kotlinx.coroutines.delay
 class HolochainServiceAppClient(
     private val activity: Activity,
     private val servicePackageName: String = "org.holochain.androidserviceruntime.app",
-    private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
+    private val serviceClassName: String = "org.holochain.androidserviceruntime.plugin.service.HolochainService",
 ) {
     private var mService: IHolochainServiceApp? = null
     private val logTag = "HolochainServiceAppClient"

@@ -3,7 +3,7 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/kotlin" isTestSource="false" packagePrefix="com.plugin.holochain_service" />
+      <sourceFolder url="file://$MODULE_DIR$/kotlin" isTestSource="false" packagePrefix="org.holochain.androidserviceruntime.plugin.service" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

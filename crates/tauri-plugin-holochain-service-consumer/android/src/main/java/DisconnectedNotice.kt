@@ -1,4 +1,4 @@
-package com.plugin.holochain_service_consumer
+package org.holochain.androidserviceruntime.plugin.client
 
 import android.app.Activity
 import android.content.Intent
