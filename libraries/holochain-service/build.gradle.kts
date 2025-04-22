@@ -4,6 +4,14 @@ plugins {
   id("com.android.library")
   id("org.jetbrains.kotlin.android")
   id("com.vanniktech.maven.publish") version ("0.30.0")
+  id("org.jmailen.kotlinter") version("5.0.1")
+}
+
+// The uniffi-generated kotlin bindings violate some of ktlint's rules.
+// Thus, we still allow builds with format and lint violations.
+kotlinter {
+    ignoreFormatFailures = true
+    ignoreLintFailures = true
 }
 
 android {
