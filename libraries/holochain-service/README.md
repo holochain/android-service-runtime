@@ -24,7 +24,7 @@ The library can be published to a local maven repository for use in development.
 To publish the library to the local Maven repository, run:
 
 ```bash
-pnpm run build:holochain-conductor-runtime-types-ffi && pnpm run publish:local:holochain-service-client && pnpm run build:holochain-conductor-runtime-ffi && pnpm run publish:local:holochain-service
+pnpm run build:holochain-conductor-runtime-types-ffi && pnpm run build:holochain-service-client && pnpm run publish:local:holochain-service-client && pnpm run build:holochain-conductor-runtime-ffi && pnpm run build:holochain-service && pnpm run publish:local:holochain-service
 ```
 
 ### Clear local Maven Repository

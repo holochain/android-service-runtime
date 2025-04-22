@@ -27,7 +27,8 @@ import org.holochain.androidserviceruntime.holochain_service_client.toJSONArrayS
 class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
     private lateinit var webView: WebView
     private lateinit var injectHolochainClientEnvJavascript: String
-    private var serviceClient = HolochainServiceAdminClient(this.activity)
+    private val serviceComponentName = ComponentName(this.activity, HolochainService::class.java)
+    private var serviceClient = HolochainServiceAdminClient(this.activity, this.serviceComponentName)
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private val TAG = "HolochainServicePlugin"
@@ -66,7 +67,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
 
         // Start service
         val intent = Intent()
-        intent.setComponent(ComponentName(this.activity, HolochainService::class.java))
+        intent.setComponent(this.serviceComponentName)
         this.activity.startForegroundService(intent)
 
         // Connect to service
