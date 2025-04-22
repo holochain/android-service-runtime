@@ -12,6 +12,8 @@
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
       "lint:fix:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew formatKotlin",
       "lint:fix:holochain-service": "cd libraries/holochain-service && ./gradlew formatKotlin",
+      "lint:fix:tauri-plugin-holochain-service": "cd crates/tauri-plugin-holochain-service/android && ./gradlew formatKotlin",
+      "lint:fix:tauri-plugin-holochain-service-consumer": "cd crates/tauri-plugin-holochain-service-consumer/android && ./gradlew formatKotlin",
       "publish:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew publish",
       "publish:local:holochain-service-client": "cd libraries/holochain-service-client && ./gradlew publishToMavenLocal",
       "publish:holochain-service": "cd libraries/holochain-service && ./gradlew publish",

@@ -1,7 +1,16 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id("org.jmailen.kotlinter") version("5.0.1")
 }
+
+// We are violating some of ktlint's rules.
+// Thus, we still allow builds with format and lint violations.
+kotlinter {
+    ignoreFormatFailures = true
+    ignoreLintFailures = true
+}
+
 
 android {
     namespace = "com.plugin.holochain_service"
