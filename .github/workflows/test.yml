@@ -98,7 +98,7 @@ jobs:
       - name: Build dependency rust library & kotlin bindings
         run: |
           pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
-          pnpm run build:single-target:holochain-conductor-runtime-ffi ${{ matrix.target.arch-cargo }}
+          pnpm run build:single-target:runtime-ffi ${{ matrix.target.arch-cargo }}
 
       - name: Create gradle.properties without secrets
         run: |

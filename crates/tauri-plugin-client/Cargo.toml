@@ -9,7 +9,7 @@ exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
 links = "tauri-plugin-holochain-service-client"
 
 [dependencies]
-holochain-conductor-runtime-types-ffi = { path = "../holochain-conductor-runtime-types-ffi" }
+holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi" }
 tauri = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
