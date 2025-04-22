@@ -12,8 +12,7 @@ import kotlinx.coroutines.delay
 
 class HolochainServiceAdminClient(
     private val activity: Activity,
-    private val servicePackageName: String = "org.holochain.androidserviceruntime.app",
-    private val serviceClassName: String = "org.holochain.androidserviceruntime.plugin.service.HolochainService",
+    private val serviceComponentName: ComponentName
 ) {
     private var mService: IHolochainServiceAdmin? = null
     private val logTag = "HolochainServiceAdminClient"
@@ -45,7 +44,7 @@ class HolochainServiceAdminClient(
         val intent = Intent(packageName)
 
         intent.putExtra("api", "admin")
-        intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
+        intent.setComponent(this.serviceComponentName)
         this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
     }
 

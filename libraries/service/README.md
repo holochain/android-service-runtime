@@ -24,7 +24,7 @@ The library can be published to a local maven repository for use in development.
 To publish the library to the local Maven repository, run:
 
 ```bash
-pnpm run build:runtime-types-ffi && pnpm run publish:local:client && pnpm run build:runtime-ffi && pnpm run publish:local:service
+pnpm run build:runtime-types-ffi && pnpm run build:client && pnpm run publish:local:client && pnpm run build:runtime-ffi && pnpm run build:service && pnpm run publish:local:service
 ```
 
 ### Clear local Maven Repository

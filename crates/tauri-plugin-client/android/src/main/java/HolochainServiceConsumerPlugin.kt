@@ -3,6 +3,11 @@ package org.holochain.androidserviceruntime.plugin.client
 import android.app.Activity
 import android.util.Log
 import android.webkit.WebView
+import android.content.ComponentName
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import app.tauri.annotation.Command
 import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.Invoke
@@ -23,12 +28,10 @@ class HolochainServiceConsumerPlugin(
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private val servicePackage = "org.holochain.androidserviceruntime.app"
-    private val serviceClient =
-        HolochainServiceAppClient(
-            this.activity,
-            servicePackage,
-            "org.holochain.androidserviceruntime.plugin.service.HolochainService",
-        )
+    private val serviceClient = HolochainServiceAppClient(
+        this.activity,
+        ComponentName(servicePackage, "org.holochain.androidserviceruntime.holochain_service.HolochainService")
+    )
     private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
     private val logTag = "HolochainServiceConsumerPlugin"
     private var webView: WebView? = null
