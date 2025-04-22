@@ -95,29 +95,17 @@ jobs:
         run: |
           cargo install cargo-ndk
 
-      - name: Build dependency rust library & kotlin bindings
+      - name: Build holochain-service-client and publish to mavenLocal
         run: |
           pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
-          pnpm run build:single-target:holochain-conductor-runtime-ffi ${{ matrix.target.arch-cargo }}
-
-      - name: Create gradle.properties without secrets
-        run: |
-          touch libraries/holochain-service-client/gradle.properties
-          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service-client/gradle.properties
-
-          touch libraries/holochain-service/gradle.properties
-          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service/gradle.properties
-
-      - name: Build holochain-service-client
-        run: |
+          cp libraries/holochain-service-client/gradle.properties.ci libraries/holochain-service-client/gradle.properties
           pnpm run build:holochain-service-client
-
-      - name: Publish holochain-service-client to mavenLocal
-        run: |
           pnpm run publish:local:holochain-service-client
 
       - name: Build holochain-service
         run: |
+          pnpm run build:single-target:holochain-conductor-runtime-ffi ${{ matrix.target.arch-cargo }}
+          cp libraries/holochain-service/gradle.properties.ci libraries/holochain-service/gradle.properties
           pnpm run build:holochain-service
 
       - name: Run tests
