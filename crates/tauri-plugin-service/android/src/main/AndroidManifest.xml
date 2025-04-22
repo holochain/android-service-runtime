@@ -5,7 +5,7 @@
 
   <application>
     <service
-        android:name="org.holochain.androidserviceruntime.holochain_service.HolochainService"
+        android:name="org.holochain.androidserviceruntime.service.HolochainService"
         android:foregroundServiceType="dataSync"
         android:exported="true">
     </service>
