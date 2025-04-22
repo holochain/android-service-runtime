@@ -1,5 +1,6 @@
 /build
 /.tauri
 .gradle
+*.iml
 
 src/main/res/raw/holochainenv.js

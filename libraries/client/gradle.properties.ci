@@ -1,0 +1,6 @@
+# Gradle properties used by CI
+# Before use, rename this file to `gradle.properties`
+
+android.enableJetifier=true
+android.useAndroidX=true
+org.gradle.jvmargs=-Xmx2048m
