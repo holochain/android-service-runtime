@@ -12,9 +12,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceAppClient
-import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceNotConnectedException
-import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
+import org.holochain.androidserviceruntime.client.HolochainServiceAppClient
+import org.holochain.androidserviceruntime.client.HolochainServiceNotConnectedException
+import org.holochain.androidserviceruntime.client.toJSONObjectString
 
 @TauriPlugin
 class HolochainServiceConsumerPlugin(

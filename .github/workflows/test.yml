@@ -102,19 +102,19 @@ jobs:
 
       - name: Create gradle.properties without secrets
         run: |
-          touch libraries/holochain-service-client/gradle.properties
-          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service-client/gradle.properties
+          touch libraries/client/gradle.properties
+          printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/client/gradle.properties
 
           touch libraries/holochain-service/gradle.properties
           printf "android.enableJetifier=true\nandroid.useAndroidX=true" > libraries/holochain-service/gradle.properties
 
-      - name: Build holochain-service-client
+      - name: Build client
         run: |
-          pnpm run build:holochain-service-client
+          pnpm run build:client
 
-      - name: Publish holochain-service-client to mavenLocal
+      - name: Publish client to mavenLocal
         run: |
-          pnpm run publish:local:holochain-service-client
+          pnpm run publish:local:client
 
       - name: Build holochain-service
         run: |
@@ -127,5 +127,5 @@ jobs:
           arch: ${{ matrix.target.arch-ndk }}
           target: google_apis
           script: |
-            pnpm run test:holochain-service-client
+            pnpm run test:client
             pnpm run test:holochain-service

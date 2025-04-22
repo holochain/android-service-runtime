@@ -19,9 +19,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.holochain.androidserviceruntime.holochain_service.HolochainService
-import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceAdminClient
-import org.holochain.androidserviceruntime.holochain_service_client.toJSONArrayString
-import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
+import org.holochain.androidserviceruntime.client.HolochainServiceAdminClient
+import org.holochain.androidserviceruntime.client.toJSONArrayString
+import org.holochain.androidserviceruntime.client.toJSONObjectString
 
 @TauriPlugin
 class HolochainServicePlugin(

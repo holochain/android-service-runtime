@@ -1,3 +1,0 @@
-package org.holochain.androidserviceruntime.holochain_service_client;
-
-parcelable InstallAppPayloadFfiParcel;

@@ -28,9 +28,9 @@ A Tauri plugin for building Android apps that make use of the android-service-ru
 
 ### Kotlin Libraries
 
-#### holochain-service-client
+#### client
 
-A Kotlin library `org.holochain.androidserviceruntime.holochain_service_client` containing a client class and types needed for connecting to the HolochainService in [holochain-service].
+A Kotlin library `org.holochain.androidserviceruntime.client` containing a client class and types needed for connecting to the HolochainService in [holochain-service].
 
 #### holochain-service
 

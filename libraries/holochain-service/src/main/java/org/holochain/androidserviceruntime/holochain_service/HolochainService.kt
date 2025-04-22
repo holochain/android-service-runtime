@@ -11,15 +11,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.holochain.androidserviceruntime.holochain_service_client.AppAuthFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.AppInfoFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceAdmin
-import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceApp
-import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceCallback
-import org.holochain.androidserviceruntime.holochain_service_client.InstallAppPayloadFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.RuntimeConfigFfi
-import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallFfiParcel
-import org.holochain.androidserviceruntime.holochain_service_client.ZomeCallUnsignedFfiParcel
+import org.holochain.androidserviceruntime.client.AppAuthFfiParcel
+import org.holochain.androidserviceruntime.client.AppInfoFfiParcel
+import org.holochain.androidserviceruntime.client.IHolochainServiceAdmin
+import org.holochain.androidserviceruntime.client.IHolochainServiceApp
+import org.holochain.androidserviceruntime.client.IHolochainServiceCallback
+import org.holochain.androidserviceruntime.client.InstallAppPayloadFfiParcel
+import org.holochain.androidserviceruntime.client.RuntimeConfigFfi
+import org.holochain.androidserviceruntime.client.ZomeCallFfiParcel
+import org.holochain.androidserviceruntime.client.ZomeCallUnsignedFfiParcel
 import java.security.InvalidParameterException
 
 class HolochainService : Service() {

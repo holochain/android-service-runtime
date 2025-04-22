@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.ServiceTestRule
-import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceAdmin
-import org.holochain.androidserviceruntime.holochain_service_client.IHolochainServiceApp
+import org.holochain.androidserviceruntime.client.IHolochainServiceAdmin
+import org.holochain.androidserviceruntime.client.IHolochainServiceApp
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
