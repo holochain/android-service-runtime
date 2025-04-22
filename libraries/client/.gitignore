@@ -6,6 +6,7 @@ build
 *.iml
 
 src/main/jniLibs/**
+!src/main/jniLibs/.gitkeep
 src/main/res/raw/
 src/main/**/*_ffi.kt
 
