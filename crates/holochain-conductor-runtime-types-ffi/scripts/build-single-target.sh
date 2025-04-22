@@ -2,7 +2,7 @@
 
 TARGET=$1
 
-cargo build -p holochain-conductor-runtime-types-ffi
+cargo build -p holochain-conductor-runtime-types-ffi --release
 
 cargo ndk --manifest-path ./Cargo.toml -t $TARGET \
   -o ../../libraries/holochain-service-client/src/main/jniLibs \

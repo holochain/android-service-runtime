@@ -1,6 +1,6 @@
 #/usr/bin/env bash
 
-cargo build -p holochain-conductor-runtime-ffi
+cargo build -p holochain-conductor-runtime-ffi --release
 
 cargo ndk --manifest-path ./Cargo.toml -t arm64-v8a -t x86 -t x86_64 \
  -o ../../libraries/holochain-service/src/main/jniLibs \
