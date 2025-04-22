@@ -14,14 +14,13 @@ class InstallAppPayloadFfiInvokeArg {
     lateinit var roleSettings: Map<String, RoleSettingsFfi>
 }
 
-fun InstallAppPayloadFfiInvokeArg.toFfi(): InstallAppPayloadFfi {
-    return InstallAppPayloadFfi(
+fun InstallAppPayloadFfiInvokeArg.toFfi(): InstallAppPayloadFfi =
+    InstallAppPayloadFfi(
         this.source,
         this.installedAppId,
         this.networkSeed,
         this.roleSettings,
     )
-}
 
 @InvokeArg
 class AppIdInvokeArg {
@@ -40,8 +39,8 @@ class ZomeCallUnsignedFfiInvokeArg {
     var expiresAt: Long = 0L
 }
 
-fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi {
-    return ZomeCallUnsignedFfi(
+fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi =
+    ZomeCallUnsignedFfi(
         this.provenance,
         this.cellId,
         this.zomeName,
@@ -49,6 +48,5 @@ fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi {
         this.capSecret,
         this.payload,
         this.nonce,
-        this.expiresAt
+        this.expiresAt,
     )
-}

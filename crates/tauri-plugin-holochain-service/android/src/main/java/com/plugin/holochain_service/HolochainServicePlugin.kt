@@ -6,25 +6,27 @@ import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.webkit.WebView
 import android.util.Log
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
+import android.webkit.WebView
 import app.tauri.annotation.Command
 import app.tauri.annotation.TauriPlugin
-import app.tauri.plugin.JSObject
-import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import app.tauri.plugin.JSArray
+import app.tauri.plugin.JSObject
+import app.tauri.plugin.Plugin
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.holochain.androidserviceruntime.holochain_service.HolochainService
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceAdminClient
-import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
 import org.holochain.androidserviceruntime.holochain_service_client.toJSONArrayString
+import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
 
 @TauriPlugin
-class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
+class HolochainServicePlugin(
+    private val activity: Activity,
+) : Plugin(activity) {
     private lateinit var webView: WebView
     private lateinit var injectHolochainClientEnvJavascript: String
     private var serviceClient = HolochainServiceAdminClient(this.activity)
@@ -46,12 +48,14 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
 
         // Create notification channel
         val notificationManager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(NotificationChannel(
-            "HolochainServiceChannel",
-            "Holochain Service Running",
-            NotificationManager.IMPORTANCE_HIGH
-        ))
-        
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                "HolochainServiceChannel",
+                "Holochain Service Running",
+                NotificationManager.IMPORTANCE_HIGH,
+            ),
+        )
+
         // Attempt to connect to service
         // It may not be running
         this.serviceClient.connect()
@@ -192,7 +196,7 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
             injectHolochainClientEnv(
                 args.installedAppId,
                 res.port.toInt(),
-                res.authentication.token.toUByteArray()
+                res.authentication.token.toUByteArray(),
             )
 
             invoke.resolve(JSObject(res.toJSONObjectString()))
@@ -216,7 +220,11 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
      * Inject magic holochain-client-js variables into webview window
      */
     @OptIn(ExperimentalUnsignedTypes::class)
-    private fun injectHolochainClientEnv(appId: String, appWebsocketPort: Int, appWebsocketToken: UByteArray) {
+    private fun injectHolochainClientEnv(
+        appId: String,
+        appWebsocketPort: Int,
+        appWebsocketToken: UByteArray,
+    ) {
         Log.d(TAG, "injectHolochainClientEnv")
         // Declare js helper function for injecting holochain client env, bundled with dependencies
         this.webView.evaluateJavascript(this.injectHolochainClientEnvJavascript, null)
@@ -224,8 +232,8 @@ class HolochainServicePlugin(private val activity: Activity): Plugin(activity) {
         // Inject holochain client env
         val tokenJsArray = appWebsocketToken.toMutableList().toJSONArrayString()
         this.webView.evaluateJavascript(
-            """window.injectHolochainClientEnv("$appId", ${appWebsocketPort}, ${tokenJsArray}) """,
-            null
+            """window.injectHolochainClientEnv("$appId", $appWebsocketPort, $tokenJsArray) """,
+            null,
         )
     }
 }

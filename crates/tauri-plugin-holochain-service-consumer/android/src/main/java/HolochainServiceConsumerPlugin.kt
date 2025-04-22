@@ -1,31 +1,34 @@
 package com.plugin.holochain_service_consumer
 
 import android.app.Activity
-import android.webkit.WebView
 import android.util.Log
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
+import android.webkit.WebView
 import app.tauri.annotation.Command
 import app.tauri.annotation.TauriPlugin
+import app.tauri.plugin.Invoke
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
-import app.tauri.plugin.Invoke
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceAppClient
-import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
 import org.holochain.androidserviceruntime.holochain_service_client.HolochainServiceNotConnectedException
+import org.holochain.androidserviceruntime.holochain_service_client.toJSONObjectString
 
 @TauriPlugin
-class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(activity) {
+class HolochainServiceConsumerPlugin(
+    private val activity: Activity,
+) : Plugin(activity) {
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private val servicePackage = "org.holochain.androidserviceruntime.app"
-    private val serviceClient = HolochainServiceAppClient(
-        this.activity,
-        servicePackage,
-        "com.plugin.holochain_service.HolochainService"
-    )
+    private val serviceClient =
+        HolochainServiceAppClient(
+            this.activity,
+            servicePackage,
+            "com.plugin.holochain_service.HolochainService",
+        )
     private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
     private val TAG = "HolochainServiceConsumerPlugin"
     private var webView: WebView? = null
@@ -47,13 +50,13 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     @Command
     fun connectSetupApp(invoke: Invoke) {
         Log.d(TAG, "connectSetupApp")
-        val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)        
+        val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             try {
                 val res = serviceClient.connectSetupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
                 invoke.resolve(JSObject(res.toJSONObjectString()))
             } catch (e: Exception) {
-               handleCommandException(e, invoke)
+                handleCommandException(e, invoke)
             }
         }
     }
@@ -95,17 +98,19 @@ class HolochainServiceConsumerPlugin(private val activity: Activity): Plugin(act
     /**
      * Display the service notice if the exception is HolochainServiceNotConnectedException
      */
-    private fun handleCommandException(e: Exception, invoke: Invoke) {
+    private fun handleCommandException(
+        e: Exception,
+        invoke: Invoke,
+    ) {
         Log.d(TAG, "handleCommandException")
         if (e is HolochainServiceNotConnectedException) {
-            if(this.webView == null) {
+            if (this.webView == null) {
                 disconnectedNotice.enableShowOnLoad()
             } else {
                 disconnectedNotice.show()
             }
             invoke.reject(e.toString(), "HolochainServiceNotConnected")
-        }
-        else {
+        } else {
             invoke.reject(e.toString())
         }
     }

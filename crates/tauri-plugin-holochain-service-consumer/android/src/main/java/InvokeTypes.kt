@@ -15,14 +15,13 @@ class SetupAppConfigInvokeArg {
     var enableAfterInstall: Boolean = true
 }
 
-fun SetupAppConfigInvokeArg.toInstallAppPayloadFfi(): InstallAppPayloadFfi {
-    return InstallAppPayloadFfi(
+fun SetupAppConfigInvokeArg.toInstallAppPayloadFfi(): InstallAppPayloadFfi =
+    InstallAppPayloadFfi(
         source = this.happBundleBytes,
         installedAppId = this.appId,
         networkSeed = this.networkSeed,
         rolesSettings = this.rolesSettings,
     )
-}
 
 @InvokeArg
 class AppIdInvokeArg {
@@ -42,18 +41,17 @@ class ZomeCallUnsignedFfiInvokeArg {
     var expiresAt: Long = 0L
 }
 
-fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi {
-    return ZomeCallUnsignedFfi(
+fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi =
+    ZomeCallUnsignedFfi(
         this.provenance,
         CellIdFfi(
             dnaHash = this.cellIdDnaHash,
-            agentPubKey = this.cellIdAgentPubKey
+            agentPubKey = this.cellIdAgentPubKey,
         ),
         this.zomeName,
         this.fnName,
         this.capSecret,
         this.payload,
         this.nonce,
-        this.expiresAt
+        this.expiresAt,
     )
-}
