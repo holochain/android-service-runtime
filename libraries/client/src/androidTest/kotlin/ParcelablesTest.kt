@@ -9,6 +9,7 @@ import org.holochain.androidserviceruntime.client.AppAuthenticationTokenIssuedFf
 import org.holochain.androidserviceruntime.client.AppInfoFfi
 import org.holochain.androidserviceruntime.client.AppInfoFfiParcel
 import org.holochain.androidserviceruntime.client.AppInfoStatusFfi
+import org.holochain.androidserviceruntime.client.AppInfoStatusFfiParcel
 import org.holochain.androidserviceruntime.client.CellIdFfi
 import org.holochain.androidserviceruntime.client.CellIdFfiParcel
 import org.holochain.androidserviceruntime.client.CellInfoFfi
@@ -19,6 +20,7 @@ import org.holochain.androidserviceruntime.client.DisabledAppReasonFfi
 import org.holochain.androidserviceruntime.client.DisabledAppReasonFfiParcel
 import org.holochain.androidserviceruntime.client.DnaModifiersFfi
 import org.holochain.androidserviceruntime.client.DnaModifiersFfiParcel
+import org.holochain.androidserviceruntime.client.DnaModifiersOptFfi
 import org.holochain.androidserviceruntime.client.DurationFfi
 import org.holochain.androidserviceruntime.client.DurationFfiParcel
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfi
@@ -34,7 +36,6 @@ import org.holochain.androidserviceruntime.client.ZomeCallFfi
 import org.holochain.androidserviceruntime.client.ZomeCallFfiParcel
 import org.holochain.androidserviceruntime.client.ZomeCallUnsignedFfi
 import org.holochain.androidserviceruntime.client.ZomeCallUnsignedFfiParcel
-import org.junit.Assert.assert
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
