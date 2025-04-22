@@ -15,264 +15,270 @@ class HolochainServiceAdminClient(
     private val servicePackageName: String = "org.holochain.androidserviceruntime.app",
     private val serviceClassName: String = "com.plugin.holochain_service.HolochainService",
 ) {
-  private var mService: IHolochainServiceAdmin? = null
-  private val TAG = "HolochainServiceAdminClient"
+    private var mService: IHolochainServiceAdmin? = null
+    private val TAG = "HolochainServiceAdminClient"
 
-  // IPC Connection to HolochainService using AIDL
-  private val mConnection =
-      object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName, service: IBinder) {
-          mService = IHolochainServiceAdmin.Stub.asInterface(service)
-          Log.d(TAG, "IHolochainServiceAdmin connected")
+    // IPC Connection to HolochainService using AIDL
+    private val mConnection =
+        object : ServiceConnection {
+            override fun onServiceConnected(
+                className: ComponentName,
+                service: IBinder,
+            ) {
+                mService = IHolochainServiceAdmin.Stub.asInterface(service)
+                Log.d(TAG, "IHolochainServiceAdmin connected")
+            }
+
+            override fun onServiceDisconnected(className: ComponentName) {
+                mService = null
+                Log.d(TAG, "IHolochainServiceAdmin disconnected")
+            }
         }
 
-        override fun onServiceDisconnected(className: ComponentName) {
-          mService = null
-          Log.d(TAG, "IHolochainServiceAdmin disconnected")
+    // / Connect to the service
+    fun connect() {
+        Log.d(TAG, "connect")
+
+        // Giving the intent a unique action ensures the HolochainService `onBind()` callback is
+        // triggered.
+        val packageName: String = this.activity.getPackageName()
+        val intent = Intent(packageName)
+
+        intent.putExtra("api", "admin")
+        intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
+        this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
+    }
+
+    // / Full process to setup an app
+    // /
+    // / Check if app is installed, if not install it, then optionally enable it.
+    // / Then ensure there is an app websocket and authentication for it.
+    // /
+    // / If an app is already installed, it will not be enabled. It is only enabled after a successful
+    // install.
+    // / The reasoning is that if an app is disabled after that point,
+    // / it is assumed to have been manually disabled in the admin interface, which we don't want to
+    // override.
+    suspend fun setupApp(
+        installAppPayload: InstallAppPayloadFfi,
+        enableAfterInstall: Boolean,
+    ): AppAuthFfi {
+        Log.d(TAG, "setupApp")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
         }
-      }
 
-  /// Connect to the service
-  fun connect() {
-    Log.d(TAG, "connect")
+        val deferred = CompletableDeferred<AppAuthFfi>()
+        var callbackBinder =
+            object : IHolochainServiceCallbackStub() {
+                override fun setupApp(response: AppAuthFfiParcel) {
+                    Log.d(TAG, "setupApp callback")
+                    deferred.complete(response.inner)
+                }
+            }
+        this.mService!!.setupApp(
+            callbackBinder,
+            InstallAppPayloadFfiParcel(installAppPayload),
+            enableAfterInstall,
+        )
 
-    // Giving the intent a unique action ensures the HolochainService `onBind()` callback is
-    // triggered.
-    val packageName: String = this.activity.getPackageName()
-    val intent = Intent(packageName)
-
-    intent.putExtra("api", "admin")
-    intent.setComponent(ComponentName(this.servicePackageName, this.serviceClassName))
-    this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
-  }
-
-  /// Full process to setup an app
-  ///
-  /// Check if app is installed, if not install it, then optionally enable it.
-  /// Then ensure there is an app websocket and authentication for it.
-  ///
-  /// If an app is already installed, it will not be enabled. It is only enabled after a successful
-  // install.
-  /// The reasoning is that if an app is disabled after that point,
-  /// it is assumed to have been manually disabled in the admin interface, which we don't want to
-  // override.
-  suspend fun setupApp(
-      installAppPayload: InstallAppPayloadFfi,
-      enableAfterInstall: Boolean
-  ): AppAuthFfi {
-    Log.d(TAG, "setupApp")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
+        return deferred.await()
     }
 
-    val deferred = CompletableDeferred<AppAuthFfi>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun setupApp(response: AppAuthFfiParcel) {
-            Log.d(TAG, "setupApp callback")
-            deferred.complete(response.inner)
-          }
+    // / Connect to service, wait for connection to be ready, and setupApp
+    suspend fun connectSetupApp(
+        installAppPayload: InstallAppPayloadFfi,
+        enableAfterInstall: Boolean,
+    ): AppAuthFfi {
+        this.connect()
+        this.waitForConnectReady()
+        return this.setupApp(installAppPayload, enableAfterInstall)
+    }
+
+    // / Stop the service
+    fun stop() {
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
         }
-    this.mService!!.setupApp(
-        callbackBinder, InstallAppPayloadFfiParcel(installAppPayload), enableAfterInstall)
-
-    return deferred.await()
-  }
-
-  /// Connect to service, wait for connection to be ready, and setupApp
-  suspend fun connectSetupApp(
-      installAppPayload: InstallAppPayloadFfi,
-      enableAfterInstall: Boolean
-  ): AppAuthFfi {
-    this.connect()
-    this.waitForConnectReady()
-    return this.setupApp(installAppPayload, enableAfterInstall)
-  }
-
-  /// Stop the service
-  fun stop() {
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
-    }
-    this.mService!!.stop()
-  }
-
-  /// Is the service ready to receive calls
-  fun isReady(): Boolean {
-    if (this.mService == null) {
-      return false
-    }
-    return this.mService!!.isReady()
-  }
-
-  /// Install an app
-  suspend fun installApp(payload: InstallAppPayloadFfi): AppInfoFfi {
-    Log.d(TAG, "installApp")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
+        this.mService!!.stop()
     }
 
-    val deferred = CompletableDeferred<AppInfoFfi>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun installApp(response: AppInfoFfiParcel) {
-            Log.d(TAG, "installApp callback")
-            deferred.complete(response.inner)
-          }
+    // / Is the service ready to receive calls
+    fun isReady(): Boolean {
+        if (this.mService == null) {
+            return false
         }
-    this.mService!!.installApp(callbackBinder, InstallAppPayloadFfiParcel(payload))
-
-    return deferred.await()
-  }
-
-  /// Is an app with the given app_id installed
-  suspend fun isAppInstalled(installedAppId: String): Boolean {
-    Log.d(TAG, "isAppInstalled")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
+        return this.mService!!.isReady()
     }
 
-    val deferred = CompletableDeferred<Boolean>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun isAppInstalled(response: Boolean) {
-            Log.d(TAG, "isAppInstalled callback")
-            deferred.complete(response)
-          }
+    // / Install an app
+    suspend fun installApp(payload: InstallAppPayloadFfi): AppInfoFfi {
+        Log.d(TAG, "installApp")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
         }
-    this.mService!!.isAppInstalled(callbackBinder, installedAppId)
 
-    return deferred.await()
-  }
+        val deferred = CompletableDeferred<AppInfoFfi>()
+        var callbackBinder =
+            object : IHolochainServiceCallbackStub() {
+                override fun installApp(response: AppInfoFfiParcel) {
+                    Log.d(TAG, "installApp callback")
+                    deferred.complete(response.inner)
+                }
+            }
+        this.mService!!.installApp(callbackBinder, InstallAppPayloadFfiParcel(payload))
 
-  /// Uninstall an installed app
-  suspend fun uninstallApp(installedAppId: String) {
-    Log.d(TAG, "uninstallApp")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
+        return deferred.await()
     }
 
-    val deferred = CompletableDeferred<Unit>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun uninstallApp() {
-            Log.d(TAG, "uninstallApp callback")
-            deferred.complete(Unit)
-          }
+    // / Is an app with the given app_id installed
+    suspend fun isAppInstalled(installedAppId: String): Boolean {
+        Log.d(TAG, "isAppInstalled")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
         }
-    this.mService!!.uninstallApp(callbackBinder, installedAppId)
 
-    deferred.await()
-  }
+        val deferred = CompletableDeferred<Boolean>()
+        var callbackBinder =
+            object : IHolochainServiceCallbackStub() {
+                override fun isAppInstalled(response: Boolean) {
+                    Log.d(TAG, "isAppInstalled callback")
+                    deferred.complete(response)
+                }
+            }
+        this.mService!!.isAppInstalled(callbackBinder, installedAppId)
 
-  /// Enable an installed app
-  suspend fun enableApp(installedAppId: String): AppInfoFfi {
-    Log.d(TAG, "enableApp")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
+        return deferred.await()
     }
 
-    val deferred = CompletableDeferred<AppInfoFfi>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun enableApp(response: AppInfoFfiParcel) {
-            Log.d(TAG, "enableApp callback")
-            deferred.complete(response.inner)
-          }
+    // / Uninstall an installed app
+    suspend fun uninstallApp(installedAppId: String) {
+        Log.d(TAG, "uninstallApp")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
         }
-    this.mService!!.enableApp(callbackBinder, installedAppId)
-    return deferred.await()
-  }
 
-  /// Disable an installed app
-  suspend fun disableApp(installedAppId: String) {
-    Log.d(TAG, "disableApp")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
+        val deferred = CompletableDeferred<Unit>()
+        var callbackBinder =
+            object : IHolochainServiceCallbackStub() {
+                override fun uninstallApp() {
+                    Log.d(TAG, "uninstallApp callback")
+                    deferred.complete(Unit)
+                }
+            }
+        this.mService!!.uninstallApp(callbackBinder, installedAppId)
+
+        deferred.await()
     }
 
-    val deferred = CompletableDeferred<Unit>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun disableApp() {
-            Log.d(TAG, "disableApp callback")
-            deferred.complete(Unit)
-          }
+    // / Enable an installed app
+    suspend fun enableApp(installedAppId: String): AppInfoFfi {
+        Log.d(TAG, "enableApp")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
         }
-    this.mService!!.disableApp(callbackBinder, installedAppId)
-    deferred.await()
-  }
 
-  /// List installed happs in conductor
-  suspend fun listApps(): List<AppInfoFfi> {
-    Log.d(TAG, "listApps")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
+        val deferred = CompletableDeferred<AppInfoFfi>()
+        var callbackBinder =
+            object : IHolochainServiceCallbackStub() {
+                override fun enableApp(response: AppInfoFfiParcel) {
+                    Log.d(TAG, "enableApp callback")
+                    deferred.complete(response.inner)
+                }
+            }
+        this.mService!!.enableApp(callbackBinder, installedAppId)
+        return deferred.await()
     }
 
-    val deferred = CompletableDeferred<List<AppInfoFfi>>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun listApps(response: List<AppInfoFfiParcel>) {
-            Log.d(TAG, "listApps callback")
-            deferred.complete(response.map { it.inner })
-          }
+    // / Disable an installed app
+    suspend fun disableApp(installedAppId: String) {
+        Log.d(TAG, "disableApp")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
         }
-    this.mService!!.listApps(callbackBinder)
 
-    return deferred.await()
-  }
-
-  /// Get or create an app websocket with authentication token
-  suspend fun ensureAppWebsocket(installedAppId: String): AppAuthFfi {
-    Log.d(TAG, "ensureAppWebsocket")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
+        val deferred = CompletableDeferred<Unit>()
+        var callbackBinder =
+            object : IHolochainServiceCallbackStub() {
+                override fun disableApp() {
+                    Log.d(TAG, "disableApp callback")
+                    deferred.complete(Unit)
+                }
+            }
+        this.mService!!.disableApp(callbackBinder, installedAppId)
+        deferred.await()
     }
 
-    val deferred = CompletableDeferred<AppAuthFfi>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun ensureAppWebsocket(response: AppAuthFfiParcel) {
-            Log.d(TAG, "ensureAppWebsocket callback")
-            deferred.complete(response.inner)
-          }
+    // / List installed happs in conductor
+    suspend fun listApps(): List<AppInfoFfi> {
+        Log.d(TAG, "listApps")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
         }
-    this.mService!!.ensureAppWebsocket(callbackBinder, installedAppId)
 
-    return deferred.await()
-  }
+        val deferred = CompletableDeferred<List<AppInfoFfi>>()
+        var callbackBinder =
+            object : IHolochainServiceCallbackStub() {
+                override fun listApps(response: List<AppInfoFfiParcel>) {
+                    Log.d(TAG, "listApps callback")
+                    deferred.complete(response.map { it.inner })
+                }
+            }
+        this.mService!!.listApps(callbackBinder)
 
-  /// Sign a zome call
-  suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
-    Log.d(TAG, "signZomeCall")
-    if (this.mService == null) {
-      throw HolochainServiceNotConnectedException()
+        return deferred.await()
     }
 
-    val deferred = CompletableDeferred<ZomeCallFfi>()
-    var callbackBinder =
-        object : IHolochainServiceCallbackStub() {
-          override fun signZomeCall(response: ZomeCallFfiParcel) {
-            Log.d(TAG, "signZomeCall callback")
-            deferred.complete(response.inner)
-          }
+    // / Get or create an app websocket with authentication token
+    suspend fun ensureAppWebsocket(installedAppId: String): AppAuthFfi {
+        Log.d(TAG, "ensureAppWebsocket")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
         }
-    this.mService!!.signZomeCall(callbackBinder, ZomeCallUnsignedFfiParcel(args))
 
-    return deferred.await()
-  }
+        val deferred = CompletableDeferred<AppAuthFfi>()
+        var callbackBinder =
+            object : IHolochainServiceCallbackStub() {
+                override fun ensureAppWebsocket(response: AppAuthFfiParcel) {
+                    Log.d(TAG, "ensureAppWebsocket callback")
+                    deferred.complete(response.inner)
+                }
+            }
+        this.mService!!.ensureAppWebsocket(callbackBinder, installedAppId)
 
-  /// Poll until we are connected to the service, or the timeout has elapsed
-  suspend fun waitForConnectReady(timeoutMs: Long = 100L) {
-    var intervalMs = 5L
-    var elapsedMs = 0L
-    while (elapsedMs <= timeoutMs) {
-      Log.d(TAG, "waitForConnectReady " + elapsedMs)
-      if (this.mService != null) break
-
-      delay(intervalMs)
-      elapsedMs += intervalMs
+        return deferred.await()
     }
-  }
+
+    // / Sign a zome call
+    suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
+        Log.d(TAG, "signZomeCall")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
+        }
+
+        val deferred = CompletableDeferred<ZomeCallFfi>()
+        var callbackBinder =
+            object : IHolochainServiceCallbackStub() {
+                override fun signZomeCall(response: ZomeCallFfiParcel) {
+                    Log.d(TAG, "signZomeCall callback")
+                    deferred.complete(response.inner)
+                }
+            }
+        this.mService!!.signZomeCall(callbackBinder, ZomeCallUnsignedFfiParcel(args))
+
+        return deferred.await()
+    }
+
+    // / Poll until we are connected to the service, or the timeout has elapsed
+    suspend fun waitForConnectReady(timeoutMs: Long = 100L) {
+        var intervalMs = 5L
+        var elapsedMs = 0L
+        while (elapsedMs <= timeoutMs) {
+            Log.d(TAG, "waitForConnectReady " + elapsedMs)
+            if (this.mService != null) break
+
+            delay(intervalMs)
+            elapsedMs += intervalMs
+        }
+    }
 }
