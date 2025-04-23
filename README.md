@@ -22,19 +22,19 @@ Uses the [tauri-plugin-holochain-service](#tauri-plugin-holochain-service) under
 
 A Tauri plugin for building Android apps that run a Holochain conductor as an [Foreground Service](https://developer.android.com/develop/background-work/services/fgs)
 
-#### tauri-plugin-holochain-service-consumer
+#### tauri-plugin-holochain-service-client
 
 A Tauri plugin for building Android apps that make use of the android-service-runtime Android app, instead of bundling their own conductor.
 
 ### Kotlin Libraries
 
-#### holochain-service-client
+#### org.holochain.androidserviceruntime.client
 
-A Kotlin library `org.holochain.androidserviceruntime.holochain_service_client` containing a client class and types needed for connecting to the HolochainService in [holochain-service].
+A Kotlin library containing a client class and types needed for connecting to the HolochainService in [holochain-service].
 
-#### holochain-service
+#### org.holochain.androidserviceruntime.service
 
-A Kotlin library `org.holochain.androidserviceruntime.holochain_service` containing the HolochainService class, which runs an Android Foreground Service that wraps calls to the [holochain-conductor-runtime-ffi] and exposes an IPC interface for interacting with it.
+A Kotlin library containing the HolochainService class, which runs an Android Foreground Service that wraps calls to the [holochain-conductor-runtime-ffi] and exposes an IPC interface for interacting with it.
 
 ### Rust Crates
 

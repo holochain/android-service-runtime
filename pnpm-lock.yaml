@@ -30,8 +30,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       tauri-plugin-holochain-service-api:
-        specifier: link:../../crates/tauri-plugin-holochain-service
-        version: link:../../crates/tauri-plugin-holochain-service
+        specifier: link:../../crates/tauri-plugin-service
+        version: link:../../crates/tauri-plugin-service
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
@@ -82,7 +82,7 @@ importers:
         specifier: ^3.0.2
         version: 3.2.11(terser@5.39.0)
 
-  crates/tauri-plugin-holochain-service:
+  crates/tauri-plugin-service:
     dependencies:
       '@holochain/client':
         specifier: 0.18.0
@@ -107,7 +107,7 @@ importers:
         specifier: ^5.3.3
         version: 5.8.2
 
-  crates/tauri-plugin-holochain-service-consumer:
+  crates/tauri-plugin-client:
     dependencies:
       '@holochain/client':
         specifier: 0.18.0

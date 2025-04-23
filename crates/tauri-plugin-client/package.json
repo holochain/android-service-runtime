@@ -1,0 +1,36 @@
+{
+  "name": "tauri-plugin-holochain-service-client-api",
+  "version": "0.1.0",
+  "author": "You",
+  "description": "",
+  "type": "module",
+  "types": "./dist-js/index.d.ts",
+  "module": "./dist-js/index.js",
+  "exports": {
+    "types": "./dist-js/tauri-commands/index.d.ts",
+    "import": "./dist-js/tauri-commands/index.js"
+  },
+  "files": [
+    "dist-js",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "pnpm run build:js:tauri-commands:esm && pnpm run build:js:holochain-env && rollup -c",
+    "build:js:tauri-commands:esm": "tsc guest-js/tauri-commands/*.ts --outDir dist-js/tauri-commands/  --declaration --target es2021 --moduleResolution bundler --module esnext  --skipLibCheck true",
+    "build:js:holochain-env": "tsc guest-js/holochain-env/*.ts --outDir dist-js-tmp/holochain-env/ --target es2021 --moduleResolution bundler --module esnext --skipLibCheck true",
+    "prepublishOnly": "pnpm build",
+    "pretest": "pnpm build",
+    "prepare": "pnpm build"
+  },
+  "dependencies": {
+    "@holochain/client": "0.18.0",
+    "@tauri-apps/api": ">=2.0.0-beta.6"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.9.6",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  }
+}

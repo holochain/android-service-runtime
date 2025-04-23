@@ -1,4 +1,4 @@
-use tauri_plugin_holochain_service_consumer::{HolochainServiceConsumerExt, SetupAppConfig};
+use tauri_plugin_holochain_service_client::{HolochainServiceClientExt, SetupAppConfig};
 use uuid::Uuid;
 use std::collections::HashMap;
 
@@ -14,10 +14,10 @@ pub fn run() {
                 .level(log::LevelFilter::Debug)
                 .build(),
         )
-        .plugin(tauri_plugin_holochain_service_consumer::init())
+        .plugin(tauri_plugin_holochain_service_client::init())
         .setup(|app| {
             app.handle()
-                .holochain_service_consumer()
+                .holochain_service_client()
                 .setup_app_main_window(
                     SetupAppConfig {
                         app_id: APP_ID.into(),

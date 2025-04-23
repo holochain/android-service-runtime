@@ -20,7 +20,7 @@ tauri-plugin = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true, features = ["unstable"] }
-tauri-plugin-holochain-service = { path = "../../../crates/tauri-plugin-holochain-service" }
+tauri-plugin-holochain-service = { path = "../../../crates/tauri-plugin-service" }
 log = "0.4"
 tauri-plugin-log = "2.3.1"
 simple_logger = "5.0.0"

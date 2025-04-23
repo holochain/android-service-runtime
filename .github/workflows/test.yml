@@ -95,18 +95,18 @@ jobs:
         run: |
           cargo install cargo-ndk
 
-      - name: Build holochain-service-client and publish to mavenLocal
+      - name: Build client and publish to mavenLocal
         run: |
-          pnpm run build:single-target:holochain-conductor-runtime-types-ffi ${{ matrix.target.arch-cargo }}
-          cp libraries/holochain-service-client/gradle.properties.ci libraries/holochain-service-client/gradle.properties
-          pnpm run build:holochain-service-client
-          pnpm run publish:local:holochain-service-client
+          pnpm run build:single-target:runtime-types-ffi ${{ matrix.target.arch-cargo }}
+          cp libraries/client/gradle.properties.ci libraries/client/gradle.properties
+          pnpm run build:client
+          pnpm run publish:local:client
 
-      - name: Build holochain-service
+      - name: Build service
         run: |
-          pnpm run build:single-target:holochain-conductor-runtime-ffi ${{ matrix.target.arch-cargo }}
-          cp libraries/holochain-service/gradle.properties.ci libraries/holochain-service/gradle.properties
-          pnpm run build:holochain-service
+          pnpm run build:single-target:runtime-ffi ${{ matrix.target.arch-cargo }}
+          cp libraries/service/gradle.properties.ci libraries/service/gradle.properties
+          pnpm run build:service
 
       - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
@@ -115,5 +115,5 @@ jobs:
           arch: ${{ matrix.target.arch-ndk }}
           target: google_apis
           script: |
-            pnpm run test:holochain-service-client
-            pnpm run test:holochain-service
+            pnpm run test:client
+            pnpm run test:service
