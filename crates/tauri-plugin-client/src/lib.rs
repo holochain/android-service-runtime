@@ -25,7 +25,7 @@ impl<R: Runtime, T: Manager<R>> crate::HolochainServiceClientExt<R> for T {
 }
 
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
-    Builder::new("holochain-service-consumer")
+    Builder::new("holochain-service-client")
         .setup(|app, api| {
             let plugin = mobile::init(app, api)?;
             app.manage(plugin);
