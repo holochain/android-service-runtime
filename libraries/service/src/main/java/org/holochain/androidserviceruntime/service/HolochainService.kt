@@ -31,6 +31,14 @@ class HolochainService : Service() {
     private val adminBinder by lazy { AdminBinder() }
     private val appBinders = mutableMapOf<String, AppBinder>()
 
+    companion object {
+        // Notification Channel Id for service running notification
+        const val NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE = "org.holochain.androidserviceruntime.service.FOREGROUND_SERVICE"
+
+        // Notification Channel Id for app authorization notifications
+        const val NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.APP_AUTHORIZATION"
+    }
+
     private inner class AdminBinder : IHolochainServiceAdmin.Stub() {
         private val logTag = "IHolochainServiceAdmin"
 
@@ -333,8 +341,8 @@ class HolochainService : Service() {
             // Create the notification to display while the service is running
             val notification =
                 NotificationCompat
-                    .Builder(this, "HolochainServiceChannel")
-                    .setContentTitle("Holochain Service Runtime")
+                    .Builder(this, NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE)
+                    .setContentTitle("Holochain Service")
                     .setContentText("Holochain Service is running")
                     .setSmallIcon(R.drawable.notification_icon_sm)
                     .build()

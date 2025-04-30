@@ -15,6 +15,20 @@ dependencies {
 }
 ```
 
+On Android 13 (API 33) and above, your app must request `POST_NOTIFICATIONS` permission at runtime.
+
+```kotlin
+private fun requestNotificationPermission() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            1 // Use your own request code
+        )
+    }
+}
+```
+
 ## Development
 
 ### Publish to local Maven repository
