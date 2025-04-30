@@ -1,11 +1,16 @@
 package org.holochain.androidserviceruntime.service
 
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,6 +35,8 @@ class HolochainService : Service() {
     private val serviceScope = CoroutineScope(supervisorJob)
     private val adminBinder by lazy { AdminBinder() }
     private val appBinders = mutableMapOf<String, AppBinder>()
+    private var appAuthorizationRequests = AppAuthorizationRequestMap()
+    private var uniqueNotificationIdGenerator = UniqueNotificationId()
 
     companion object {
         // Notification Channel Id for service running notification
@@ -37,6 +44,15 @@ class HolochainService : Service() {
 
         // Notification Channel Id for app authorization notifications
         const val NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.APP_AUTHORIZATION"
+
+        // Approve app authorization request
+        const val ACTION_APPROVE_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.APPROVE_APP_AUTHORIZATION"
+
+        // Deny app authorization request
+        const val ACTION_DENY_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.DENY_APP_AUTHORIZATION"
+
+        // Start the Service, and the Holochain conductor
+        const val ACTION_START = "org.holochain.androidserviceruntime.service.ACTION_START"
     }
 
     private inner class AdminBinder : IHolochainServiceAdmin.Stub() {
@@ -188,8 +204,6 @@ class HolochainService : Service() {
             Log.d(logTag, "AdminBinder expectAuthorized clientPackageName=$clientPackageName")
 
             if (clientPackageName != HolochainService@ packageName) {
-                // TODO notify user to request authorization
-
                 throw UnauthorizedException(
                     "Package is not authorized to access the AdminBinder clientPackageName=$clientPackageName",
                 )
@@ -211,7 +225,7 @@ class HolochainService : Service() {
             Log.d(logTag, "setupApp")
             this.expectAuthorized()
 
-            if (payload.inner.installedAppId !== installedAppId) {
+            if (payload.inner.installedAppId != installedAppId) {
                 throw UnauthorizedException(
                     "Only the installedAppId specified in the AppBinder can be installed: expected $installedAppId but received ${payload.inner.installedAppId}",
                 )
@@ -272,11 +286,8 @@ class HolochainService : Service() {
             var isAuthorized = runtime!!.isAppClientAuthorized(clientPackageName, installedAppId)
 
             if (!isAuthorized) {
-                Log.d(
-                    logTag,
-                    "authorizeAppClient clientPackageName=$clientPackageName installedAppId=$installedAppId",
-                )
-                // TODO notify user to request authorization
+                // Show notification asking user to authorize this app client
+                HolochainService@ showAppAuthorizationNotification(clientPackageName, installedAppId)
 
                 throw UnauthorizedException(
                     "Package is not authorized to access the AppBinder clientPackageName=$clientPackageName installedAppId=${this.installedAppId}",
@@ -292,12 +303,102 @@ class HolochainService : Service() {
         runtime!!.authorizeAppClient(clientPackageName, installedAppId)
     }
 
+    private fun showAppAuthorizationNotification(
+        clientPackageName: String,
+        installedAppId: String,
+    ) {
+        Log.d(
+            logTag,
+            "showAppAuthorizationNotification clientPackageName=$clientPackageName installedAppId=$installedAppId",
+        )
+
+        // Create approve intent
+        val requestId = appAuthorizationRequests.put(AppAuthorizationRequest(clientPackageName, installedAppId))
+        val approveIntent =
+            Intent(this, HolochainService::class.java).apply {
+                action = ACTION_APPROVE_APP_AUTHORIZATION
+                putExtra("requestId", requestId)
+            }
+        val approvePendingIntent =
+            PendingIntent.getService(
+                this,
+                2,
+                approveIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+
+        // Create deny intent
+        val denyIntent =
+            Intent(this, HolochainService::class.java).apply {
+                action = ACTION_DENY_APP_AUTHORIZATION
+                putExtra("requestId", requestId)
+            }
+        val denyPendingIntent =
+            PendingIntent.getService(
+                this,
+                3,
+                denyIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+
+        // Build the notification
+        val notification =
+            NotificationCompat
+                .Builder(this, "HolochainServiceChannel")
+                .setContentTitle("App Authorization Request")
+                .setStyle(
+                    NotificationCompat
+                        .BigTextStyle()
+                        .bigText("$clientPackageName is requesting access to Holochain app: $installedAppId"),
+                ).setSmallIcon(R.drawable.notification_icon_sm)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .addAction(android.R.drawable.ic_menu_send, "Approve", approvePendingIntent)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Deny", denyPendingIntent)
+                .build()
+
+        // Show the notification
+        NotificationManagerCompat.from(this).notify(uniqueNotificationIdGenerator.get(), notification)
+    }
+
     override fun onStartCommand(
         intent: Intent?,
         flags: Int,
         startId: Int,
     ): Int {
-        startForeground()
+        Log.d(logTag, "onStartCommand")
+
+        if (intent?.action != null) {
+            when (intent.action) {
+                ACTION_START -> {
+                    Log.d(
+                        logTag,
+                        "onStartCommand ACTION_START",
+                    )
+                    startForeground()
+                }
+                ACTION_APPROVE_APP_AUTHORIZATION -> {
+                    Log.d(logTag, "onStartCommand ACTION_APPROVE_APP_AUTHORIZATION")
+
+                    val requestId = intent.getStringExtra("requestId")
+                    if (requestId != null) {
+                        val request = appAuthorizationRequests.pop(requestId)
+                        if (request != null) {
+                            authorizeAppClient(request.clientPackageName, request.installedAppId)
+                        }
+                    }
+                }
+                ACTION_DENY_APP_AUTHORIZATION -> {
+                    Log.d(logTag, "onStartCommand ACTION_DENY_APP_AUTHORIZATION, ignoring")
+
+                    val requestId = intent.getStringExtra("requestId")
+                    if (requestId != null) {
+                        val request = appAuthorizationRequests.pop(requestId)
+                    }
+                }
+            }
+        }
+
         return START_REDELIVER_INTENT
     }
 

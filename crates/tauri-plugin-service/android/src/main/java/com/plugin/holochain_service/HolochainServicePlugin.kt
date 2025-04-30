@@ -115,7 +115,7 @@ class HolochainServicePlugin(
         this.requestPostNotificationsPermission()
 
         // Start service
-        val intent = Intent()
+        val intent = Intent(HolochainService.ACTION_START)
         intent.setComponent(this.serviceComponentName)
         this.activity.startForegroundService(intent)
 
