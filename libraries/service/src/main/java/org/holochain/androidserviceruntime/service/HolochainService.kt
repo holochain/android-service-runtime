@@ -455,11 +455,13 @@ class HolochainService : Service() {
         val notification =
             NotificationCompat
                 .Builder(this, "HolochainServiceChannel")
-                .setContentTitle("App Authorization Request")
+                .setContentTitle("Authorize App Connection")
                 .setStyle(
                     NotificationCompat
                         .BigTextStyle()
-                        .bigText("$clientPackageName is requesting access to Holochain app: $installedAppId"),
+                        .bigText(
+                            "The app \"$clientPackageName\" wants to connect to the Holochain app: \"$installedAppId\".\n\nDo you want to allow this connection?",
+                        ),
                 ).setSmallIcon(R.drawable.notification_icon_sm)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
