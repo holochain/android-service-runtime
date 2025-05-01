@@ -36,7 +36,7 @@
             android:text="Open Settings"
         />
         <Button
-            android:id="@+id/reloadAction"
+            android:id="@+id/denyAction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Reload"
