@@ -2,41 +2,30 @@ package org.holochain.androidserviceruntime.plugin.client
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import android.widget.Button
-import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
+import android.widget.TextView
 
 class UnauthorizedNotice(
     private val activity: Activity,
     private val servicePackage: String,
 ): OverlayNotice(
     activity,
-    R.layout.disconnected_notice,
+    R.layout.unauthorized_notice,
     "UnauthorizedNotice"
 ) {
+    private var installedAppId: String? = ""
+
     override fun setupNoticeCardView(noticeView: CardView) {
-        Log.d(this.logTag, "setupNoticeCardView")
+        noticeView.findViewById<TextView>(R.id.installedAppId).setText(this.installedAppId)
+
+        noticeView.findViewById<Button>(R.id.restartAction).setOnClickListener {
+            super.restartApp()
+        }
     }
 
-    private fun relaunch() {
-        // Restart this package
-        try {
-            val packageManager = this.activity.packageManager
-            val intent = packageManager.getLaunchIntentForPackage(this.activity.packageName)
-            val componentName = intent!!.getComponent()
-            val mainIntent = Intent.makeRestartActivityTask(componentName)
-
-            mainIntent.setPackage(this.activity.packageName)
-            this.activity.startActivity(mainIntent)
-            Runtime.getRuntime().exit(0)
-        } catch (e: Exception) {
-            Log.e(logTag, "Failed to restart app", e)
-        }
+    fun setInstalledAppId(value: String) {
+        this.installedAppId = value
     }
 }

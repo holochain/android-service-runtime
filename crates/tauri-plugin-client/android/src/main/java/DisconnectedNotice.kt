@@ -15,9 +15,8 @@ class DisconnectedNotice(
     "DisconnectedNotice"
 ) {
     override fun setupNoticeCardView(noticeView: CardView) {
-        // Setup Button Callbacks
+        // Start the app that contains the HolochainService
         noticeView.findViewById<Button>(R.id.openSettingsAction).setOnClickListener {
-            // Start android-service-runtime package
             try {
                 val launchIntent = this.activity.packageManager.getLaunchIntentForPackage(servicePackage)
                 if (launchIntent != null) {
@@ -29,20 +28,10 @@ class DisconnectedNotice(
                 Log.e(logTag, "Failed to launch package " + servicePackage, e)
             }
         }
-        noticeView.findViewById<Button>(R.id.denyAction).setOnClickListener {
-            // Restart this package
-            try {
-                val packageManager = this.activity.packageManager
-                val intent = packageManager.getLaunchIntentForPackage(this.activity.packageName)
-                val componentName = intent!!.getComponent()
-                val mainIntent = Intent.makeRestartActivityTask(componentName)
 
-                mainIntent.setPackage(this.activity.packageName)
-                this.activity.startActivity(mainIntent)
-                Runtime.getRuntime().exit(0)
-            } catch (e: Exception) {
-                Log.e(logTag, "Failed to restart app", e)
-            }
+        // Restart this app
+        noticeView.findViewById<Button>(R.id.restartAction).setOnClickListener {
+            super.restartApp()
         }
     }
 }

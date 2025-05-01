@@ -70,8 +70,8 @@ abstract class OverlayNotice(
     fun show() {
         Log.d(logTag, "show")
 
-        // Wait until the webView is available before displaying the notice
-        // Otherwise we are not able to reload the webview when reloadAction is pressed
+        // Wait until the webView is available before displaying the notice,
+        // otherwise the notice will not display.
         if (this.showOnLoad) {
             return
         }
@@ -110,6 +110,22 @@ abstract class OverlayNotice(
             }
         } catch (e: Exception) {
             Log.e(logTag, "Failed to show notice", e)
+        }
+    }
+
+    // Restart the android app this notice is displayed within
+    internal fun restartApp() {
+        try {
+            val packageManager = this.activity.packageManager
+            val intent = packageManager.getLaunchIntentForPackage(this.activity.packageName)
+            val componentName = intent!!.getComponent()
+            val mainIntent = Intent.makeRestartActivityTask(componentName)
+
+            mainIntent.setPackage(this.activity.packageName)
+            this.activity.startActivity(mainIntent)
+            Runtime.getRuntime().exit(0)
+        } catch (e: Exception) {
+            Log.e(logTag, "Failed to restart app", e)
         }
     }
 

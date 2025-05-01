@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:text="App Authorization Required"
+            android:text="Authorize App Connection"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -30,32 +30,41 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:text="Tap Approve or Deny in the system notification to authorize this app connection to the holochain app."
+            android:text="This app requires a connection to the holochain app:"
         />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/installedAppId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:showDividers="middle">
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:text="forum"
+            android:textSize="18dp"
+            android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/openSettingsAction"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@android:color/holo_green_dark"
-                android:text="Approve" />
+        <TextView
+            android:id="@+id/installedAppId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:text='To approve this connection, open the system notification "App Authorization Request", and choose "Approve".' />
 
-            <Button
-                android:id="@+id/denyAction"
-                style="@style/AppTheme"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@android:color/holo_red_dark"
-                android:text="Deny" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/installedAppId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:paddingTop="18dp"
+            android:text="Once the connection has been approved, you must restart the app." />
+
+        <Button
+            android:id="@+id/restartAction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Restart"
+        />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

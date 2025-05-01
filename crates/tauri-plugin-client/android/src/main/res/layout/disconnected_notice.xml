@@ -29,17 +29,27 @@
             android:text="Holochain Service is not running"
             android:layout_marginBottom="16dp"
             android:gravity="center" />
+
         <Button
             android:id="@+id/openSettingsAction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Open Settings"
-        />
-        <Button
-            android:id="@+id/denyAction"
+            android:text="Open Holochain Service Settings" />
+
+        <TextView
+            android:id="@+id/message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Reload"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:paddingTop="24dp"
+            android:text="Once the service is started, you must restart the app." />
+
+        <Button
+            android:id="@+id/restartAction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Restart"
         />
     </LinearLayout>
 </androidx.cardview.widget.CardView>
