@@ -493,8 +493,6 @@ class HolochainService : Service() {
                     "onStartCommand ACTION_START",
                 )
                 startForeground()
-
-                return START_REDELIVER_INTENT
             }
             ACTION_APPROVE_APP_AUTHORIZATION -> {
                 Log.d(logTag, "onStartCommand ACTION_APPROVE_APP_AUTHORIZATION")
@@ -507,8 +505,6 @@ class HolochainService : Service() {
                         runtime!!.authorizeAppClient(request.request.clientPackageName, request.request.installedAppId)
                     }
                 }
-
-                return START_NOT_STICKY
             }
             ACTION_DENY_APP_AUTHORIZATION -> {
                 Log.d(logTag, "onStartCommand ACTION_DENY_APP_AUTHORIZATION, ignoring")
@@ -520,8 +516,6 @@ class HolochainService : Service() {
                         NotificationManagerCompat.from(this).cancel(NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION, request.notificationId)
                     }
                 }
-
-                return START_NOT_STICKY
             }
         }
 
@@ -597,6 +591,8 @@ class HolochainService : Service() {
     }
 
     fun stopForeground() {
+        Log.d(logTag, "stopForeground")
+
         // Shutdown conductor
         runBlocking { runtime?.stop() }
         runtime = null
