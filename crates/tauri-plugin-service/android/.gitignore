@@ -4,6 +4,7 @@ build
 .kotlin
 .idea
 *.iml
+*.hprof
 
 src/main/jniLibs/**
 src/main/**/*_ffi
