@@ -44,6 +44,7 @@ class HolochainServiceClientPlugin(
         this.webView = webView
 
         disconnectedNotice.load()
+        unauthorizedNotice.load()
     }
 
     /**
@@ -53,6 +54,8 @@ class HolochainServiceClientPlugin(
     fun connectSetupApp(invoke: Invoke) {
         Log.d(logTag, "connectSetupApp")
         val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)
+        unauthorizedNotice.setInstalledAppId(args.appId)
+
         serviceScope.launch(Dispatchers.IO) {
             try {
                 val res = serviceClient.connectSetupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
