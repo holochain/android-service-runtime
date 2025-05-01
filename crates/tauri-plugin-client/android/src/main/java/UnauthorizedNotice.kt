@@ -10,7 +10,7 @@ import android.widget.TextView
 class UnauthorizedNotice(
     private val activity: Activity,
     private val servicePackage: String,
-): OverlayNotice(
+): Notice(
     activity,
     R.layout.unauthorized_notice,
     "UnauthorizedNotice"

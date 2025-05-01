@@ -9,7 +9,7 @@ import androidx.cardview.widget.CardView
 class DisconnectedNotice(
     private val activity: Activity,
     private val servicePackage: String,
-): OverlayNotice(
+): Notice(
     activity,
     R.layout.disconnected_notice,
     "DisconnectedNotice"

@@ -12,10 +12,10 @@ import android.widget.Button
 import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
 
-abstract class OverlayNotice(
+abstract class Notice(
     private val activity: Activity,
     private val noticeCardViewLayoutRes: Int,
-    internal val logTag: String = "OverlayNotice"
+    internal val logTag: String = "Notice"
 ) {
     private var showOnLoad: Boolean = false
     private var noticeView: CardView? = null
