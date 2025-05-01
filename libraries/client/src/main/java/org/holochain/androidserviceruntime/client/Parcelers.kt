@@ -556,3 +556,25 @@ object DisabledAppReasonFfiParceler : Parceler<DisabledAppReasonFfi> {
         }
     }
 }
+
+object AdminBinderUnauthorizedExceptionParceler : Parceler<AdminBinderUnauthorizedException> {
+    override fun create(parcel: Parcel): AdminBinderUnauthorizedException = AdminBinderUnauthorizedException(parcel.readString()!!)
+
+    override fun AdminBinderUnauthorizedException.write(
+        parcel: Parcel,
+        flags: Int,
+    ) {
+        parcel.writeString(message)
+    }
+}
+
+object AppBinderUnauthorizedExceptionParceler : Parceler<AppBinderUnauthorizedException> {
+    override fun create(parcel: Parcel): AppBinderUnauthorizedException = AppBinderUnauthorizedException(parcel.readString()!!)
+
+    override fun AppBinderUnauthorizedException.write(
+        parcel: Parcel,
+        flags: Int,
+    ) {
+        parcel.writeString(message)
+    }
+}

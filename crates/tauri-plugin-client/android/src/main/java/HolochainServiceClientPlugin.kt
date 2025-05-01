@@ -15,7 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.holochain.androidserviceruntime.client.HolochainServiceAppClient
 import org.holochain.androidserviceruntime.client.HolochainServiceNotConnectedException
-import org.holochain.androidserviceruntime.client.AppBinderRequestAuthorizationException
+import org.holochain.androidserviceruntime.client.AppBinderUnauthorizedException
 import org.holochain.androidserviceruntime.client.toJSONObjectString
 
 @TauriPlugin
@@ -116,8 +116,8 @@ class HolochainServiceClientPlugin(
                 disconnectedNotice.show()
             }
             invoke.reject(e.toString(), "HolochainServiceNotConnected")
-        } else if (e is AppBinderRequestAuthorizationException) {
-            Log.d(logTag, "handleCommandException AppBinderRequestAuthorizationException")
+        } else if (e is AppBinderUnauthorizedException) {
+            Log.d(logTag, "handleCommandException AppBinderUnauthorizedException")
             if (this.webView == null) {
                 unauthorizedNotice.enableShowOnLoad()
             } else {
