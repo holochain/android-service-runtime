@@ -1,6 +1,6 @@
-package org.holochain.androidserviceruntime.service
+package org.holochain.androidserviceruntime.client
 
-class UnauthorizedException(
+class AppBinderUnauthorizedException(
     message: String = "Unauthorized",
     cause: Throwable? = null,
 ) : Exception(message, cause)
