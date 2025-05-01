@@ -17,7 +17,7 @@
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Holochain Service Error"
+            android:text="Start Holochain Service"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"
@@ -26,7 +26,7 @@
             android:id="@+id/message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Holochain Service is not running"
+            android:text='This app requires a connection to the Holochain Service. Open the settings and choose "start" to start the service.'
             android:layout_marginBottom="16dp"
             android:gravity="center" />
 
@@ -34,7 +34,7 @@
             android:id="@+id/openSettingsAction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Open Holochain Service Settings" />
+            android:text="Open Settings" />
 
         <TextView
             android:id="@+id/message"

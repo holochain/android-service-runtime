@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:text="This app requires a connection to the holochain app:"
+            android:text="This app requires a connection to the Holochain Service app:"
         />
 
         <TextView
