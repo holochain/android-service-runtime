@@ -565,10 +565,8 @@ class HolochainService : Service() {
                     .Builder(this, NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE)
                     .setContentTitle("Holochain Service")
                     .setContentText("Holochain Service is running")
-                    .setSmallIcon(R.drawable.notification_icon_sm)
-                    // .setOngoing(true)
-                    // .addAction(R.drawable.ic_baseline_check, "Stop", approvePendingIntent)
-                    // .addAction(R.drawable.ic_baseline_check, "Settings", approvePendingIntent)
+                    .setSmallIcon(R.drawable.holochain_logo)
+                    .setOngoing(true)
                     .build()
             startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
 
