@@ -21,7 +21,7 @@ On Android 13 (API 33) and above, your app must request `POST_NOTIFICATIONS` per
 private fun requestNotificationPermission() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         ActivityCompat.requestPermissions(
-            this,
+            this.activity, // Use your own activity
             arrayOf(Manifest.permission.POST_NOTIFICATIONS),
             1 // Use your own request code
         )
