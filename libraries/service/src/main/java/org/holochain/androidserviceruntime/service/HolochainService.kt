@@ -457,7 +457,7 @@ class HolochainService : Service() {
         // Build the notification
         val notification =
             NotificationCompat
-                .Builder(this, "HolochainServiceChannel")
+                .Builder(this, NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION)
                 .setContentTitle("Authorize App Connection")
                 .setStyle(
                     NotificationCompat

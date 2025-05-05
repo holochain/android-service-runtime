@@ -57,7 +57,7 @@ class HolochainServicePlugin(
             NotificationChannel(
                 HolochainService.NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE,
                 "Running Status",
-                NotificationManager.IMPORTANCE_HIGH,
+                NotificationManager.IMPORTANCE_DEFAULT,
             ),
         )
         notificationManager.createNotificationChannel(
