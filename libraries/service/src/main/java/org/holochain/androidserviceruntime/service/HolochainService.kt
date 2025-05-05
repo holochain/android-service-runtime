@@ -267,11 +267,13 @@ class HolochainService : Service() {
             Log.d(logTag, "AdminBinder expectAuthorized")
 
             if (!isAuthorized()) {
-                val exception =
-                    AdminBinderUnauthorizedException(
-                        "Package is not authorized to access the AdminBinder",
-                    )
-                callback.adminBinderUnauthorizedException(AdminBinderUnauthorizedExceptionParcel(exception))
+                callback.adminBinderUnauthorizedException(
+                    AdminBinderUnauthorizedExceptionParcel(
+                        AdminBinderUnauthorizedException(
+                            "Package is not authorized to access the AdminBinder",
+                        ),
+                    ),
+                )
             }
         }
     }
@@ -384,11 +386,13 @@ class HolochainService : Service() {
             // Show notification asking user to authorize this app client
             HolochainService@ showAppAuthorizationNotification(this.clientPackageName!!, this.installedAppId)
 
-            val exception =
-                AppBinderUnauthorizedException(
-                    "Package is not authorized to access the AppBinder",
-                )
-            callback.appBinderUnauthorizedException(AppBinderUnauthorizedExceptionParcel(exception))
+            callback.appBinderUnauthorizedException(
+                AppBinderUnauthorizedExceptionParcel(
+                    AppBinderUnauthorizedException(
+                        "Package is not authorized to access the AppBinder",
+                    ),
+                ),
+            )
         }
     }
 
@@ -398,8 +402,7 @@ class HolochainService : Service() {
     private fun checkNotificationPermission(): Boolean {
         Log.d(logTag, "checkNotificationPermission")
 
-        // Before Tiramisu, POST_NOTIFICATIONS permission does not need
-        // to be granted manually at runtime.
+        // On Android 13 (API 33) and above, your app must request `POST_NOTIFICATIONS` permission at runtime.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return true
         }
@@ -462,7 +465,7 @@ class HolochainService : Service() {
                         .bigText(
                             "The app \"$clientPackageName\" wants to connect to the Holochain app: \"$installedAppId\".\n\nDo you want to allow this connection?",
                         ),
-                ).setSmallIcon(R.drawable.notification_icon_sm)
+                ).setSmallIcon(R.drawable.holochain_logo)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .addAction(R.drawable.ic_baseline_check, "Approve", approvePendingIntent)
