@@ -1,5 +1,5 @@
-use crate::{AuthorizedAppClientsManager, ClientId};
 use crate::{AppAuth, RuntimeConfig, RuntimeError, RuntimeResult, DEVICE_SEED_LAIR_TAG};
+use crate::{AuthorizedAppClientsManager, ClientId};
 use holochain::conductor::api::AppAuthenticationTokenIssued;
 use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
 use holochain::{
@@ -23,7 +23,7 @@ pub type AppAuths = Arc<RwLock<HashMap<InstalledAppId, AppAuth>>>;
 pub struct Runtime {
     conductor: ConductorHandle,
     app_auths: AppAuths,
-    authorized_app_clients: Arc<AuthorizedAppClientsManager>
+    authorized_app_clients: Arc<AuthorizedAppClientsManager>,
 }
 
 impl Runtime {
@@ -53,7 +53,9 @@ impl Runtime {
         Ok(Self {
             conductor,
             app_auths: Arc::new(RwLock::new(HashMap::new())),
-            authorized_app_clients: Arc::new(AuthorizedAppClientsManager::new(runtime_config.data_root_path)),
+            authorized_app_clients: Arc::new(AuthorizedAppClientsManager::new(
+                runtime_config.data_root_path,
+            )),
         })
     }
 
@@ -220,7 +222,8 @@ impl Runtime {
         client_uid: ClientId,
         installed_app_id: InstalledAppId,
     ) -> RuntimeResult<()> {
-        self.authorized_app_clients.authorize(client_uid, installed_app_id)
+        self.authorized_app_clients
+            .authorize(client_uid, installed_app_id)
     }
 
     pub fn is_app_client_authorized(
@@ -228,7 +231,8 @@ impl Runtime {
         client_uid: ClientId,
         installed_app_id: InstalledAppId,
     ) -> RuntimeResult<bool> {
-        self.authorized_app_clients.is_authorized(client_uid, installed_app_id)
+        self.authorized_app_clients
+            .is_authorized(client_uid, installed_app_id)
     }
 
     async fn req_admin_api(&self, request: AdminRequest) -> RuntimeResult<AdminResponse> {

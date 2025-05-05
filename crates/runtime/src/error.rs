@@ -38,7 +38,7 @@ pub enum RuntimeError {
     AuthorizedAppClientsFileReadError(String),
 
     #[error("Failed to write authorized_app_clients file: {0}")]
-    AuthorizedAppClientsFileWriteError(String)
+    AuthorizedAppClientsFileWriteError(String),
 }
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;

@@ -19,8 +19,7 @@ pub fn init<R: Runtime, C: DeserializeOwned>(
     api: PluginApi<R, C>,
 ) -> crate::Result<HolochainServiceClient<R>> {
     #[cfg(target_os = "android")]
-    let handle =
-        api.register_android_plugin(PLUGIN_IDENTIFIER, "HolochainServiceClientPlugin")?;
+    let handle = api.register_android_plugin(PLUGIN_IDENTIFIER, "HolochainServiceClientPlugin")?;
     #[cfg(target_os = "ios")]
     let handle = api.register_ios_plugin(init_plugin_holochain_service - consumer)?;
     Ok(HolochainServiceClient(handle))
