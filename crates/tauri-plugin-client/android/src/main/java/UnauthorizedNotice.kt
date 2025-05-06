@@ -1,20 +1,18 @@
 package org.holochain.androidserviceruntime.plugin.client
 
 import android.app.Activity
-import android.content.Intent
-import android.util.Log
 import android.widget.Button
-import androidx.cardview.widget.CardView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 
 class UnauthorizedNotice(
     private val activity: Activity,
     private val servicePackage: String,
-): Notice(
-    activity,
-    R.layout.unauthorized_notice,
-    "UnauthorizedNotice"
-) {
+) : Notice(
+        activity,
+        R.layout.unauthorized_notice,
+        "UnauthorizedNotice",
+    ) {
     private var installedAppId: String? = ""
 
     override fun setupNoticeCardView(noticeView: CardView) {

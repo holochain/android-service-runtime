@@ -1,8 +1,8 @@
 package org.holochain.androidserviceruntime.plugin.service
 
 import android.app.Activity
-import android.app.NotificationManager
 import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -71,7 +71,7 @@ class HolochainServicePlugin(
         // It may not be running
         this.serviceClient.connect()
     }
-    
+
     /**
      * Check if POST_NOTIFICATIONS permission has been granted
      */
@@ -81,15 +81,15 @@ class HolochainServicePlugin(
         // Before Tiramisu, POST_NOTIFICATIONS permission does not need
         // to be granted manually at runtime.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return true;
+            return true
         }
 
         return ContextCompat.checkSelfPermission(
             this.activity,
-            android.Manifest.permission.POST_NOTIFICATIONS
+            android.Manifest.permission.POST_NOTIFICATIONS,
         ) == PackageManager.PERMISSION_GRANTED
     }
-    
+
     /**
      * Request POST_NOTIFICATIONS permission
      */

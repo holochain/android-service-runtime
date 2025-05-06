@@ -1,7 +1,6 @@
 package org.holochain.androidserviceruntime.plugin.client
 
 import android.app.Activity
-import android.content.Intent
 import android.util.Log
 import android.widget.Button
 import androidx.cardview.widget.CardView
@@ -9,11 +8,11 @@ import androidx.cardview.widget.CardView
 class DisconnectedNotice(
     private val activity: Activity,
     private val servicePackage: String,
-): Notice(
-    activity,
-    R.layout.disconnected_notice,
-    "DisconnectedNotice"
-) {
+) : Notice(
+        activity,
+        R.layout.disconnected_notice,
+        "DisconnectedNotice",
+    ) {
     override fun setupNoticeCardView(noticeView: CardView) {
         // Start the app that contains the HolochainService
         noticeView.findViewById<Button>(R.id.openSettingsAction).setOnClickListener {
