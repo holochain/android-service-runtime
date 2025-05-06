@@ -1,12 +1,11 @@
-use crate::{RuntimeError, RuntimeResult};
+use crate::{Persisted, RuntimeResult};
 use holochain::prelude::InstalledAppId;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{Read, Write};
-use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
+
+const PERSISTED_FILE_NAME: &str = "authorized_app_clients.msgpack";
 
 /// A unique identifier representing the client instance
 /// For example if the client is an android app, the client id would be the package name
@@ -15,7 +14,7 @@ use std::sync::{Arc, RwLock};
 pub struct ClientId(pub String);
 
 /// A map of ClientIds authorized to make app api requests to the specified InstalledAppIds
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 struct AuthorizedAppClients(HashMap<ClientId, Vec<InstalledAppId>>);
 
 pub struct AuthorizedAppClientsManager {
@@ -23,14 +22,15 @@ pub struct AuthorizedAppClientsManager {
     persisted_path: PathBuf,
 }
 
-const PERSISTED_FILE_NAME: &str = "authorized_app_clients.msgpack";
-
 impl AuthorizedAppClientsManager {
-    pub fn new(data_root_path: PathBuf) -> Self {
-        Self {
-            authorized_app_clients: Arc::new(RwLock::new(AuthorizedAppClients(HashMap::new()))),
-            persisted_path: data_root_path.join(PERSISTED_FILE_NAME),
-        }
+    pub fn new(data_root_path: PathBuf) -> RuntimeResult<Self> {
+        let persisted_path = data_root_path.join(PERSISTED_FILE_NAME);
+        let data = Self::read_from_file(persisted_path.clone())?.unwrap_or_default();
+
+        Ok(Self {
+            authorized_app_clients: Arc::new(RwLock::new(data)),
+            persisted_path,
+        })
     }
 
     pub fn authorize(
@@ -71,46 +71,15 @@ impl AuthorizedAppClientsManager {
             .map(|app_ids| app_ids.contains(&installed_app_id))
             .unwrap_or_else(|| false))
     }
+}
 
-    fn save_to_persisted(&self) -> RuntimeResult<()> {
-        // Encode in-memory value to bytes
-        let authorized_app_clients = &self.authorized_app_clients.read().unwrap();
-        let encoded = rmp_serde::to_vec(&authorized_app_clients.deref())
-            .map_err(|e| RuntimeError::AuthorizedAppClientsFileWriteError(e.to_string()))?;
-
-        // Write bytes to file, creating file if it does not exist
-        let mut file = File::create(self.persisted_path.clone())
-            .map_err(|e| RuntimeError::AuthorizedAppClientsFileWriteError(e.to_string()))?;
-
-        file.write_all(encoded.as_slice())
-            .map_err(|e| RuntimeError::AuthorizedAppClientsFileWriteError(e.to_string()))?;
-
-        Ok(())
+impl Persisted<AuthorizedAppClients> for AuthorizedAppClientsManager {
+    fn get_file_path(&self) -> PathBuf {
+        self.persisted_path.join(PERSISTED_FILE_NAME)
     }
 
-    fn load_from_persisted(&self) -> RuntimeResult<()> {
-        // No-op if file does not exist
-        let file_exists = std::fs::exists(self.persisted_path.clone())
-            .map_err(|e| RuntimeError::AuthorizedAppClientsFileReadError(e.to_string()))?;
-        if !file_exists {
-            return Ok(());
-        }
-
-        // Read bytes from file
-        let mut f = File::open(self.persisted_path.clone())
-            .map_err(|e| RuntimeError::AuthorizedAppClientsFileReadError(e.to_string()))?;
-        let mut encoded = vec![];
-        f.read_to_end(&mut encoded)
-            .map_err(|e| RuntimeError::AuthorizedAppClientsFileReadError(e.to_string()))?;
-
-        // Decode bytes
-        let decoded: AuthorizedAppClients = rmp_serde::from_slice(encoded.as_slice())
-            .map_err(|e| RuntimeError::AuthorizedAppClientsFileReadError(e.to_string()))?;
-
-        // Update in-memory value
-        let mut authorized_app_clients = self.authorized_app_clients.write().unwrap();
-        *authorized_app_clients = decoded;
-        Ok(())
+    fn get_data_lock(&self) -> Arc<RwLock<AuthorizedAppClients>> {
+        self.authorized_app_clients.clone()
     }
 }
 
@@ -129,7 +98,7 @@ mod test {
         let path = tmp_dir.path().join(PERSISTED_FILE_NAME);
 
         // Create new authorization manager and authorize an app pair
-        let manager = AuthorizedAppClientsManager::new(tmp_dir.path().to_path_buf());
+        let manager = AuthorizedAppClientsManager::new(tmp_dir.path().to_path_buf()).unwrap();
         manager
             .authorize(crate::ClientId("client-1".to_string()), "app-1".to_string())
             .unwrap();
@@ -157,7 +126,7 @@ mod test {
         let path = tmp_dir.path().join(PERSISTED_FILE_NAME);
 
         // Create new authorization manager using that file
-        let manager = AuthorizedAppClientsManager::new(tmp_dir.path().to_path_buf());
+        let manager = AuthorizedAppClientsManager::new(tmp_dir.path().to_path_buf()).unwrap();
 
         // Assert app pair is not authorized
         assert!(!manager

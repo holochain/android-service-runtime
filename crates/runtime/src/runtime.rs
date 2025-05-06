@@ -1,4 +1,7 @@
-use crate::{AppAuth, RuntimeConfig, RuntimeError, RuntimeResult, DEVICE_SEED_LAIR_TAG};
+use crate::{
+    AppAuth, RuntimeConfig, RuntimeError, RuntimeResult,
+    DEVICE_SEED_LAIR_TAG,
+};
 use crate::{AuthorizedAppClientsManager, ClientId};
 use holochain::conductor::api::AppAuthenticationTokenIssued;
 use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
@@ -55,7 +58,7 @@ impl Runtime {
             app_auths: Arc::new(RwLock::new(HashMap::new())),
             authorized_app_clients: Arc::new(AuthorizedAppClientsManager::new(
                 runtime_config.data_root_path,
-            )),
+            )?),
         })
     }
 

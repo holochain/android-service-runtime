@@ -15,3 +15,9 @@ pub use types::*;
 
 mod authorization;
 pub use authorization::*;
+
+mod autostart;
+pub use autostart::*;
+
+mod persisted;
+pub use persisted::*;
