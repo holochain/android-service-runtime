@@ -504,6 +504,11 @@ class HolochainService : Service() {
                     logTag,
                     "onStartCommand ACTION_START",
                 )
+
+                // Enable conductor to autostart on system boot
+                getAutostartConfigManager().enable()
+
+                // Start service
                 startForeground()
             }
             ACTION_BOOT_COMPLETED -> {
@@ -512,6 +517,7 @@ class HolochainService : Service() {
                     "onStartCommand ACTION_BOOT_COMPLETED",
                 )
 
+                // If autostart is enabled, start service
                 if (getAutostartConfigManager().isEnabled()) {
                     startForeground()
                 }
@@ -618,9 +624,6 @@ class HolochainService : Service() {
             serviceScope.launch(Dispatchers.IO) {
                 // Start conductor
                 runtime = RuntimeFfi.start(passphrase, config)
-
-                // Enable conductor to autostart on system boot
-                getAutostartConfigManager().enable()
 
                 Log.d(logTag, "Holochain started successfully")
             }
