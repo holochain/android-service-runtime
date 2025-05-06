@@ -622,9 +622,7 @@ class HolochainService : Service() {
                 )
 
             serviceScope.launch(Dispatchers.IO) {
-                // Start conductor
                 runtime = RuntimeFfi.start(passphrase, config)
-
                 Log.d(logTag, "Holochain started successfully")
             }
         } catch (e: Exception) {
