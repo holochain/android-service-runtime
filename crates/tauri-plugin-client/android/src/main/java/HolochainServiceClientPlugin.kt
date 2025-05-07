@@ -15,6 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.holochain.androidserviceruntime.client.HolochainServiceAppClient
 import org.holochain.androidserviceruntime.client.HolochainServiceNotConnectedException
+import org.holochain.androidserviceruntime.client.AppBinderUnauthorizedException
 import org.holochain.androidserviceruntime.client.toJSONObjectString
 
 @TauriPlugin
@@ -30,6 +31,7 @@ class HolochainServiceClientPlugin(
             ComponentName(servicePackage, "org.holochain.androidserviceruntime.service.HolochainService"),
         )
     private val disconnectedNotice = DisconnectedNotice(activity, servicePackage)
+    private val unauthorizedNotice = UnauthorizedNotice(activity, servicePackage)
     private val logTag = "HolochainServiceClientPlugin"
     private var webView: WebView? = null
 
@@ -42,6 +44,7 @@ class HolochainServiceClientPlugin(
         this.webView = webView
 
         disconnectedNotice.load()
+        unauthorizedNotice.load()
     }
 
     /**
@@ -51,6 +54,8 @@ class HolochainServiceClientPlugin(
     fun connectSetupApp(invoke: Invoke) {
         Log.d(logTag, "connectSetupApp")
         val args = invoke.parseArgs(SetupAppConfigInvokeArg::class.java)
+        unauthorizedNotice.setInstalledAppId(args.appId)
+
         serviceScope.launch(Dispatchers.IO) {
             try {
                 val res = serviceClient.connectSetupApp(args.toInstallAppPayloadFfi(), args.enableAfterInstall)
@@ -104,10 +109,19 @@ class HolochainServiceClientPlugin(
     ) {
         Log.d(logTag, "handleCommandException")
         if (e is HolochainServiceNotConnectedException) {
+            Log.d(logTag, "handleCommandException HolochainServiceNotConnectedException")
             if (this.webView == null) {
                 disconnectedNotice.enableShowOnLoad()
             } else {
                 disconnectedNotice.show()
+            }
+            invoke.reject(e.toString(), "HolochainServiceNotConnected")
+        } else if (e is AppBinderUnauthorizedException) {
+            Log.d(logTag, "handleCommandException AppBinderUnauthorizedException")
+            if (this.webView == null) {
+                unauthorizedNotice.enableShowOnLoad()
+            } else {
+                unauthorizedNotice.show()
             }
             invoke.reject(e.toString(), "HolochainServiceNotConnected")
         } else {

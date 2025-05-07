@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 
 class HolochainServiceAppClient(
@@ -63,21 +62,14 @@ class HolochainServiceAppClient(
             throw HolochainServiceNotConnectedException()
         }
 
-        val deferred = CompletableDeferred<AppAuthFfi>()
-        var callbackBinder =
-            object : IHolochainServiceCallbackStub() {
-                override fun setupApp(response: AppAuthFfiParcel) {
-                    Log.d(logTag, "setupApp callback")
-                    deferred.complete(response.inner)
-                }
-            }
+        var callbackDeferred = SetupAppCallbackDeferred()
         this.mService!!.setupApp(
-            callbackBinder,
+            callbackDeferred,
             InstallAppPayloadFfiParcel(installAppPayload),
             enableAfterInstall,
         )
 
-        return deferred.await()
+        return callbackDeferred.await()
     }
 
     // / Connect to service, wait for connection to be ready, and setupApp
@@ -97,16 +89,10 @@ class HolochainServiceAppClient(
             throw HolochainServiceNotConnectedException()
         }
 
-        val deferred = CompletableDeferred<AppInfoFfi>()
-        var callbackBinder =
-            object : IHolochainServiceCallbackStub() {
-                override fun enableApp(response: AppInfoFfiParcel) {
-                    Log.d(logTag, "enableApp callback")
-                    deferred.complete(response.inner)
-                }
-            }
-        this.mService!!.enableApp(callbackBinder)
-        return deferred.await()
+        var callbackDeferred = EnableAppCallbackDeferred()
+        this.mService!!.enableApp(callbackDeferred)
+
+        return callbackDeferred.await()
     }
 
     // / Sign a zome call
@@ -116,17 +102,10 @@ class HolochainServiceAppClient(
             throw HolochainServiceNotConnectedException()
         }
 
-        val deferred = CompletableDeferred<ZomeCallFfi>()
-        var callbackBinder =
-            object : IHolochainServiceCallbackStub() {
-                override fun signZomeCall(response: ZomeCallFfiParcel) {
-                    Log.d(logTag, "signZomeCall callback")
-                    deferred.complete(response.inner)
-                }
-            }
-        this.mService!!.signZomeCall(callbackBinder, ZomeCallUnsignedFfiParcel(args))
+        var callbackDeferred = SignZomeCallCallbackDeferred()
+        this.mService!!.signZomeCall(callbackDeferred, ZomeCallUnsignedFfiParcel(args))
 
-        return deferred.await()
+        return callbackDeferred.await()
     }
 
     // / Poll until we are connected to the service, or the timeout has elapsed

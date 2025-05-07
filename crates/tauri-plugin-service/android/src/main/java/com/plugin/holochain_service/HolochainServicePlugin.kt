@@ -1,13 +1,17 @@
 package org.holochain.androidserviceruntime.plugin.service
 
 import android.app.Activity
-import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.NotificationChannel
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import android.webkit.WebView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import app.tauri.annotation.Command
 import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.Invoke
@@ -47,19 +51,57 @@ class HolochainServicePlugin(
         val resourceInputStream = this.activity.resources.openRawResource(R.raw.holochainenv)
         this.injectHolochainClientEnvJavascript = resourceInputStream.bufferedReader().use { it.readText() }
 
-        // Create notification channel
+        // Create notification channels
         val notificationManager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(
             NotificationChannel(
-                "HolochainServiceChannel",
-                "Holochain Service Running",
+                HolochainService.NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE,
+                "Running Status",
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ),
+        )
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                HolochainService.NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION,
+                "Authorization Requests",
                 NotificationManager.IMPORTANCE_HIGH,
             ),
         )
-
         // Attempt to connect to service
         // It may not be running
         this.serviceClient.connect()
+    }
+    
+    /**
+     * Check if POST_NOTIFICATIONS permission has been granted
+     */
+    private fun hasPostNotificationsPermission(): Boolean {
+        Log.d(logTag, "hasPostNotificationsPermission")
+
+        // Before Tiramisu, POST_NOTIFICATIONS permission does not need
+        // to be granted manually at runtime.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return true;
+        }
+
+        return ContextCompat.checkSelfPermission(
+            this.activity,
+            android.Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+    
+    /**
+     * Request POST_NOTIFICATIONS permission
+     */
+    private fun requestPostNotificationsPermission() {
+        Log.d(logTag, "requestPostNotificationsPermission")
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!this.hasPostNotificationsPermission()) {
+                Log.d(logTag, "Lacking post notifications permission")
+                ActivityCompat.requestPermissions(this.activity, arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 123)
+            }
+        }
     }
 
     /**
@@ -69,8 +111,11 @@ class HolochainServicePlugin(
     fun start(invoke: Invoke) {
         Log.d(logTag, "start")
 
+        // Request POST_NOTIFICATION permission, so the HolochainService can create notifications
+        this.requestPostNotificationsPermission()
+
         // Start service
-        val intent = Intent()
+        val intent = Intent(HolochainService.ACTION_START)
         intent.setComponent(this.serviceComponentName)
         this.activity.startForegroundService(intent)
 
