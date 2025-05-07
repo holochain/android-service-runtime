@@ -98,14 +98,14 @@ mod test {
         let mut f = File::open(path.clone()).unwrap();
         let mut encoded = vec![];
         f.read_to_end(&mut encoded).unwrap();
-        let decoded: AutostartConfig = rmp_serde::from_slice(encoded.as_slice()).unwrap();
+        let decoded: AutostartConfig = serde_json::from_slice(encoded.as_slice()).unwrap();
 
         // Assert persisted file contains authorized app pair
         assert!(decoded.enabled);
     }
 
     #[test]
-    fn is_authorized_loads_from_file() {
+    fn autostart_loads_from_file() {
         // Create tempfile path
         let tmp_dir = tempdir().unwrap();
         let path = tmp_dir.path().join(PERSISTED_FILE_NAME);
@@ -118,14 +118,17 @@ mod test {
 
         // Write autostart config to file
         let autostart_config = AutostartConfig { enabled: true };
-        let encoded = rmp_serde::to_vec(&autostart_config).unwrap();
+        let encoded = serde_json::to_string(&autostart_config).unwrap();
         {
             let mut file = File::create(path.clone()).unwrap();
-            file.write_all(encoded.as_slice()).unwrap();
+            file.write_all(encoded.as_bytes()).unwrap();
         }
 
+        // Create new autostart config manager using that file
+        let manager2 = AutostartConfigManager::new(tmp_dir.path().to_path_buf()).unwrap();
+
         // Assert autostart is enabled
-        assert!(manager.is_enabled().unwrap())
+        assert!(manager2.is_enabled().unwrap())
     }
     
     #[test]

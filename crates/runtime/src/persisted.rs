@@ -24,7 +24,7 @@ pub trait Persisted<D: Serialize + for<'a> Deserialize<'a>> {
             .map_err(|e| RuntimeError::PersistedFileReadError(e.to_string()))?;
 
         // Decode bytes
-        let decoded: D = rmp_serde::from_slice(encoded.as_slice())
+        let decoded: D = serde_json::from_slice(encoded.as_slice())
             .map_err(|e| RuntimeError::PersistedFileReadError(e.to_string()))?;
 
         Ok(Some(decoded))
@@ -35,7 +35,7 @@ pub trait Persisted<D: Serialize + for<'a> Deserialize<'a>> {
         // Encode in-memory value to bytes
         let lock = self.get_data_lock();
         let data = lock.read().unwrap();
-        let encoded = rmp_serde::to_vec(&data.deref())
+        let encoded = serde_json::to_vec(&data.deref())
             .map_err(|e| RuntimeError::PersistedFileWriteError(e.to_string()))?;
 
         // Write bytes to file, creating file if it does not exist

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
-const PERSISTED_FILE_NAME: &str = "authorized_app_clients.msgpack";
+const PERSISTED_FILE_NAME: &str = "authorized_app_clients.json";
 
 /// A unique identifier representing the client instance
 /// For example if the client is an android app, the client id would be the package name
@@ -60,9 +60,6 @@ impl AuthorizedAppClientsManager {
         client_uid: ClientId,
         installed_app_id: InstalledAppId,
     ) -> RuntimeResult<bool> {
-        // Load all authorizations from the filesystem
-        self.load_from_persisted()?;
-
         // Check the authorization from the in-memory data
         let app_clients = self.authorized_app_clients.read().unwrap();
         Ok(app_clients
@@ -75,7 +72,7 @@ impl AuthorizedAppClientsManager {
 
 impl Persisted<AuthorizedAppClients> for AuthorizedAppClientsManager {
     fn get_file_path(&self) -> PathBuf {
-        self.persisted_path.join(PERSISTED_FILE_NAME)
+        self.persisted_path.clone()
     }
 
     fn get_data_lock(&self) -> Arc<RwLock<AuthorizedAppClients>> {
@@ -110,7 +107,7 @@ mod test {
         let mut f = File::open(path.clone()).unwrap();
         let mut encoded = vec![];
         f.read_to_end(&mut encoded).unwrap();
-        let decoded: AuthorizedAppClients = rmp_serde::from_slice(encoded.as_slice()).unwrap();
+        let decoded: AuthorizedAppClients = serde_json::from_slice(encoded.as_slice()).unwrap();
 
         // Assert persisted file contains authorized app pair
         assert_eq!(
@@ -138,14 +135,17 @@ mod test {
             ClientId("client-1".to_string()),
             vec!["app-1".to_string()],
         )]));
-        let encoded = rmp_serde::to_vec(&authorized_data).unwrap();
+        let encoded = serde_json::to_vec(&authorized_data).unwrap();
         {
             let mut file = File::create(path.clone()).unwrap();
             file.write_all(encoded.as_slice()).unwrap();
         }
 
+        // Create new authorization manager using that file
+        let manager2 = AuthorizedAppClientsManager::new(tmp_dir.path().to_path_buf()).unwrap();
+
         // Assert app pair is authorized
-        assert!(manager
+        assert!(manager2
             .is_authorized(ClientId("client-1".to_string()), "app-1".to_string())
             .unwrap())
     }
