@@ -34,3 +34,4 @@
 - Clearer npm package commands
 - HolochainService will now auto start on system boot, if it was previously running during the last system shutdown.
 - Lint all kotlin libraries in CI
+- Fix bug in `apps/android-service-runtime`, where the app would crash if the service was not running when switching to the "My Apps" tab.
