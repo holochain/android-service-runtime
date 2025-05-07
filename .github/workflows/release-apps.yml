@@ -40,8 +40,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Extend space
-        uses: ./.github/actions/extend-space
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: false
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
@@ -111,8 +113,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Extend space
-        uses: ./.github/actions/extend-space
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: false
 
       - name: Install nix
         uses: cachix/install-nix-action@v27
