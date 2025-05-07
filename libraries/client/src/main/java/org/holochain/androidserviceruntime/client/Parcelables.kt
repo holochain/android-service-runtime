@@ -111,3 +111,15 @@ data class ZomeCallUnsignedFfiParcel(
 data class ZomeCallFfiParcel(
     val inner: ZomeCallFfi,
 ) : Parcelable
+
+@Parcelize
+@TypeParceler<AdminBinderUnauthorizedException, AdminBinderUnauthorizedExceptionParceler>
+data class AdminBinderUnauthorizedExceptionParcel(
+    var inner: AdminBinderUnauthorizedException,
+) : Parcelable
+
+@Parcelize
+@TypeParceler<AppBinderUnauthorizedException, AppBinderUnauthorizedExceptionParceler>
+data class AppBinderUnauthorizedExceptionParcel(
+    var inner: AppBinderUnauthorizedException,
+) : Parcelable

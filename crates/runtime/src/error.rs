@@ -33,6 +33,12 @@ pub enum RuntimeError {
 
     #[error("InstalledAppId must be specified when installing an app")]
     InstalledAppIdNotSpecified,
+
+    #[error("Failed to read authorized_app_clients file: {0}")]
+    AuthorizedAppClientsFileReadError(String),
+
+    #[error("Failed to write authorized_app_clients file: {0}")]
+    AuthorizedAppClientsFileWriteError(String),
 }
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;

@@ -30,4 +30,6 @@
 - Re-added ktlint for kotlin linting
 - Rename kotlin packages to resolve lint complaints
 - Rename library and crate directories to reduce noise
+- Android apps now require manual user approval to connect to a new holochain app
+- Clearer npm package commands
 - Fix bug in `apps/android-service-runtime`, where the app would crash if the service was not running when switching to the "My Apps" tab.

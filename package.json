@@ -2,24 +2,40 @@
     "name": "android-service-runtime-dev",
     "scripts": {
       "build:runtime-ffi": "cd crates/runtime-ffi && ./scripts/build.sh",
-      "build:single-target:runtime-ffi": "cd crates/runtime-ffi && ./scripts/build-single-target.sh",
       "build:runtime-types-ffi": "cd crates/runtime-types-ffi && ./scripts/build.sh",
-      "build:single-target:runtime-types-ffi": "cd crates/runtime-types-ffi && ./scripts/build-single-target.sh",
-      "build:service": "cd libraries/service && ./gradlew build",
       "build:client": "cd libraries/client && ./gradlew build",
-      "build:tauri-plugin-service": "pnpm run --dir crates/tauri-plugin-service build",
+      "build:service": "cd libraries/service && ./gradlew build",
       "build:tauri-plugin-client": "pnpm run --dir crates/tauri-plugin-client build",
+      "build:tauri-plugin-service": "pnpm run --dir crates/tauri-plugin-service build",
+      "build": "pnpm run build:runtime-types-ffi && pnpm run build:client && pnpm run publish:local:client && pnpm run build:runtime-ffi && pnpm run build:service && pnpm run publish:local:service && pnpm run build:tauri-plugin-client && pnpm run build:tauri-plugin-service",
+      
+      "build:single-target:runtime-ffi": "cd crates/runtime-ffi && ./scripts/build-single-target.sh",
+      "build:single-target:runtime-types-ffi": "cd crates/runtime-types-ffi && ./scripts/build-single-target.sh",
+      "build:single-target:aarch64-linux-android": "pnpm run build:single-target:runtime-types-ffi aarch64-linux-android && pnpm run build:client && pnpm run publish:local:client && pnpm run build:single-target:runtime-ffi aarch64-linux-android && pnpm run build:service && pnpm run publish:local:service && pnpm run build:tauri-plugin-client && pnpm run build:tauri-plugin-service",
+      
+      "build:example-client-app": "pnpm run --dir apps/example-client-app build:android",
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
-      "lint:fix:service": "cd libraries/service && ./gradlew formatKotlin",
+
       "lint:fix:client": "cd libraries/client && ./gradlew formatKotlin",
-      "lint:fix:tauri-plugin-service": "cd crates/tauri-plugin-service/android && ./gradlew formatKotlin",
+      "lint:fix:service": "cd libraries/service && ./gradlew formatKotlin",
       "lint:fix:tauri-plugin-client": "cd crates/tauri-plugin-client/android && ./gradlew formatKotlin",
-      "publish:service": "cd libraries/service && ./gradlew publish",
-      "publish:local:service": "cd libraries/service && ./gradlew publishToMavenLocal",
+      "lint:fix:tauri-plugin-service": "cd crates/tauri-plugin-service/android && ./gradlew formatKotlin",
+      "lint:fix": "pnpm run lint:fix:client && pnpm run lint:fix:service && pnpm run lint:fix:tauri-plugin-client && pnpm run lint:fix:tauri-plugin-service",
+
       "publish:client": "cd libraries/client && ./gradlew publish",
+      "publish:service": "cd libraries/service && ./gradlew publish",
+      "publish": "pnpm run publish:client && pnpm run publish:service",
+
       "publish:local:client": "cd libraries/client && ./gradlew publishToMavenLocal",
+      "publish:local:service": "cd libraries/service && ./gradlew publishToMavenLocal",
+      "publish:local": "pnpm run publish:local:client && pnpm run publish:local:service",
+
+      "test:runtime": "RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime -- --nocapture",
+      "test:runtime-ffi": " RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime-ffi -- --nocapture",
       "test:service": "cd libraries/service && ./gradlew connectedDebugAndroidTest",
       "test:client": "cd libraries/client && ./gradlew connectedDebugAndroidTest",
+      "test": " npm run test:runtime && pnpm run test:runtime-ffi && pnpm run test:service && pnpm run test:client",
+
       "start:android-service-runtime": "pnpm run publish:local:client && pnpm run build:tauri-plugin-service && pnpm run --dir apps/android-service-runtime start:android",
       "start:example-client-app": "pnpm run publish:local:client && pnpm run build:tauri-plugin-client && pnpm run --dir apps/example-client-app start:android"
     },
