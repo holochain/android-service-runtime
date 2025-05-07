@@ -55,7 +55,7 @@ impl Runtime {
             app_auths: Arc::new(RwLock::new(HashMap::new())),
             authorized_app_clients: Arc::new(AuthorizedAppClientsManager::new(
                 runtime_config.data_root_path,
-            )),
+            )?),
         })
     }
 
