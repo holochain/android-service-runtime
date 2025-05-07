@@ -30,3 +30,4 @@
 - Re-added ktlint for kotlin linting
 - Rename kotlin packages to resolve lint complaints
 - Rename library and crate directories to reduce noise
+- Fix bug in `apps/android-service-runtime`, where the app would crash if the service was not running when switching to the "My Apps" tab.
