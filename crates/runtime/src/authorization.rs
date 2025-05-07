@@ -8,6 +8,8 @@ use std::ops::Deref;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
+const PERSISTED_FILE_NAME: &str = "authorized_app_clients.json";
+
 /// A unique identifier representing the client instance
 /// For example if the client is an android app, the client id would be the package name
 /// i.e. "org.holochain.androidserviceclient.app"
@@ -22,8 +24,6 @@ pub struct AuthorizedAppClientsManager {
     authorized_app_clients: Arc<RwLock<AuthorizedAppClients>>,
     persisted_path: PathBuf,
 }
-
-const PERSISTED_FILE_NAME: &str = "authorized_app_clients.msgpack";
 
 impl AuthorizedAppClientsManager {
     pub fn new(data_root_path: PathBuf) -> Self {
@@ -75,7 +75,7 @@ impl AuthorizedAppClientsManager {
     fn save_to_persisted(&self) -> RuntimeResult<()> {
         // Encode in-memory value to bytes
         let authorized_app_clients = &self.authorized_app_clients.read().unwrap();
-        let encoded = rmp_serde::to_vec(&authorized_app_clients.deref())
+        let encoded = serde_json::to_vec(&authorized_app_clients.deref())
             .map_err(|e| RuntimeError::AuthorizedAppClientsFileWriteError(e.to_string()))?;
 
         // Write bytes to file, creating file if it does not exist
@@ -104,7 +104,7 @@ impl AuthorizedAppClientsManager {
             .map_err(|e| RuntimeError::AuthorizedAppClientsFileReadError(e.to_string()))?;
 
         // Decode bytes
-        let decoded: AuthorizedAppClients = rmp_serde::from_slice(encoded.as_slice())
+        let decoded: AuthorizedAppClients = serde_json::from_slice(encoded.as_slice())
             .map_err(|e| RuntimeError::AuthorizedAppClientsFileReadError(e.to_string()))?;
 
         // Update in-memory value
@@ -141,7 +141,7 @@ mod test {
         let mut f = File::open(path.clone()).unwrap();
         let mut encoded = vec![];
         f.read_to_end(&mut encoded).unwrap();
-        let decoded: AuthorizedAppClients = rmp_serde::from_slice(encoded.as_slice()).unwrap();
+        let decoded: AuthorizedAppClients = serde_json::from_slice(encoded.as_slice()).unwrap();
 
         // Assert persisted file contains authorized app pair
         assert_eq!(
@@ -169,7 +169,7 @@ mod test {
             ClientId("client-1".to_string()),
             vec!["app-1".to_string()],
         )]));
-        let encoded = rmp_serde::to_vec(&authorized_data).unwrap();
+        let encoded = serde_json::to_vec(&authorized_data).unwrap();
         {
             let mut file = File::create(path.clone()).unwrap();
             file.write_all(encoded.as_slice()).unwrap();
