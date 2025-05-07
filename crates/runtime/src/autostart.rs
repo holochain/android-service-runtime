@@ -12,7 +12,6 @@ struct AutostartConfig {
     enabled: bool,
 }
 
-
 /// Manager for reading & writing persisted autostart config
 #[derive(Clone)]
 pub struct AutostartConfigManager {
@@ -130,7 +129,7 @@ mod test {
         // Assert autostart is enabled
         assert!(manager2.is_enabled().unwrap())
     }
-    
+
     #[test]
     fn enabled_persisted() {
         // Create tempfile path
@@ -150,7 +149,7 @@ mod test {
         let manager2 = AutostartConfigManager::new(tmp_dir.path().to_path_buf()).unwrap();
         assert!(manager2.is_enabled().unwrap());
     }
- 
+
     #[test]
     fn disabled_persisted() {
         // Create tempfile path

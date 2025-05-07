@@ -60,7 +60,7 @@ pub trait Persisted<D: Serialize + for<'a> Deserialize<'a>> {
 
         Ok(())
     }
-    
+
     /// Path to persistence file
     fn get_file_path(&self) -> PathBuf;
 

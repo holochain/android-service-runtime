@@ -1,7 +1,4 @@
-use crate::{
-    AppAuth, RuntimeConfig, RuntimeError, RuntimeResult,
-    DEVICE_SEED_LAIR_TAG,
-};
+use crate::{AppAuth, RuntimeConfig, RuntimeError, RuntimeResult, DEVICE_SEED_LAIR_TAG};
 use crate::{AuthorizedAppClientsManager, ClientId};
 use holochain::conductor::api::AppAuthenticationTokenIssued;
 use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
