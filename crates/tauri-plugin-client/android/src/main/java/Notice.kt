@@ -8,14 +8,13 @@ import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
 
 abstract class Notice(
     private val activity: Activity,
     private val noticeCardViewLayoutRes: Int,
-    internal val logTag: String = "Notice"
+    internal val logTag: String = "Notice",
 ) {
     private var showOnLoad: Boolean = false
     private var noticeView: CardView? = null
@@ -103,7 +102,7 @@ abstract class Notice(
                 blurView!!.addView(noticeView, layoutParams)
 
                 // Setup CardView actions
-                this.setupNoticeCardView(noticeView);
+                this.setupNoticeCardView(noticeView)
 
                 // Render views
                 activity.findViewById<ViewGroup>(android.R.id.content).addView(blurView)

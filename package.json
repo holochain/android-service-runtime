@@ -21,6 +21,11 @@
       "lint:fix:tauri-plugin-client": "cd crates/tauri-plugin-client/android && ./gradlew formatKotlin",
       "lint:fix:tauri-plugin-service": "cd crates/tauri-plugin-service/android && ./gradlew formatKotlin",
       "lint:fix": "pnpm run lint:fix:client && pnpm run lint:fix:service && pnpm run lint:fix:tauri-plugin-client && pnpm run lint:fix:tauri-plugin-service",
+      "lint:client": "cd libraries/client && ./gradlew lintKotlin",
+      "lint:service": "cd libraries/service && ./gradlew lintKotlin",
+      "lint:tauri-plugin-client": "cd crates/tauri-plugin-client/android && ./gradlew lintKotlin",
+      "lint:tauri-plugin-service": "cd crates/tauri-plugin-service/android && ./gradlew lintKotlin",
+      "lint": "pnpm run lint:client && pnpm run lint:service && pnpm run lint:tauri-plugin-client && pnpm run lint:tauri-plugin-service",
 
       "publish:client": "cd libraries/client && ./gradlew publish",
       "publish:service": "cd libraries/service && ./gradlew publish",
