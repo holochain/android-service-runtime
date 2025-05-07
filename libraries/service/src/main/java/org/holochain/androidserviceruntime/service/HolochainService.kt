@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -34,6 +35,7 @@ import java.security.InvalidParameterException
 class HolochainService : Service() {
     // / The uniffi-generated holochain runtime bindings
     private val logTag = "HolochainService"
+    private var autostartConfigManager: AutostartConfigManagerFfi? = null
     private var runtime: RuntimeFfi? = null
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
@@ -51,14 +53,17 @@ class HolochainService : Service() {
         // Notification Channel Id for app authorization notifications
         const val NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.APP_AUTHORIZATION"
 
+        // Start the Service, and the Holochain conductor
+        const val ACTION_START = "org.holochain.androidserviceruntime.service.ACTION_START"
+
+        // Start the Service, and the Holochain conductor, if autostart on boot is enabled
+        const val ACTION_BOOT_COMPLETED = "org.holochain.androidserviceruntime.service.ACTION_BOOT_COMPLETED"
+
         // Approve app authorization request
         const val ACTION_APPROVE_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.APPROVE_APP_AUTHORIZATION"
 
         // Deny app authorization request
         const val ACTION_DENY_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.DENY_APP_AUTHORIZATION"
-
-        // Start the Service, and the Holochain conductor
-        const val ACTION_START = "org.holochain.androidserviceruntime.service.ACTION_START"
     }
 
     private inner class AdminBinder : IHolochainServiceAdmin.Stub() {
@@ -79,6 +84,10 @@ class HolochainService : Service() {
                 return
             }
 
+            // Disable conductor autostart on system boot
+            this@HolochainService.getAutostartConfigManager().disable()
+
+            // Stop conductor and service
             this@HolochainService.stopForeground()
         }
 
@@ -495,7 +504,23 @@ class HolochainService : Service() {
                     logTag,
                     "onStartCommand ACTION_START",
                 )
+
+                // Enable conductor to autostart on system boot
+                getAutostartConfigManager().enable()
+
+                // Start service
                 startForeground()
+            }
+            ACTION_BOOT_COMPLETED -> {
+                Log.d(
+                    logTag,
+                    "onStartCommand ACTION_BOOT_COMPLETED",
+                )
+
+                // If autostart is enabled, start service
+                if (getAutostartConfigManager().isEnabled()) {
+                    startForeground()
+                }
             }
             ACTION_APPROVE_APP_AUTHORIZATION -> {
                 Log.d(logTag, "onStartCommand ACTION_APPROVE_APP_AUTHORIZATION")
@@ -560,6 +585,15 @@ class HolochainService : Service() {
         return this.appBinders[installedAppId]!!
     }
 
+    // Get the AutostartConfigManager, initializing if necessary
+    private fun getAutostartConfigManager(): AutostartConfigManagerFfi {
+        if (this.autostartConfigManager == null) {
+            this.autostartConfigManager = AutostartConfigManagerFfi(getFilesDir().toString())
+        }
+
+        return this.autostartConfigManager as AutostartConfigManagerFfi
+    }
+
     private fun startForeground() {
         try {
             // Create the notification to display while the service is running
@@ -571,7 +605,12 @@ class HolochainService : Service() {
                     .setSmallIcon(R.drawable.holochain_logo)
                     .setOngoing(true)
                     .build()
-            startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
+            } else {
+                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            }
 
             // Start holochain conductor
             val passphrase = byteArrayOf(0x48, 101, 108, 108, 111)
@@ -595,7 +634,7 @@ class HolochainService : Service() {
         Log.d(logTag, "stopForeground")
 
         // Shutdown conductor
-        runBlocking { runtime?.stop() }
+        runBlocking { runtime!!.stop() }
         runtime = null
 
         // Stop service
