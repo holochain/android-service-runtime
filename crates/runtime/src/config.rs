@@ -15,6 +15,9 @@ pub struct RuntimeConfig {
 
     /// URL of the sbd server
     pub signal_url: Url2,
+
+    /// URLs of ICE servers
+    pub ice_urls: Vec<Url2>,
 }
 
 impl From<RuntimeConfig> for ConductorConfig {
@@ -26,9 +29,15 @@ impl From<RuntimeConfig> for ConductorConfig {
         conductor_config.data_root_path = Some(val.data_root_path.clone().into());
         conductor_config.keystore = KeystoreConfig::LairServerInProc { lair_root: None };
         kitsune_config.bootstrap_service = Some(val.bootstrap_url);
+
+        let mut ice_urls = serde_json::Map::new();
+        ice_urls.insert("urls".to_string(), serde_json::Value::Array(val.ice_urls.into_iter().map(|u| serde_json::Value::from(u.to_string())).collect()));
+        let mut webrtc_config = serde_json::Map::new();
+        webrtc_config.insert("ice_servers".to_string(), serde_json::Value::Object(ice_urls));
+
         kitsune_config.transport_pool.push(TransportConfig::WebRTC {
             signal_url: val.signal_url.into(),
-            webrtc_config: None,
+            webrtc_config: Some(serde_json::Value::Object(webrtc_config)),
         });
         conductor_config.network = kitsune_config;
 

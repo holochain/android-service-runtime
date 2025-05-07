@@ -123,3 +123,9 @@ data class AdminBinderUnauthorizedExceptionParcel(
 data class AppBinderUnauthorizedExceptionParcel(
     var inner: AppBinderUnauthorizedException,
 ) : Parcelable
+
+@Parcelize
+@TypeParceler<RuntimeConfigFfi, RuntimeConfigFfiParceler>
+data class RuntimeConfigFfiParcel(
+    var inner: RuntimeConfigFfi
+) : Parcelable

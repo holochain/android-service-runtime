@@ -578,3 +578,23 @@ object AppBinderUnauthorizedExceptionParceler : Parceler<AppBinderUnauthorizedEx
         parcel.writeString(message)
     }
 }
+
+object RuntimeConfigFfiParceler : Parceler<RuntimeConfigFfi> {
+    override fun create(parcel: Parcel): RuntimeConfigFfi =
+        RuntimeConfigFfi(
+            dataRootPath = parcel.readString() ?: "",
+            bootstrapUrl = parcel.readString() ?: "",
+            signalUrl = parcel.readString() ?: "",
+            iceUrls = parcel.readArray() ?: arrayOf(),
+        )
+
+    override fun RuntimeConfigFfi.write(
+        parcel: Parcel,
+        flags: Int,
+    ) {
+        parcel.writeString(dataRootPath)
+        parcel.writeString(bootstrapUrl)
+        parcel.writeString(signalUrl)
+        parcel.writeArray(iceUrls)
+    }
+}

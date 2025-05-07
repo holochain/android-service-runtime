@@ -425,4 +425,7 @@ pub struct RuntimeConfigFfi {
 
     /// URL of the sbd server
     pub signal_url: String,
+
+    /// URLs of ICE servers
+    pub ice_urls: Vec<String>,
 }
