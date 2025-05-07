@@ -1,0 +1,164 @@
+name: "release-apps"
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-[a-z]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-[a-z]+.[0-9]+'
+
+jobs:
+  create-release:
+    permissions: write-all
+    environment: Android Service Runtime Release
+    runs-on: ubuntu-latest
+    outputs:
+      releaseId: ${{ steps.step1.outputs.id }}
+    steps:
+      - id: step1
+        uses: ncipollo/release-action@v1
+        with:
+          name: "Android Service Runtime ${{ github.ref_name }}"
+          body: |
+            See the assets to download this version and install.
+          prerelease: true
+          draft: true
+
+  release-manager-app:
+    permissions: write-all
+    environment: Android Service Runtime Release
+    needs: 
+      - create-release
+    runs-on: 'ubuntu-22.04' 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - feature: ''
+            label: user
+          - feature: 'system_settings'
+            label: system
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extend space
+        uses: ./.github/actions/extend-space
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
+      - name: Install and prepare
+        run: |
+          nix develop --no-update-lock-file --command pnpm install && pnpm run build:tauri-plugin-client && pnpm run build:tauri-plugin-service
+
+      - name: setup Android signing
+        run: |
+          cd apps/android-service-runtime/src-tauri/gen/android
+          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
+          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
+          echo "storePassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
+
+      - name: Build android AAB
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime -- --aab --target aarch64 --target i686 --target x86_64 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (aarch64)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime -- --apk --split-per-abi --target aarch64 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (i686)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime -- --apk --split-per-abi --target i686 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (x86_64)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime -- --apk --split-per-abi --target x86_64 --features ${{ matrix.feature }}"
+
+      - name: Rename android APKs and ABBs
+        run: |
+          sudo apt install rename
+
+          # Rename apk to include the feature build label
+          find src-tauri/gen/android/app/build/outputs/apk/*/release -type f -name "*.apk" -exec rename -v 's/release\/app/release\/app-${{ matrix.label }}/' {} \;
+          find src-tauri/gen/android/app/build/outputs/bundle -type f -name "*.aab" -exec rename -v 's/app-universal-release/app-universal-${{ matrix.label }}-release/' {} \;
+
+      - uses: AButler/upload-release-assets@v3.0
+        with:
+          files: "src-tauri/gen/android/app/build/outputs/apk/*/release/app-*;src-tauri/gen/android/app/build/outputs/bundle/**/*.aab"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-id: ${{ needs.create-release.outputs.releaseId }}
+
+  release-example-client-app:
+    permissions: write-all
+    environment: Android Service Runtime Release
+    needs: 
+      - create-release
+    runs-on: 'ubuntu-22.04' 
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Extend space
+        uses: ./.github/actions/extend-space
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
+      - name: Install and prepare
+        run: |
+          nix develop --no-update-lock-file --command pnpm install && pnpm run build:tauri-plugin-client
+
+      - name: setup Android signing
+        run: |
+          cd apps/example-client-app/src-tauri/gen/android
+          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
+          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
+          echo "storePassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
+
+      - name: Build android AAB
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app -- --aab --target aarch64 --target i686 --target x86_64 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (aarch64)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app -- --apk --split-per-abi --target aarch64 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (i686)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app -- --apk --split-per-abi --target i686 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (x86_64)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app -- --apk --split-per-abi --target x86_64 --features ${{ matrix.feature }}"
+
+      - uses: AButler/upload-release-assets@v3.0
+        with:
+          files: "src-tauri/gen/android/app/build/outputs/apk/*/release/app-*;src-tauri/gen/android/app/build/outputs/bundle/**/*.aab"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-id: ${{ needs.create-release.outputs.releaseId }}
