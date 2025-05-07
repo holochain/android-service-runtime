@@ -1,11 +1,11 @@
 {
   "productName": "Example Client App",
   "version": "0.7.6",
-  "identifier": "org.holochain.androidserviceruntime.example_client_app",
+  "identifier": "org.holochain.androidserviceruntime.example-client-app",
   "build": {
     "beforeBuildCommand": "npm run build -w ui",
     "devUrl": "http://localhost:1420",
-    "frontendDist": "../ui/build"
+    "frontendDist": "../ui/dist"
   },
   "app": {
     "withGlobalTauri": true,
