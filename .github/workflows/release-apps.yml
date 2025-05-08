@@ -19,7 +19,18 @@ jobs:
         with:
           name: "Android Service Runtime ${{ github.ref_name }}"
           body: |
-            See the assets to download this version and install.
+            This release includes two different android apps:
+
+            ### android-service-runtime-app
+            
+            The runtime app and management UI. It comes in two different builds types:
+
+            **user**: For use as a standard user app in the app grid. This can be used by any Android device.
+            
+            **system**: For use as a system app, available via system settings. This must be specified as a system app, so should only be used in custom AOSP builds.
+            
+            ### example-client-app
+            An example holochain app that relies on the conductor provided by the android-service-runtime app.
           prerelease: true
           draft: true
 
@@ -166,8 +177,8 @@ jobs:
           sudo apt install rename
 
           # Rename apk to include the feature build label
-          find apps/example-client-app/src-tauri/gen/android/app/build/outputs/apk/*/release -type f -name "*.apk" -exec rename -v 's/release\/app/release\/example-client-app-${{ matrix.label }}/' {} \;
-          find apps/example-client-app/src-tauri/gen/android/app/build/outputs/bundle -type f -name "*.aab" -exec rename -v 's/app-universal-release/example-client-app-universal-${{ matrix.label }}-release/' {} \;
+          find apps/example-client-app/src-tauri/gen/android/app/build/outputs/apk/*/release -type f -name "*.apk" -exec rename -v 's/release\/app/release\/example-client-app/' {} \;
+          find apps/example-client-app/src-tauri/gen/android/app/build/outputs/bundle -type f -name "*.aab" -exec rename -v 's/app-universal-release/example-client-app-universal-release/' {} \;
 
       - uses: AButler/upload-release-assets@v3.0
         with:
