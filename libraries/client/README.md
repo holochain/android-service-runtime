@@ -11,7 +11,7 @@ Add the Sonatype Maven Central Repository as a dependency source in your project
 ```kotlin
 repositories {
     maven {
-        url "https://repo1.maven.org/maven2"
+        url("https://repo1.maven.org/maven2")
     }
     
     // Additional respositories...
@@ -23,7 +23,7 @@ Add the library to your dependencies list in your project's `build.gradle.kts`
 ```kotlin
 dependencies {
     ...
-    implementation("org.holochain.androidserviceruntime:client:0.0.11")
+    implementation("org.holochain.androidserviceruntime:client:0.0.12")
 }
 ```
 

@@ -14,7 +14,7 @@ gradlePlugin {
 repositories {
     mavenLocal()
     maven {
-        url "https://repo1.maven.org/maven2"
+        url("https://repo1.maven.org/maven2")
     }
     google()
 }

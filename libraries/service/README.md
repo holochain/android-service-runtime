@@ -11,7 +11,7 @@ Add the Sonatype Maven Central Repository as a dependency source in your project
 ```kotlin
 repositories {
     maven {
-        url "https://repo1.maven.org/maven2"
+        url("https://repo1.maven.org/maven2")
     }
     
     // Additional respositories...
