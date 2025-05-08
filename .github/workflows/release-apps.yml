@@ -19,7 +19,18 @@ jobs:
         with:
           name: "Android Service Runtime ${{ github.ref_name }}"
           body: |
-            See the assets to download this version and install.
+            This release includes two different android apps:
+
+            ### android-service-runtime-app
+            
+            The runtime app and management UI. It comes in two different builds types:
+
+            **user**: For use as a standard user app in the app grid. This can be used by any Android device.
+            
+            **system**: For use as a system app, available via system settings. This must be specified as a system app, so should only be used in custom AOSP builds.
+            
+            ### example-client-app
+            An example holochain app that relies on the conductor provided by the android-service-runtime app.
           prerelease: true
           draft: true
 
