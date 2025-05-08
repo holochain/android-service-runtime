@@ -6,6 +6,18 @@ This library can be used by other projects that wish to use the holochain conduc
 
 ## How to Use in an Android App
 
+Add the Sonatype Maven Central Repository as a dependency source in your project's `build.gradle.kts`
+
+```kotlin
+repositories {
+    maven {
+        url "https://repo1.maven.org/maven2"
+    }
+    
+    // Additional respositories...
+}
+```
+
 Add the library to your dependencies list in your project's `build.gradle.kts`
 
 ```kotlin

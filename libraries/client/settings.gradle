@@ -1,6 +1,8 @@
 pluginManagement {
     repositories {
-        mavenCentral()
+        maven {
+            url "https://repo1.maven.org/maven2"
+        }
         gradlePluginPortal()
         google()
     }
@@ -24,7 +26,9 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        mavenCentral()
+        maven {
+            url "https://repo1.maven.org/maven2"
+        }
         google()
 
     }
