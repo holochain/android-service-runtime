@@ -35,6 +35,9 @@
       "publish:local:service": "cd libraries/service && ./gradlew publishToMavenLocal",
       "publish:local": "pnpm run publish:local:client && pnpm run publish:local:service",
 
+      "doc:client": "cd libraries/client && ./gradlew dokkaGenerateModuleHtml",
+      "doc:service": "cd libraries/service && ./gradlew dokkaGenerateModuleHtml",
+
       "test:runtime": "RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime -- --nocapture",
       "test:runtime-ffi": " RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime-ffi -- --nocapture",
       "test:service": "cd libraries/service && ./gradlew connectedDebugAndroidTest",

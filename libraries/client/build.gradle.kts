@@ -7,6 +7,7 @@ plugins {
   id("org.jetbrains.kotlin.plugin.parcelize")
   id("com.vanniktech.maven.publish") version ("0.30.0")
   id("org.jmailen.kotlinter") version("5.0.1")
+  id("org.jetbrains.dokka") version("2.0.0")
 }
 
 // The uniffi-generated kotlin bindings violate some linter rules
