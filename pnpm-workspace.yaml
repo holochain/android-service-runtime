@@ -1,7 +1,7 @@
 packages:
   - crates/tauri-plugin-service
   - crates/tauri-plugin-client
-  - apps/android-service-runtime
+  - apps/*
   - '!**/android/**'
   - '!**/dist-js/**'
   - '!**/permissions/**'
