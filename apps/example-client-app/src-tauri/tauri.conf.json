@@ -3,7 +3,7 @@
   "version": "0.7.6",
   "identifier": "org.holochain.androidserviceruntime.example-client-app",
   "build": {
-    "beforeBuildCommand": "npm run build -w ui",
+    "beforeBuildCommand": "pnpm run --dir ui build",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../ui/dist"
   },
