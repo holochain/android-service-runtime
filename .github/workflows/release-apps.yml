@@ -93,12 +93,12 @@ jobs:
           sudo apt install rename
 
           # Rename apk to include the feature build label
-          find src-tauri/gen/android/app/build/outputs/apk/*/release -type f -name "*.apk" -exec rename -v 's/release\/app/release\/app-${{ matrix.label }}/' {} \;
-          find src-tauri/gen/android/app/build/outputs/bundle -type f -name "*.aab" -exec rename -v 's/app-universal-release/app-universal-${{ matrix.label }}-release/' {} \;
+          find apps/android-serivce-runtime/src-tauri/gen/android/app/build/outputs/apk/*/release -type f -name "*.apk" -exec rename -v 's/release\/app/release\/app-${{ matrix.label }}/' {} \;
+          find apps/android-serivce-runtime/src-tauri/gen/android/app/build/outputs/bundle -type f -name "*.aab" -exec rename -v 's/app-universal-release/app-universal-${{ matrix.label }}-release/' {} \;
 
       - uses: AButler/upload-release-assets@v3.0
         with:
-          files: "src-tauri/gen/android/app/build/outputs/apk/*/release/app-*;src-tauri/gen/android/app/build/outputs/bundle/**/*.aab"
+          files: "apps/android-serivce-runtime/src-tauri/gen/android/app/build/outputs/apk/*/release/app-*;apps/android-serivce-runtime/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           release-id: ${{ needs.create-release.outputs.releaseId }}
 
@@ -163,6 +163,6 @@ jobs:
 
       - uses: AButler/upload-release-assets@v3.0
         with:
-          files: "src-tauri/gen/android/app/build/outputs/apk/*/release/app-*;src-tauri/gen/android/app/build/outputs/bundle/**/*.aab"
+          files: "apps/example-client-app/src-tauri/gen/android/app/build/outputs/apk/*/release/app-*;apps/example-client-app/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           release-id: ${{ needs.create-release.outputs.releaseId }}
