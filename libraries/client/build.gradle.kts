@@ -46,7 +46,7 @@ mavenPublishing {
       signAllPublications()
   }
 
-  coordinates("org.holochain.androidserviceruntime", "client", "0.0.11")
+  coordinates("org.holochain.androidserviceruntime", "client", "0.0.12")
 
   pom {
     name.set("Holochain Service Client")

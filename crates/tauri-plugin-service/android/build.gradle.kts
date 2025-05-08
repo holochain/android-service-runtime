@@ -58,8 +58,8 @@ java {
 dependencies {
     // Subprojects
     implementation(project(":tauri-android"))
-    implementation("org.holochain.androidserviceruntime:service:0.0.11")
-    implementation("org.holochain.androidserviceruntime:client:0.0.11")
+    implementation("org.holochain.androidserviceruntime:service:0.0.12")
+    implementation("org.holochain.androidserviceruntime:client:0.0.12")
     // Kotlin
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.appcompat:appcompat:1.6.0")
