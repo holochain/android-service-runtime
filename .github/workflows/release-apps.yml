@@ -151,6 +151,9 @@ jobs:
       - uses: cachix/cachix-action@v15
         with:
           name: holochain-ci
+      
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Install and prepare
         run: |
