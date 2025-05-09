@@ -26,3 +26,13 @@
 2. Create and push a git tag with a matching format to trigger the release CI.
 
     The git tag format is: `client-vX.Y.Z`, where "X.Y.Z" is replaced with the version number.
+
+## Publishing service library releases
+
+1. Bump versions of kotlin libraries.
+
+    The are specified in `libraries/service/build.gradle.kts` under `mavenPublishing.coordinates`.
+
+2. Create and push a git tag with a matching format to trigger the release CI.
+
+    The git tag format is: `service-vX.Y.Z`, where "X.Y.Z" is replaced with the version number.
