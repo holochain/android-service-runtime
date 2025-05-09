@@ -42,7 +42,7 @@
               build-tools-36-0-0
               platform-tools
               platforms-android-36
-              ndk-25-2-9519653
+              ndk-27-2-12479018
             ]);
           in
           pkgs.mkShell {
