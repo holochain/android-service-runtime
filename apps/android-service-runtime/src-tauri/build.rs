@@ -17,7 +17,7 @@ r#"<activity
     <meta-data android:name="com.android.settings.category"
             android:value="com.android.settings.category.ia.homepage" />
     <meta-data android:name="com.android.settings.summary"
-            android:resource="@string/main_activity_summary" />
+            android:resource="@string/main_activity_title" />
 </activity>"#.to_string(),
   )
   .expect("Failed to update AndroidManifest.xml");

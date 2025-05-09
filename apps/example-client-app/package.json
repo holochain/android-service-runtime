@@ -6,12 +6,12 @@
     "tests"
   ],
   "scripts": {
-    "start:android": "npm run build:happ && BOOTSTRAP_PORT=$(get-port) SIGNAL_PORT=$(get-port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run local-services\" \"UI_PORT=1420 npm run -w ui start\" \"npm run tauri android dev\"",
-    "build:android": "npm run package && npm run tauri android build",
+    "start:android": "pnpm run build:happ && BOOTSTRAP_PORT=$(get-port) SIGNAL_PORT=$(get-port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"pnpm run local-services\" \"UI_PORT=1420 pnpm run -w ui start\" \"pnpm run tauri android dev\"",
+    "build:android": "pnpm run build:happ && tauri android build",
     "local-services": "hc run-local-services --bootstrap-interface $INTERNAL_IP --bootstrap-port $BOOTSTRAP_PORT --signal-interfaces $INTERNAL_IP --signal-port $SIGNAL_PORT",
-    "test": "npm run build:zomes && hc app pack workdir --recursive && npm run test --workspace tests",
-    "package": "npm run build:happ && npm run package --workspace ui && hc web-app pack workdir --recursive",
-    "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
+    "test": "pnpm run build:zomes && hc app pack workdir --recursive && pnpm run test --workspace tests",
+    "package": "pnpm run build:happ && pnpm run package --workspace ui && hc web-app pack workdir --recursive",
+    "build:happ": "pnpm run build:zomes && hc app pack workdir --recursive",
     "build:zomes": "cargo build --release --target wasm32-unknown-unknown --workspace --exclude forum-tauri",
     "tauri": "tauri"
   },

@@ -6,12 +6,24 @@ This library can be used by other projects that wish to run a holochain conducto
 
 ## How to Use in an Android App
 
+Add the Sonatype Maven Central Repository as a dependency source in your project's `build.gradle.kts`
+
+```kotlin
+repositories {
+    maven {
+        url = uri("https://repo1.maven.org/maven2")
+    }
+    
+    // Additional respositories...
+}
+```
+
 Add the library to your dependencies list in your project's `build.gradle.kts`
 
 ```kotlin
 dependencies {
     ...
-    implementation("org.holochain.androidserviceruntime:service:0.0.11")
+    implementation("org.holochain.androidserviceruntime:service:0.0.13")
 }
 ```
 

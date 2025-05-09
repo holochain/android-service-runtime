@@ -35,3 +35,4 @@
 - HolochainService will now auto start on system boot, if it was previously running during the last system shutdown.
 - Fix bug in `apps/android-service-runtime`, where the app would crash if the service was not running when switching to the "My Apps" tab.
 - Lint all kotlin libraries in CI
+- Build android-service-runtime and example-client-app in CI
