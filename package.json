@@ -35,8 +35,13 @@
       "publish:local:service": "cd libraries/service && ./gradlew publishToMavenLocal",
       "publish:local": "pnpm run publish:local:client && pnpm run publish:local:service",
 
-      "doc:client": "cd libraries/client && ./gradlew dokkaGenerateModuleHtml",
-      "doc:service": "cd libraries/service && ./gradlew dokkaGenerateModuleHtml",
+      "doc:md:client": "cd libraries/client && ./gradlew dokkaGfm",
+      "doc:md:service": "cd libraries/service && ./gradlew dokkaGfm",
+      "doc:md": "pnpm run doc:md:client && pnpm run doc:md:service",
+      "copy-doc:md:client": "cp -r libraries/client/build/dokka/html/client/* libraries/client/docs",
+      "copy-doc:md:service": "cp -r libraries/service/build/dokka/html/service/* libraries/service/docs",
+      "copy-doc:md": "pnpm run copy-doc:md:client && pnpm run copy-doc:md:service",
+      "build:doc": "pnpm run doc:md && pnpm run copy-doc:md",
 
       "test:runtime": "RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime -- --nocapture",
       "test:runtime-ffi": " RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime-ffi -- --nocapture",
