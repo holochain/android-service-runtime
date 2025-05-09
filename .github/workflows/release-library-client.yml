@@ -10,8 +10,6 @@ jobs:
   release:
     permissions: write-all
     environment: Maven Central Release
-    needs: 
-      - create-release
     runs-on: 'ubuntu-22.04' 
     strategy:
       fail-fast: false
