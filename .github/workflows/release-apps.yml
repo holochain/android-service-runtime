@@ -34,7 +34,7 @@ jobs:
           prerelease: true
           draft: true
 
-  release-manager-app:
+  release-android-service-runtime-app:
     permissions: write-all
     environment: Android Service Runtime Release
     needs: 

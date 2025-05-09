@@ -11,6 +11,16 @@ import android.util.Log
 class BootCompletedReceiver : BroadcastReceiver() {
     private val logTag = "HolochainService BootCompletedReceiver"
 
+    /**
+     * Called when the device has completed booting.
+     * 
+     * This method checks for the ACTION_BOOT_COMPLETED intent and starts the HolochainService
+     * with the ACTION_BOOT_COMPLETED action. The service will then decide whether to start
+     * Holochain based on the user's autostart configuration.
+     *
+     * @param context The Context in which the receiver is running
+     * @param intent The Intent being received
+     */
     override fun onReceive(
         context: Context,
         intent: Intent,

@@ -1,0 +1,22 @@
+//[service](../../index.md)/[org.holochain.androidserviceruntime.service](index.md)
+
+# Package-level declarations
+
+## Types
+
+| Name | Summary |
+|---|---|
+| [AppAuthorizationRequest](-app-authorization-request/index.md) | [androidJvm]<br>data class [AppAuthorizationRequest](-app-authorization-request/index.md)(var clientPackageName: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), var installedAppId: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html))<br>Represents a request from an Android app to access a Holochain app. |
+| [AppAuthorizationRequestMap](-app-authorization-request-map/index.md) | [androidJvm]<br>class [AppAuthorizationRequestMap](-app-authorization-request-map/index.md)(initialNotificationId: [Int](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html))<br>A map of IDs to AppAuthorizationRequests and their associated notification IDs. |
+| [AppAuthorizationRequestNotification](-app-authorization-request-notification/index.md) | [androidJvm]<br>data class [AppAuthorizationRequestNotification](-app-authorization-request-notification/index.md)(var request: [AppAuthorizationRequest](-app-authorization-request/index.md), var notificationId: [Int](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html))<br>Associates an app authorization request with a notification ID. |
+| [AutostartConfigManagerFfi](-autostart-config-manager-ffi/index.md) | [androidJvm]<br>open class [AutostartConfigManagerFfi](-autostart-config-manager-ffi/index.md) : [Disposable](-disposable/index.md), [AutoCloseable](https://developer.android.com/reference/kotlin/java/lang/AutoCloseable.html), [AutostartConfigManagerFfiInterface](-autostart-config-manager-ffi-interface/index.md) |
+| [AutostartConfigManagerFfiInterface](-autostart-config-manager-ffi-interface/index.md) | [androidJvm]<br>interface [AutostartConfigManagerFfiInterface](-autostart-config-manager-ffi-interface/index.md) |
+| [BootCompletedReceiver](-boot-completed-receiver/index.md) | [androidJvm]<br>class [BootCompletedReceiver](-boot-completed-receiver/index.md) : [BroadcastReceiver](https://developer.android.com/reference/kotlin/android/content/BroadcastReceiver.html)<br>BroadcastReceiver that starts the HolochainService when the device has finished booting. |
+| [Disposable](-disposable/index.md) | [androidJvm]<br>interface [Disposable](-disposable/index.md) |
+| [HolochainService](-holochain-service/index.md) | [androidJvm]<br>class [HolochainService](-holochain-service/index.md) : [Service](https://developer.android.com/reference/kotlin/android/app/Service.html) |
+| [InternalException](-internal-exception/index.md) | [androidJvm]<br>class [InternalException](-internal-exception/index.md)(message: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html)) : [Exception](https://developer.android.com/reference/kotlin/java/lang/Exception.html) |
+| [NotificationIdGenerator](-notification-id-generator/index.md) | [androidJvm]<br>class [NotificationIdGenerator](-notification-id-generator/index.md)(initialValue: [Int](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html) = 0)<br>Generates sequential, thread-safe notification IDs. |
+| [PutResponse](-put-response/index.md) | [androidJvm]<br>data class [PutResponse](-put-response/index.md)(var uuid: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), var notificationId: [Int](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html))<br>Response from adding an authorization request to the map. |
+| [RuntimeErrorFfi](-runtime-error-ffi/index.md) | [androidJvm]<br>sealed class [RuntimeErrorFfi](-runtime-error-ffi/index.md) : [Exception](https://developer.android.com/reference/kotlin/java/lang/Exception.html) |
+| [RuntimeFfi](-runtime-ffi/index.md) | [androidJvm]<br>open class [RuntimeFfi](-runtime-ffi/index.md) : [Disposable](-disposable/index.md), [AutoCloseable](https://developer.android.com/reference/kotlin/java/lang/AutoCloseable.html), [RuntimeFfiInterface](-runtime-ffi-interface/index.md)<br>Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings. |
+| [RuntimeFfiInterface](-runtime-ffi-interface/index.md) | [androidJvm]<br>interface [RuntimeFfiInterface](-runtime-ffi-interface/index.md)<br>Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings. |
