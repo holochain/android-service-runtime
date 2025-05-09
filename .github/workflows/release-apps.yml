@@ -19,9 +19,13 @@ jobs:
         with:
           name: "${{ github.ref_name }}"
           body: |
+            # Android Service Runtime
+            
+            ## Apps
+
             This release includes two different android apps:
 
-            ### android-service-runtime-app
+            ### android-service-runtime
             
             The runtime app and management UI. It comes in two different builds types:
 
@@ -31,6 +35,15 @@ jobs:
             
             ### example-client-app
             An example holochain app that relies on the conductor provided by the android-service-runtime app.
+          
+            ## Release Formats
+
+            The android apps are published in two formats:
+            - **.apk** support a single target cpu architecture 
+            - **.aab** contain builds for multiple target cpu architectures
+            
+            Supported cpu architectures are: armv8, x86, and x86_64.
+
           prerelease: true
           draft: true
 
