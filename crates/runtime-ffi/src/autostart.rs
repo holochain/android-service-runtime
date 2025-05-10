@@ -1,12 +1,12 @@
 use crate::error::RuntimeResultFfi;
 use holochain_conductor_runtime::AutostartConfigManager;
 
-#[derive(uniffi::Object, Clone)]
+#[derive(hc_uniffi::Object, Clone)]
 pub struct AutostartConfigManagerFfi(AutostartConfigManager);
 
-#[uniffi::export]
+#[hc_uniffi::export]
 impl AutostartConfigManagerFfi {
-    #[uniffi::constructor]
+    #[hc_uniffi::constructor]
     pub fn new(data_root_path: String) -> RuntimeResultFfi<Self> {
         Ok(Self(AutostartConfigManager::new(data_root_path.into())?))
     }

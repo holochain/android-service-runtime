@@ -8,12 +8,12 @@ use log::{debug, LevelFilter};
 use url2::Url2;
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
-#[derive(uniffi::Object, Clone)]
+#[derive(hc_uniffi::Object, Clone)]
 pub struct RuntimeFfi(Runtime);
 
-#[uniffi::export(async_runtime = "tokio")]
+#[hc_uniffi::export(async_runtime = "tokio")]
 impl RuntimeFfi {
-    #[uniffi::constructor]
+    #[hc_uniffi::constructor]
     pub async fn start(
         passphrase: Vec<u8>,
         runtime_config: RuntimeConfigFfi,
