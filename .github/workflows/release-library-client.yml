@@ -38,13 +38,14 @@ jobs:
         run: |
           cp libraries/client/gradle.properties.ci libraries/client/gradle.properties
 
-          base64 -d <<< "${{ secrets.SIGNING_KEY_RING_FILE_B64 }}" > $RUNNER_TEMP/keyring.gpg
-          echo "signing.secretKeyRingFile=$RUNNER_TEMP/keyring.gpg" > libraries/client/gradle.properties
-          
-          echo "signing.keyId=${{ secrets.SIGNING_KEY_ID }}" > libraries/client/gradle.properties
-          echo "signing.password=${{ secrets.SIGNING_KEY_PASSWORD }}" > libraries/client/gradle.properties
-          echo "mavenCentralUsername=${{ secrets.MAVEN_CENTRAL_USERNAME }}" > libraries/client/gradle.properties
-          echo "mavenCentralPassword=${{ secrets.MAVEN_CENTRAL_PASSWORD }}" > libraries/client/gradle.properties
+          cat libraries/client/gradle.properties
+
+          # base64 -d <<< "${{ secrets.SIGNING_KEY_RING_FILE_B64 }}" > $RUNNER_TEMP/keyring.gpg
+          # echo "signing.secretKeyRingFile=$RUNNER_TEMP/keyring.gpg" > libraries/client/gradle.properties
+          # echo "signing.keyId=${{ secrets.SIGNING_KEY_ID }}" > libraries/client/gradle.properties
+          # echo "signing.password=${{ secrets.SIGNING_KEY_PASSWORD }}" > libraries/client/gradle.properties
+          # echo "mavenCentralUsername=${{ secrets.MAVEN_CENTRAL_USERNAME }}" > libraries/client/gradle.properties
+          # echo "mavenCentralPassword=${{ secrets.MAVEN_CENTRAL_PASSWORD }}" > libraries/client/gradle.properties
 
       - name: Build
         run: |
