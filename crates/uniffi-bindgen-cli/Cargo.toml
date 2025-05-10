@@ -7,4 +7,4 @@ edition = "2021"
 name = "uniffi-bindgen-cli"
 
 [dependencies]
-uniffi = { workspace = true, features = ["cli"] }
+hc_uniffi = { workspace = true, features = ["cli"] }

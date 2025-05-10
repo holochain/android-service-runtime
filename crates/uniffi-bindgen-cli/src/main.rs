@@ -1,3 +1,3 @@
 fn main() {
-    uniffi::uniffi_bindgen_main()
+    hc_uniffi::uniffi_bindgen_main()
 }

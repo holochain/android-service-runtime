@@ -2958,6 +2958,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "hc_uniffi"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd8c9fb110fdc7523421d7f11100455aee780c60f336c9f97dfa257356cbfba8"
+dependencies = [
+ "anyhow",
+ "camino",
+ "cargo_metadata 0.15.4",
+ "clap 4.5.35",
+ "hc_uniffi_bindgen",
+ "uniffi_core",
+ "uniffi_macros",
+]
+
+[[package]]
+name = "hc_uniffi_bindgen"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9bebee6a0234db27946c6983e01f153289dc1e1d48a18277b5fc1e8fd20e73a0"
+dependencies = [
+ "anyhow",
+ "camino",
+ "cargo_metadata 0.15.4",
+ "fs-err",
+ "glob",
+ "goblin",
+ "heck 0.5.0",
+ "once_cell",
+ "paste",
+ "rinja",
+ "serde",
+ "textwrap 0.16.2",
+ "toml 0.5.11",
+ "uniffi_meta",
+ "uniffi_udl",
+]
+
+[[package]]
 name = "hdi"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3243,6 +3281,7 @@ name = "holochain-conductor-runtime-ffi"
 version = "0.1.0"
 dependencies = [
  "android_logger 0.14.1",
+ "hc_uniffi",
  "holochain-conductor-runtime",
  "holochain-conductor-runtime-types-ffi",
  "holochain_conductor_api",
@@ -3251,7 +3290,6 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.12",
  "tokio",
- "uniffi",
  "url2",
  "uuid",
 ]
@@ -3260,10 +3298,10 @@ dependencies = [
 name = "holochain-conductor-runtime-types-ffi"
 version = "0.1.0"
 dependencies = [
+ "hc_uniffi",
  "holochain_conductor_api",
  "holochain_types",
  "serde",
- "uniffi",
  "url2",
 ]
 
@@ -9641,52 +9679,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
 
 [[package]]
-name = "uniffi"
-version = "0.29.0"
-source = "git+https://github.com/mattyg/uniffi-rs?branch=fix/expose-rustbuffer-create-rust-2021#124d02bcee2c809ee4532a332f538f161006e7b2"
-dependencies = [
- "anyhow",
- "camino",
- "cargo_metadata 0.15.4",
- "clap 4.5.35",
- "uniffi_bindgen",
- "uniffi_core",
- "uniffi_macros",
-]
-
-[[package]]
 name = "uniffi-bindgen-cli"
 version = "0.1.0"
 dependencies = [
- "uniffi",
-]
-
-[[package]]
-name = "uniffi_bindgen"
-version = "0.29.0"
-source = "git+https://github.com/mattyg/uniffi-rs?branch=fix/expose-rustbuffer-create-rust-2021#124d02bcee2c809ee4532a332f538f161006e7b2"
-dependencies = [
- "anyhow",
- "camino",
- "cargo_metadata 0.15.4",
- "fs-err",
- "glob",
- "goblin",
- "heck 0.5.0",
- "once_cell",
- "paste",
- "rinja",
- "serde",
- "textwrap 0.16.2",
- "toml 0.5.11",
- "uniffi_meta",
- "uniffi_udl",
+ "hc_uniffi",
 ]
 
 [[package]]
 name = "uniffi_core"
-version = "0.29.0"
-source = "git+https://github.com/mattyg/uniffi-rs?branch=fix/expose-rustbuffer-create-rust-2021#124d02bcee2c809ee4532a332f538f161006e7b2"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c18baace68a52666d33d12d73ca335ecf27a302202cefb53b1f974512bb72417"
 dependencies = [
  "anyhow",
  "async-compat",
@@ -9697,17 +9700,22 @@ dependencies = [
 
 [[package]]
 name = "uniffi_internal_macros"
-version = "0.29.0"
-source = "git+https://github.com/mattyg/uniffi-rs?branch=fix/expose-rustbuffer-create-rust-2021#124d02bcee2c809ee4532a332f538f161006e7b2"
+version = "0.29.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "83b547d69d699e52f2129fde4b57ae0d00b5216e59ed5b56097c95c86ba06095"
 dependencies = [
+ "anyhow",
+ "indexmap 2.9.0",
+ "proc-macro2",
  "quote",
  "syn 2.0.100",
 ]
 
 [[package]]
 name = "uniffi_macros"
-version = "0.29.0"
-source = "git+https://github.com/mattyg/uniffi-rs?branch=fix/expose-rustbuffer-create-rust-2021#124d02bcee2c809ee4532a332f538f161006e7b2"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d82c82ef945c51082d8763635334b994e63e77650f09d0fae6d28dd08b1de83"
 dependencies = [
  "camino",
  "fs-err",
@@ -9722,8 +9730,9 @@ dependencies = [
 
 [[package]]
 name = "uniffi_meta"
-version = "0.29.0"
-source = "git+https://github.com/mattyg/uniffi-rs?branch=fix/expose-rustbuffer-create-rust-2021#124d02bcee2c809ee4532a332f538f161006e7b2"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d6027b971c2aa86350dd180aee9819729c7b99bacd381534511ff29d2c09cea"
 dependencies = [
  "anyhow",
  "siphasher 0.3.11",
@@ -9732,8 +9741,9 @@ dependencies = [
 
 [[package]]
 name = "uniffi_udl"
-version = "0.29.0"
-source = "git+https://github.com/mattyg/uniffi-rs?branch=fix/expose-rustbuffer-create-rust-2021#124d02bcee2c809ee4532a332f538f161006e7b2"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52300b7a4ab02dc159a038a13d5bfe27aefbad300d91b0b501b3dda094c1e0a2"
 dependencies = [
  "anyhow",
  "textwrap 0.16.2",
@@ -10403,7 +10413,8 @@ dependencies = [
 [[package]]
 name = "weedle2"
 version = "5.0.0"
-source = "git+https://github.com/mattyg/uniffi-rs?branch=fix/expose-rustbuffer-create-rust-2021#124d02bcee2c809ee4532a332f538f161006e7b2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "998d2c24ec099a87daf9467808859f9d82b61f1d9c9701251aea037f514eae0e"
 dependencies = [
  "nom",
 ]
