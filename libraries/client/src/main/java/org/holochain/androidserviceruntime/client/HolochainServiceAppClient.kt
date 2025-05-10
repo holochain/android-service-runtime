@@ -35,7 +35,7 @@ class HolochainServiceAppClient(
 
     /**
      * Connects to the Holochain service using the App API for a specific app.
-     * 
+     *
      * @param installedAppId The ID of the app to connect to
      */
     fun connect(installedAppId: String) {
@@ -54,7 +54,7 @@ class HolochainServiceAppClient(
 
     /**
      * Complete process to setup a Holochain app.
-     * 
+     *
      * This method will:
      * 1. Check if the app is installed
      * 2. If not installed, install it
@@ -90,7 +90,7 @@ class HolochainServiceAppClient(
 
     /**
      * Connects to service, waits for connection to be ready, and sets up an app.
-     * 
+     *
      * Convenience method that combines connect(), waitForConnectReady(), and setupApp() into a single call.
      *
      * @param installAppPayload The payload containing app installation data
@@ -108,7 +108,7 @@ class HolochainServiceAppClient(
 
     /**
      * Enables an installed Holochain app.
-     * 
+     *
      * @param installedAppId The ID of the app to enable
      * @return AppInfoFfi object with information about the enabled app
      * @throws HolochainServiceNotConnectedException if not connected to the service
@@ -127,9 +127,9 @@ class HolochainServiceAppClient(
 
     /**
      * Signs a zome call with the agent's private key.
-     * 
+     *
      * This is required for making authenticated calls to Holochain zome functions.
-     * 
+     *
      * @param args The unsigned zome call to sign
      * @return The signed zome call ready to be executed
      * @throws HolochainServiceNotConnectedException if not connected to the service
@@ -148,7 +148,7 @@ class HolochainServiceAppClient(
 
     /**
      * Polls until connected to the service, or the timeout has elapsed.
-     * 
+     *
      * @param timeoutMs Maximum time to wait for connection in milliseconds (default: 100ms)
      * @param intervalMs Time between connection checks in milliseconds (default: 5ms)
      */

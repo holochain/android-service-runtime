@@ -407,10 +407,10 @@ class HolochainService : Service() {
 
     /**
      * Checks if the POST_NOTIFICATIONS permission has been granted.
-     * 
+     *
      * On Android 13 (API 33) and above, the app must request this permission at runtime.
      * On earlier Android versions, this permission was granted automatically.
-     * 
+     *
      * @return true if the permission is granted or not required, false otherwise
      */
     private fun checkNotificationPermission(): Boolean {
@@ -429,10 +429,10 @@ class HolochainService : Service() {
 
     /**
      * Shows a notification asking the user to authorize an app's access to a Holochain app.
-     * 
+     *
      * Creates a notification with approve and deny actions, and stores the request in the
      * authorization request map for later retrieval.
-     * 
+     *
      * @param clientPackageName The package name of the Android app requesting access
      * @param installedAppId The ID of the Holochain app being accessed
      * @return The UUID of the stored authorization request
@@ -507,7 +507,7 @@ class HolochainService : Service() {
 
     /**
      * Called by the system when the service is first created or when an intent is delivered to the service.
-     * 
+     *
      * Handles several actions:
      * - ACTION_START: Enables autostart and starts the Holochain service
      * - ACTION_BOOT_COMPLETED: Starts the service if autostart is enabled
@@ -584,7 +584,7 @@ class HolochainService : Service() {
 
     /**
      * Called when a client binds to the service with bindService().
-     * 
+     *
      * Returns either an AdminBinder or AppBinder based on the "api" extra in the intent.
      * For AppBinder, also requires an "installedAppId" extra.
      *
@@ -617,7 +617,7 @@ class HolochainService : Service() {
 
     /**
      * Gets or creates an AppBinder for a specific Holochain app.
-     * 
+     *
      * Maintains a map of app IDs to binders to avoid creating duplicate binders.
      *
      * @param installedAppId The ID of the Holochain app to bind to
@@ -632,7 +632,7 @@ class HolochainService : Service() {
 
     /**
      * Gets the AutostartConfigManager, initializing it if necessary.
-     * 
+     *
      * The AutostartConfigManager handles persistence of autostart settings and
      * determines whether the service should start automatically on device boot.
      *
@@ -648,7 +648,7 @@ class HolochainService : Service() {
 
     /**
      * Starts the service in the foreground and launches the Holochain conductor.
-     * 
+     *
      * Creates a persistent notification indicating that the Holochain service is running,
      * and starts the Holochain conductor with a default configuration.
      */

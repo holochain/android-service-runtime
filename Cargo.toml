@@ -25,6 +25,10 @@ tauri = "2.4.1"
 tauri-plugin = "2.1.1"
 tauri-build = { version = "2.1.1", default-features = false }
 
+# Currently using fork of uniffi-rs, as a workaround to this issue:
+# https://github.com/holochain/android-service-runtime/issues/45
+hc_uniffi = "=0.29.1"
+
 log = "0.4.25"
 android_logger = "0.14.1"
 serde = "1.0"
@@ -32,7 +36,6 @@ serde_json = "1.0.140"
 thiserror = "2.0.11"
 bytes = "1.9.0"
 zeroize = "1.8.1"
-uniffi = { git = "https://github.com/mattyg/uniffi-rs", branch = "fix/expose-rustbuffer-create-rust-2021" }
 tempfile = "3.17.1"
 tokio = "1.43.0"
 uuid = "1.15.1"

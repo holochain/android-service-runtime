@@ -7,8 +7,16 @@
       "build:service": "cd libraries/service && ./gradlew build",
       "build:tauri-plugin-client": "pnpm run --dir crates/tauri-plugin-client build",
       "build:tauri-plugin-service": "pnpm run --dir crates/tauri-plugin-service build",
-      "build": "pnpm run build:runtime-types-ffi && pnpm run build:client && pnpm run publish:local:client && pnpm run build:runtime-ffi && pnpm run build:service && pnpm run publish:local:service && pnpm run build:tauri-plugin-client && pnpm run build:tauri-plugin-service",
       
+      "build-deps:client": "pnpm run build:runtime-types-ffi && pnpm run build:client",
+      "build-deps:service": "pnpm run build:runtime-ffi && pnpm run build:service",
+      "build-deps:tauri-plugin-client": "pnpm run build:tauri-plugin-client && pnpm run build:tauri-plugin-service",
+      "build-all:client": "pnpm run build-deps:client && pnpm run build:client",
+      "build-all:service": "pnpm run build-deps:service && pnpm run build:service",
+
+      "build-publish:local:client": "pnpm run build-all:client && pnpm run publish:local:client",
+      "build-publish:local:service": "pnpm run build-all:service && pnpm run publish:local:service",
+
       "build:single-target:runtime-ffi": "cd crates/runtime-ffi && ./scripts/build-single-target.sh",
       "build:single-target:runtime-types-ffi": "cd crates/runtime-types-ffi && ./scripts/build-single-target.sh",
       "build:single-target:aarch64-linux-android": "pnpm run build:single-target:runtime-types-ffi aarch64-linux-android && pnpm run build:client && pnpm run publish:local:client && pnpm run build:single-target:runtime-ffi aarch64-linux-android && pnpm run build:service && pnpm run publish:local:service && pnpm run build:tauri-plugin-client && pnpm run build:tauri-plugin-service",
@@ -27,8 +35,8 @@
       "lint:tauri-plugin-service": "cd crates/tauri-plugin-service/android && ./gradlew lintKotlin",
       "lint": "pnpm run lint:client && pnpm run lint:service && pnpm run lint:tauri-plugin-client && pnpm run lint:tauri-plugin-service",
 
-      "publish:client": "cd libraries/client && ./gradlew publish",
-      "publish:service": "cd libraries/service && ./gradlew publish",
+      "publish:client": "cd libraries/client && ./gradlew publishAndReleaseToMavenCentral",
+      "publish:service": "cd libraries/service && ./gradlew publishAndReleaseToMavenCentral",
       "publish": "pnpm run publish:client && pnpm run publish:service",
 
       "publish:local:client": "cd libraries/client && ./gradlew publishToMavenLocal",

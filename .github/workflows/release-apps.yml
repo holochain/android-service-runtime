@@ -2,9 +2,9 @@ name: "release-apps"
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+-[a-z]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+-[a-z]+.[0-9]+'
+      - 'android-service-runtime-v[0-9]+.[0-9]+.[0-9]+'
+      - 'android-service-runtime-v[0-9]+.[0-9]+.[0-9]+-[a-z]+'
+      - 'android-service-runtime-v[0-9]+.[0-9]+.[0-9]+-[a-z]+.[0-9]+'
 
 jobs:
   create-release:
@@ -17,11 +17,15 @@ jobs:
       - id: step1
         uses: ncipollo/release-action@v1
         with:
-          name: "Android Service Runtime ${{ github.ref_name }}"
+          name: "${{ github.ref_name }}"
           body: |
+            # Android Service Runtime
+            
+            ## Apps
+
             This release includes two different android apps:
 
-            ### android-service-runtime-app
+            ### android-service-runtime
             
             The runtime app and management UI. It comes in two different builds types:
 
@@ -31,6 +35,15 @@ jobs:
             
             ### example-client-app
             An example holochain app that relies on the conductor provided by the android-service-runtime app.
+          
+            ## Release Formats
+
+            The android apps are published in two formats:
+            - **.apk** support a single target cpu architecture 
+            - **.aab** contain builds for multiple target cpu architectures
+            
+            Supported cpu architectures are: armv8, x86, and x86_64.
+
           prerelease: true
           draft: true
 
@@ -138,6 +151,9 @@ jobs:
       - uses: cachix/cachix-action@v15
         with:
           name: holochain-ci
+      
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Install and prepare
         run: |
