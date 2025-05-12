@@ -66,7 +66,6 @@
               cargo-ndk
               gnumake
               pkg-config
-              glib
             ]);
 
             ANDROID_HOME = "${android}/share/android-sdk";
