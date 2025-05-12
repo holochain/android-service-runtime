@@ -2,8 +2,9 @@
 name = "tauri-plugin-holochain-service"
 version = "0.1.0"
 authors = [ "You" ]
-description = ""
+description = "Tauri plugin enabling an Android app to run Holochain as a foreground service"
 edition = "2021"
+license = "CAL-1.0"
 rust-version = "1.70"
 exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
 links = "tauri-plugin-holochain-service"
