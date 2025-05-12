@@ -42,7 +42,7 @@
               build-tools-35-0-0
               platform-tools
               platforms-android-34
-              ndk-27-2-12479018
+              ndk-25-2-9519653
             ]);
           in
           pkgs.mkShell {
@@ -66,6 +66,7 @@
               cargo-ndk
               gnumake
               pkg-config
+              glib
             ]);
 
             ANDROID_HOME = "${android}/share/android-sdk";
