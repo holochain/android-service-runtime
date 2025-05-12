@@ -20,7 +20,7 @@ use holochain_types::{
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::Duration};
 
-#[derive(hc_uniffi::Record, Serialize, Deserialize, Clone, Debug)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct DurationFfi {
     pub secs: u64,
     pub nanos: u32,
@@ -41,7 +41,7 @@ impl From<DurationFfi> for Duration {
     }
 }
 
-#[derive(hc_uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct DnaModifiersFfi {
     pub network_seed: String,
     pub properties: Vec<u8>,
@@ -60,7 +60,7 @@ impl From<DnaModifiers> for DnaModifiersFfi {
     }
 }
 
-#[derive(hc_uniffi::Record, Serialize, Deserialize, Clone, Debug)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct DnaModifiersOptFfi {
     pub network_seed: Option<String>,
     pub properties: Option<Vec<u8>>,
@@ -81,7 +81,7 @@ impl From<DnaModifiersOptFfi> for DnaModifiersOpt<YamlProperties> {
     }
 }
 
-#[derive(hc_uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct ProvisionedCellFfi {
     pub cell_id: CellIdFfi,
     pub dna_modifiers: DnaModifiersFfi,
@@ -98,7 +98,7 @@ impl From<ProvisionedCell> for ProvisionedCellFfi {
     }
 }
 
-#[derive(hc_uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct ClonedCellFfi {
     pub cell_id: CellIdFfi,
     pub clone_id: String,
@@ -121,7 +121,7 @@ impl From<ClonedCell> for ClonedCellFfi {
     }
 }
 
-#[derive(hc_uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct StemCellFfi {
     pub original_dna_hash: Vec<u8>,
     pub dna_modifiers: DnaModifiersFfi,
@@ -138,7 +138,7 @@ impl From<StemCell> for StemCellFfi {
     }
 }
 
-#[derive(hc_uniffi::Enum)]
+#[derive(uniffi::Enum)]
 pub enum CellInfoFfi {
     Provisioned(ProvisionedCellFfi),
     Cloned(ClonedCellFfi),
@@ -155,7 +155,7 @@ impl From<CellInfo> for CellInfoFfi {
     }
 }
 
-#[derive(hc_uniffi::Enum, Eq, PartialEq, Debug)]
+#[derive(uniffi::Enum, Eq, PartialEq, Debug)]
 pub enum PausedAppReasonFfi {
     Error(String),
 }
@@ -168,7 +168,7 @@ impl From<PausedAppReason> for PausedAppReasonFfi {
     }
 }
 
-#[derive(hc_uniffi::Enum, Eq, PartialEq, Debug)]
+#[derive(uniffi::Enum, Eq, PartialEq, Debug)]
 pub enum DisabledAppReasonFfi {
     NeverStarted,
     NotStartedAfterProvidingMemproofs,
@@ -191,7 +191,7 @@ impl From<DisabledAppReason> for DisabledAppReasonFfi {
     }
 }
 
-#[derive(hc_uniffi::Enum, Eq, PartialEq, Debug)]
+#[derive(uniffi::Enum, Eq, PartialEq, Debug)]
 pub enum AppInfoStatusFfi {
     Paused { reason: PausedAppReasonFfi },
     Disabled { reason: DisabledAppReasonFfi },
@@ -214,7 +214,7 @@ impl From<AppInfoStatus> for AppInfoStatusFfi {
     }
 }
 
-#[derive(hc_uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct AppInfoFfi {
     /// The unique identifier for an installed app in this conductor
     pub installed_app_id: String,
@@ -241,7 +241,7 @@ impl From<AppInfo> for AppInfoFfi {
     }
 }
 
-#[derive(hc_uniffi::Record, Serialize, Deserialize, Clone, Debug)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct AppAuthenticationTokenIssuedFfi {
     pub token: Vec<u8>,
     pub expires_at: Option<i64>,
@@ -256,13 +256,13 @@ impl From<AppAuthenticationTokenIssued> for AppAuthenticationTokenIssuedFfi {
     }
 }
 
-#[derive(hc_uniffi::Record, Serialize, Deserialize, Clone, Debug)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct AppAuthFfi {
     pub authentication: AppAuthenticationTokenIssuedFfi,
     pub port: u16,
 }
 
-#[derive(hc_uniffi::Record, Serialize, Deserialize, Clone, Debug)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
 pub struct CellIdFfi {
     pub dna_hash: Vec<u8>,
     pub agent_pub_key: Vec<u8>,
@@ -286,7 +286,7 @@ impl From<CellIdFfi> for CellId {
     }
 }
 
-#[derive(hc_uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct ZomeCallUnsignedFfi {
     pub provenance: Vec<u8>,
     pub cell_id: CellIdFfi,
@@ -331,7 +331,7 @@ impl From<ZomeCallUnsignedFfi> for ZomeCallUnsigned {
     }
 }
 
-#[derive(hc_uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct ZomeCallFfi {
     pub cell_id: CellIdFfi,
     pub zome_name: String,
@@ -360,7 +360,7 @@ impl From<ZomeCall> for ZomeCallFfi {
     }
 }
 
-#[derive(hc_uniffi::Enum, Serialize, Deserialize, Clone, Debug)]
+#[derive(uniffi::Enum, Serialize, Deserialize, Clone, Debug)]
 pub enum RoleSettingsFfi {
     UseExisting {
         cell_id: CellIdFfi,
@@ -389,7 +389,7 @@ impl From<RoleSettingsFfi> for RoleSettings {
     }
 }
 
-#[derive(hc_uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct InstallAppPayloadFfi {
     /// Raw bytes of encoded AppBundle
     pub source: Vec<u8>,
@@ -415,7 +415,7 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
     }
 }
 
-#[derive(hc_uniffi::Record, Clone, Debug)]
+#[derive(uniffi::Record, Clone, Debug)]
 pub struct RuntimeConfigFfi {
     /// Path where conductor data is stored
     pub data_root_path: String,

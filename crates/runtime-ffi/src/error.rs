@@ -2,7 +2,7 @@ use holochain_conductor_runtime::RuntimeError;
 use holochain_types::app::AppBundleError;
 use url2::Url2Error;
 
-#[derive(hc_uniffi::Error, thiserror::Error, Debug)]
+#[derive(uniffi::Error, thiserror::Error, Debug)]
 #[uniffi(flat_error)]
 pub enum RuntimeErrorFfi {
     #[error(transparent)]

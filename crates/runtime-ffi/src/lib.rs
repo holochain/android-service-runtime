@@ -1,4 +1,4 @@
-hc_uniffi::setup_scaffolding!();
+uniffi::setup_scaffolding!();
 
 extern crate android_logger;
 extern crate log;
