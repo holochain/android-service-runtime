@@ -51,4 +51,4 @@ jobs:
 
       - name: Publish to Maven Central
         run: |
-          nix develop --no-update-lock-file --command bash -c "cd libraries/client && ./gradlew publish"
+          nix develop --no-update-lock-file --command bash -c "pnpm run publish:client"

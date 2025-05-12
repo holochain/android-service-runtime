@@ -30,18 +30,20 @@ jobs:
       - uses: cachix/cachix-action@v15
         with:
           name: holochain-ci
+                
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Generate gradle.properties
         run: |
           cp libraries/service/gradle.properties.ci libraries/service/gradle.properties
 
-          base64 -d <<< "${{ secrets.SIGNING_KEY_RING_FILE_B64 }}" > $RUNNER_TEMP/keyring.gpg
-          echo "signing.secretKeyRingFile=$RUNNER_TEMP/keyring.gpg" > libraries/service/gradle.properties
-          
-          echo "signing.keyId=${{ secrets.SIGNING_KEY_ID }}" > libraries/service/gradle.properties
-          echo "signing.password=${{ secrets.SIGNING_KEY_PASSWORD }}" > libraries/service/gradle.properties
-          echo "mavenCentralUsername=${{ secrets.MAVEN_CENTRAL_USERNAME }}" > libraries/service/gradle.properties
-          echo "mavenCentralPassword=${{ secrets.MAVEN_CENTRAL_PASSWORD }}" > libraries/service/gradle.properties
+          base64 -d <<< "${{ secrets.SIGNING_KEY_RING_FILE_B64 }}" >> $RUNNER_TEMP/keyring.gpg
+          echo "signing.secretKeyRingFile=$RUNNER_TEMP/keyring.gpg" >> libraries/service/gradle.properties
+          echo "signing.keyId=${{ secrets.SIGNING_KEY_ID }}" >> libraries/service/gradle.properties
+          echo "signing.password=${{ secrets.SIGNING_KEY_PASSWORD }}" >> libraries/service/gradle.properties
+          echo "mavenCentralUsername=${{ secrets.MAVEN_CENTRAL_USERNAME }}" >> libraries/service/gradle.properties
+          echo "mavenCentralPassword=${{ secrets.MAVEN_CENTRAL_PASSWORD }}" >> libraries/service/gradle.properties
 
       - name: Build
         run: |
