@@ -21,9 +21,9 @@ kitsune_p2p_types = "0.4.2"
 sodoken = "0.0.11"
 url2 = "0.0.6"
 
-tauri = "2.5.1"
-tauri-plugin = "2.2.0"
-tauri-build = { version = "2.2.0", default-features = false }
+tauri = "2.4.1"
+tauri-plugin = "2.1.1"
+tauri-build = { version = "2.1.1", default-features = false }
 
 # Currently using fork of uniffi-rs, as a workaround to this issue:
 # https://github.com/holochain/android-service-runtime/issues/45
