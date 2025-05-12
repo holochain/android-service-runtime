@@ -5,7 +5,7 @@ authors = [ "You" ]
 description = ""
 edition = "2021"
 rust-version = "1.70"
-exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
+exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules", "/permissions"]
 links = "tauri-plugin-holochain-service-client"
 
 [dependencies]
