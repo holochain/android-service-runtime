@@ -579,8 +579,8 @@ class HolochainService : Service() {
                 RuntimeConfigFfi(
                     getFilesDir().toString(),
                     "https://bootstrap-0.infra.holochain.org",
-                    "wss://sbd.holo.host",
-                    arrayOf("stun:devtest-stun-1.holochain.org:443")
+                    "wss://dev-test-bootstrap2.holochain.org",
+                    arrayOf("stun:stun.l.google.com:19302")
                 )
 
             serviceScope.launch(Dispatchers.IO) {

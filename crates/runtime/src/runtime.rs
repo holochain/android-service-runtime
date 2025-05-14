@@ -310,8 +310,9 @@ mod test {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_new_runtime() {
         let tmp_dir = TempDir::new().unwrap();
-        let bootstrap_url = Url2::try_parse("https://bootstrap.holo.host").unwrap();
-        let signal_url = Url2::try_parse("wss://sbd.holo.host").unwrap();
+        let bootstrap_url = Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap();
+        let signal_url = Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap();
+        let ice_urls = vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()];
 
         let runtime = Runtime::new(
             BufRead::from(vec![0, 0, 0, 0]),
@@ -319,6 +320,7 @@ mod test {
                 data_root_path: tmp_dir.path().into(),
                 bootstrap_url: bootstrap_url.clone(),
                 signal_url: signal_url.clone(),
+                ice_urls: ice_urls.clone(),
             },
         )
         .await
@@ -377,8 +379,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -400,8 +403,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -432,8 +436,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -455,8 +460,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -479,8 +485,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -508,8 +515,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -529,8 +537,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -553,8 +562,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -590,8 +600,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -649,8 +660,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -669,8 +681,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -723,8 +736,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await
@@ -760,8 +774,9 @@ mod test {
             BufRead::from(vec![0, 0, 0, 0]),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                bootstrap_url: Url2::try_parse("https://dev-test-bootstrap2.holochain.org").unwrap(),
+                signal_url: Url2::try_parse("wss://dev-test-bootstrap2.holochain.org").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302".to_string()).unwrap()],
             },
         )
         .await

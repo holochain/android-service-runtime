@@ -1,5 +1,6 @@
 use holochain::conductor::config::{ConductorConfig, KeystoreConfig};
 use kitsune_p2p_types::config::{KitsuneP2pConfig, TransportConfig};
+use serde_json::json;
 use std::path::PathBuf;
 use url2::Url2;
 
@@ -30,14 +31,10 @@ impl From<RuntimeConfig> for ConductorConfig {
         conductor_config.keystore = KeystoreConfig::LairServerInProc { lair_root: None };
         kitsune_config.bootstrap_service = Some(val.bootstrap_url);
 
-        let mut ice_urls = serde_json::Map::new();
-        ice_urls.insert("urls".to_string(), serde_json::Value::Array(val.ice_urls.into_iter().map(|u| serde_json::Value::from(u.to_string())).collect()));
-        let mut webrtc_config = serde_json::Map::new();
-        webrtc_config.insert("ice_servers".to_string(), serde_json::Value::Object(ice_urls));
-
+        let ice_urls: Vec<serde_json::Value> = val.ice_urls.into_iter().map(|u| json!(u.to_string())).collect();
         kitsune_config.transport_pool.push(TransportConfig::WebRTC {
             signal_url: val.signal_url.into(),
-            webrtc_config: Some(serde_json::Value::Object(webrtc_config)),
+            webrtc_config: Some(json!({"ice_servers": {"urls": ice_urls}})),
         });
         conductor_config.network = kitsune_config;
 
