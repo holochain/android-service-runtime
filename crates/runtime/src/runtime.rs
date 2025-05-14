@@ -363,7 +363,7 @@ mod test {
             TransportConfig::WebRTC {
                 signal_url: signal_url.into(),
                 webrtc_config: Some(
-                    json!({"ice_servers": [{"urls": vec!["stun:stun.l.google.com:19302".to_string()]}]})
+                    json!({"ice_servers": {"urls": vec!["stun:stun.l.google.com:19302".to_string()]}})
                 ),
             }
         );
