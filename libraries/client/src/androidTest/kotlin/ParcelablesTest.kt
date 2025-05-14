@@ -30,6 +30,8 @@ import org.holochain.androidserviceruntime.client.PausedAppReasonFfiParcel
 import org.holochain.androidserviceruntime.client.ProvisionedCellFfi
 import org.holochain.androidserviceruntime.client.ProvisionedCellFfiParcel
 import org.holochain.androidserviceruntime.client.RoleSettingsFfi
+import org.holochain.androidserviceruntime.client.RuntimeConfigFfi
+import org.holochain.androidserviceruntime.client.RuntimeConfigFfiParcel
 import org.holochain.androidserviceruntime.client.StemCellFfi
 import org.holochain.androidserviceruntime.client.StemCellFfiParcel
 import org.holochain.androidserviceruntime.client.ZomeCallFfi
@@ -872,5 +874,29 @@ class ParcelablesTest {
             readValue.inner.dnaModifiers.quantumTime.nanos,
         )
         assertEquals(value.inner.name, readValue.inner.name)
+    }
+
+    @Test
+    fun testRuntimeConfigFfiParcel() {
+        val value =
+            RuntimeConfigFfiParcel(
+                RuntimeConfigFfi(
+                    dataRootPath = "1",
+                    bootstrapUrl = "2",
+                    signalUrl = "3",
+                    iceUrls = listOf("4", "5"),
+                ),
+            )
+
+        val parcel = Parcel.obtain()
+        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
+        parcel.setDataPosition(0)
+        val readValue = parcelableCreator<RuntimeConfigFfiParcel>().createFromParcel(parcel)
+
+        assertEquals(value.inner.dataRootPath, readValue.inner.dataRootPath)
+        assertEquals(value.inner.bootstrapUrl, readValue.inner.bootstrapUrl)
+        assertEquals(value.inner.signalUrl, readValue.inner.signalUrl)
+        assertEquals(value.inner.iceUrls.size, readValue.inner.iceUrls.size)
+        assertEquals(value.inner.iceUrls.first(), readValue.inner.iceUrls.first())
     }
 }

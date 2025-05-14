@@ -580,7 +580,7 @@ class HolochainService : Service() {
                     getFilesDir().toString(),
                     "https://bootstrap-0.infra.holochain.org",
                     "wss://sbd.holo.host",
-                    arrayOf("stun:stun.l.google.com:19302")
+                    listOf("stun:stun.l.google.com:19302"),
                 )
 
             serviceScope.launch(Dispatchers.IO) {
