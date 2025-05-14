@@ -1,11 +1,13 @@
 import "./style.css";
-import { initTranslations } from './translations';
 import App from "./App.svelte";
+import { initTranslations } from './translations';
+import { waitLocale } from "svelte-i18n";
+
+initTranslations();
+await waitLocale();
 
 const app = new App({
   target: document.getElementById("app"),
 });
-
-initTranslations();
 
 export default app;
