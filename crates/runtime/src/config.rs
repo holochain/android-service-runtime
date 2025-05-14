@@ -31,7 +31,11 @@ impl From<RuntimeConfig> for ConductorConfig {
         conductor_config.keystore = KeystoreConfig::LairServerInProc { lair_root: None };
         kitsune_config.bootstrap_service = Some(val.bootstrap_url);
 
-        let ice_urls: Vec<serde_json::Value> = val.ice_urls.into_iter().map(|u| json!(u.to_string())).collect();
+        let ice_urls: Vec<serde_json::Value> = val
+            .ice_urls
+            .into_iter()
+            .map(|u| json!(u.to_string()))
+            .collect();
         kitsune_config.transport_pool.push(TransportConfig::WebRTC {
             signal_url: val.signal_url.into(),
             webrtc_config: Some(json!({"ice_servers": {"urls": ice_urls}})),

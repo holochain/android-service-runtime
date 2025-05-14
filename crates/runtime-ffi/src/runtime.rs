@@ -29,7 +29,11 @@ impl RuntimeFfi {
                 data_root_path: runtime_config.data_root_path.into(),
                 bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
                 signal_url: Url2::try_parse(runtime_config.signal_url)?,
-                ice_urls: runtime_config.ice_urls.into_iter().flat_map(|u| Url2::try_parse(u)).collect()
+                ice_urls: runtime_config
+                    .ice_urls
+                    .into_iter()
+                    .flat_map(Url2::try_parse)
+                    .collect(),
             },
         )
         .await?;
