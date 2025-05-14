@@ -196,8 +196,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".to_string(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".to_string(),
+                bootstrap_url: "https://bootstrap.holo.host".to_string(),
+                signal_url: "wss://sbd.holo.host".to_string(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -216,8 +216,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -238,8 +238,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -268,8 +268,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -292,8 +292,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -317,8 +317,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -347,8 +347,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -369,8 +369,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -394,8 +394,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -439,8 +439,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -482,8 +482,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
@@ -503,8 +503,8 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://dev-test-bootstrap2.holochain.org".into(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".into(),
+                bootstrap_url: "https://bootstrap.holo.host".into(),
+                signal_url: "wss://sbd.holo.host".into(),
                 ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
