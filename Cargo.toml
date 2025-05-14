@@ -13,6 +13,13 @@ exclude = [
 ]
 resolver = "2"
 
+[workspace.package]
+edition = "2021"
+authors = ["Holochain Core Dev Team <devcore@holochain.org>"]
+homepage = "https://github.com/holochain/android-service-runtime"
+keywords = ["holochain", "android", "tauri", "p2p"]
+license = "MIT OR Apache-2.0"
+
 [workspace.dependencies]
 holochain = "0.4.2"
 holochain_conductor_api = "0.4.2"
