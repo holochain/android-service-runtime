@@ -1,0 +1,11 @@
+{
+  "app_title": "Holochain Service Runtime",
+  "status": "Status",
+  "my_apps": "My Apps",
+  "installed_apps": "Installed Apps",
+  "start_service_to_view_apps": "Start service to view installed apps",
+  "no_apps_installed": "No apps installed",
+  "service_status": "Service Status",
+  "running": "Running",
+  "stopped": "Stopped"
+}
