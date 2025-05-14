@@ -375,20 +375,17 @@ mod test {
     async fn test_stop() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
 
         runtime.stop().await.unwrap();
 
@@ -402,20 +399,17 @@ mod test {
     async fn test_install_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
 
         let res = runtime
             .install_app(InstallAppPayload {
@@ -438,20 +432,17 @@ mod test {
     async fn test_uninstall_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
         install_happ_fixture(runtime.clone(), "my-app-1").await;
 
         let res = runtime.uninstall_app("my-app-1".into()).await;
@@ -465,20 +456,17 @@ mod test {
     async fn test_enable_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
         install_happ_fixture(runtime.clone(), "my-app-1").await;
 
         let res = runtime.enable_app("my-app-1".into()).await;
@@ -493,20 +481,17 @@ mod test {
     async fn test_disable_app() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
         install_happ_fixture(runtime.clone(), "my-app-1").await;
         runtime.enable_app("my-app-1".into()).await.unwrap();
 
@@ -526,20 +511,17 @@ mod test {
     async fn test_list_apps() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
         install_happ_fixture(runtime.clone(), "my-app-1").await;
         install_happ_fixture(runtime.clone(), "my-app-2").await;
 
@@ -551,20 +533,17 @@ mod test {
     async fn test_is_app_installed() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
 
         let is_installed = runtime.is_app_installed("my-app-1".into()).await.unwrap();
         assert!(!is_installed);
@@ -579,20 +558,17 @@ mod test {
     async fn sign_zome_call() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
 
         let app_info = install_happ_fixture(runtime.clone(), "my-app-1").await;
         let Provisioned(ProvisionedCell { cell_id, .. }) =
@@ -620,20 +596,17 @@ mod test {
     async fn test_ensure_app_websocket() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
 
         // An app only gets one app ws
         let app_websocket = runtime
@@ -683,20 +656,17 @@ mod test {
     async fn test_api_err_bad_response() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
 
         let res = runtime.enable_app("non-existant-app-1".into()).await;
         assert!(res.is_err());
@@ -707,20 +677,17 @@ mod test {
     async fn test_setup_app_installs_when_app_id_different() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
 
         let res = runtime
             .setup_app(
@@ -765,20 +732,17 @@ mod test {
     async fn test_setup_app_does_not_enable_after_install() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
 
         let res = runtime
             .setup_app(
@@ -806,20 +770,17 @@ mod test {
     async fn test_setup_app_does_enable_after_install() {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
-        let runtime =
-            Runtime::new(
-                BufRead::from(vec![0, 0, 0, 0]),
-                RuntimeConfig {
-                    data_root_path: tmp_dir_path,
-                    bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                    signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                    ice_urls: vec![
-                        Url2::try_parse("stun:stun.l.google.com:19302").unwrap()
-                    ],
-                },
-            )
-            .await
-            .unwrap();
+        let runtime = Runtime::new(
+            BufRead::from(vec![0, 0, 0, 0]),
+            RuntimeConfig {
+                data_root_path: tmp_dir_path,
+                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
+                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+            },
+        )
+        .await
+        .unwrap();
 
         let res = runtime
             .setup_app(
