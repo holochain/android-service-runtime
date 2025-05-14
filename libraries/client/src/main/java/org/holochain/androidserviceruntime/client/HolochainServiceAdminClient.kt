@@ -35,7 +35,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Connects to the Holochain service using the Admin API.
-     * 
+     *
      * This must be called before any other methods can be used.
      */
     fun connect() {
@@ -53,7 +53,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Full process to setup a Holochain app.
-     * 
+     *
      * This function will:
      * 1. Check if the app is installed
      * 2. If not installed, install it
@@ -90,7 +90,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Connects to service, waits for connection to be ready, and sets up an app.
-     * 
+     *
      * Convenience method that combines connect(), waitForConnectReady(), and setupApp() into a single call.
      *
      * @param installAppPayload The payload containing app installation data
@@ -108,9 +108,9 @@ class HolochainServiceAdminClient(
 
     /**
      * Stops the Holochain service.
-     * 
+     *
      * This will shutdown the Holochain conductor and stop the service process.
-     * 
+     *
      * @throws HolochainServiceNotConnectedException if not connected to the service
      */
     fun stop() {
@@ -122,7 +122,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Checks if the service is ready to receive calls.
-     * 
+     *
      * @return true if connected to the service and the Holochain conductor is running, false otherwise
      */
     fun isReady(): Boolean {
@@ -134,7 +134,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Installs a Holochain app
-     * 
+     *
      * @param payload The installation payload containing the app bundle and configuration
      * @return AppInfoFfi object with information about the installed app
      * @throws HolochainServiceNotConnectedException if not connected to the service
@@ -153,7 +153,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Checks if an app with the given app ID is installed.
-     * 
+     *
      * @param installedAppId The ID of the app to check
      * @return true if the app is installed, false otherwise
      * @throws HolochainServiceNotConnectedException if not connected to the service
@@ -172,7 +172,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Uninstalls an installed Holochain app.
-     * 
+     *
      * @param installedAppId The ID of the app to uninstall
      * @throws HolochainServiceNotConnectedException if not connected to the service
      */
@@ -190,7 +190,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Enables an installed Holochain app.
-     * 
+     *
      * @param installedAppId The ID of the app to enable
      * @return AppInfoFfi object with information about the enabled app
      * @throws HolochainServiceNotConnectedException if not connected to the service
@@ -208,7 +208,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Disables an installed Holochain app.
-     * 
+     *
      * @param installedAppId The ID of the app to disable
      * @throws HolochainServiceNotConnectedException if not connected to the service
      */
@@ -225,7 +225,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Lists all installed Holochain apps in the conductor.
-     * 
+     *
      * @return List of AppInfoFfi objects containing information about all installed apps
      * @throws HolochainServiceNotConnectedException if not connected to the service
      */
@@ -243,7 +243,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Gets or creates an app websocket with authentication token.
-     * 
+     *
      * @param installedAppId The ID of the app to create a websocket for
      * @return AppAuthFfi object containing websocket URL and authentication information
      * @throws HolochainServiceNotConnectedException if not connected to the service
@@ -262,9 +262,9 @@ class HolochainServiceAdminClient(
 
     /**
      * Signs a zome call with the agent's private key.
-     * 
+     *
      * This is required for making authenticated calls to Holochain zome functions.
-     * 
+     *
      * @param args The unsigned zome call to sign
      * @return The signed zome call ready to be executed
      * @throws HolochainServiceNotConnectedException if not connected to the service
@@ -283,7 +283,7 @@ class HolochainServiceAdminClient(
 
     /**
      * Polls until connected to the service, or the timeout has elapsed.
-     * 
+     *
      * @param timeoutMs Maximum time to wait for connection in milliseconds (default: 100ms)
      */
     suspend fun waitForConnectReady(timeoutMs: Long = 100L) {
