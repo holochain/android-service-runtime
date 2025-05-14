@@ -37,3 +37,4 @@
 - Lint all kotlin libraries in CI
 - Build android-service-runtime and example-client-app in CI
 - Build html docs for both kotlin libraries, and publish to github pages, in CI.
+- Specify ICE Servers in `RuntimeConfigFfi`
