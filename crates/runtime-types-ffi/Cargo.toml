@@ -13,6 +13,6 @@ name = "holochain_conductor_runtime_types_ffi"
 [dependencies]
 holochain_conductor_api = { workspace = true }
 holochain_types = { workspace = true }
-uniffi = { package = "hc_uniffi", workspace = true, features = ["tokio" ] }
+uniffi = { workspace = true, features = ["tokio" ] }
 url2 = { workspace = true }
 serde = { workspace = true }
