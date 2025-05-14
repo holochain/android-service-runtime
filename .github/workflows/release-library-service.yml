@@ -34,21 +34,17 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
 
-      - name: Generate gradle.properties
-        run: |
-          cp libraries/service/gradle.properties.ci libraries/service/gradle.properties
-
-          base64 -d <<< "${{ secrets.SIGNING_KEY_RING_FILE_B64 }}" >> $RUNNER_TEMP/keyring.gpg
-          echo "signing.secretKeyRingFile=$RUNNER_TEMP/keyring.gpg" >> libraries/service/gradle.properties
-          echo "signing.keyId=${{ secrets.SIGNING_KEY_ID }}" >> libraries/service/gradle.properties
-          echo "signing.password=${{ secrets.SIGNING_KEY_PASSWORD }}" >> libraries/service/gradle.properties
-          echo "mavenCentralUsername=${{ secrets.MAVEN_CENTRAL_USERNAME }}" >> libraries/service/gradle.properties
-          echo "mavenCentralPassword=${{ secrets.MAVEN_CENTRAL_PASSWORD }}" >> libraries/service/gradle.properties
-
       - name: Build
         run: |
+          cp libraries/service/gradle.properties.ci libraries/service/gradle.properties
           nix develop --no-update-lock-file --command bash -c "pnpm install && pnpm run build-all:service"
 
       - name: Publish to Maven Central
         run: |
           nix develop --no-update-lock-file --command bash -c "pnpm run publish:service"
+        env:
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }} 
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_IN_MEMORY_KEY_ID }} 
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
