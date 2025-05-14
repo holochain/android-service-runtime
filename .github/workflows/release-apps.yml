@@ -1,0 +1,187 @@
+name: "release-apps"
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-[a-z]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-[a-z]+.[0-9]+'
+
+jobs:
+  create-release:
+    permissions: write-all
+    environment: Android Service Runtime Release
+    runs-on: ubuntu-latest
+    outputs:
+      releaseId: ${{ steps.step1.outputs.id }}
+    steps:
+      - id: step1
+        uses: ncipollo/release-action@v1
+        with:
+          name: "Android Service Runtime ${{ github.ref_name }}"
+          body: |
+            This release includes two different android apps:
+
+            ### android-service-runtime-app
+            
+            The runtime app and management UI. It comes in two different builds types:
+
+            **user**: For use as a standard user app in the app grid. This can be used by any Android device.
+            
+            **system**: For use as a system app, available via system settings. This must be specified as a system app, so should only be used in custom AOSP builds.
+            
+            ### example-client-app
+            An example holochain app that relies on the conductor provided by the android-service-runtime app.
+          prerelease: true
+          draft: true
+
+  release-android-service-runtime-app:
+    permissions: write-all
+    environment: Android Service Runtime Release
+    needs: 
+      - create-release
+    runs-on: 'ubuntu-22.04' 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - feature: ''
+            label: user
+          - feature: 'system_settings'
+            label: system
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: false
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
+      - name: Install and prepare
+        run: |
+          nix develop --no-update-lock-file --command bash -c "pnpm install && pnpm run build:tauri-plugin-client && pnpm run build:tauri-plugin-service"
+
+      - name: setup Android signing
+        run: |
+          cd apps/android-service-runtime/src-tauri/gen/android
+          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
+          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> key.properties
+          echo "storePassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
+
+      - name: Build android AAB
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime --aab --target aarch64 --target i686 --target x86_64 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (aarch64)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime --apk --split-per-abi --target aarch64 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (i686)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime --apk --split-per-abi --target i686 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (x86_64)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:android-service-runtime --apk --split-per-abi --target x86_64 --features ${{ matrix.feature }}"
+
+      - name: Rename android APKs and ABBs
+        run: |
+          sudo apt install rename
+
+          # Rename apk to include the feature build label
+          find apps/android-service-runtime/src-tauri/gen/android/app/build/outputs/apk/*/release -type f -name "*.apk" -exec rename -v 's/release\/app/release\/android-service-runtime-app-${{ matrix.label }}/' {} \;
+          find apps/android-service-runtime/src-tauri/gen/android/app/build/outputs/bundle -type f -name "*.aab" -exec rename -v 's/app-universal-release/android-service-runtime-app-universal-${{ matrix.label }}-release/' {} \;
+
+      - uses: AButler/upload-release-assets@v3.0
+        with:
+          files: "apps/android-service-runtime/src-tauri/gen/android/app/build/outputs/apk/*/release/*.apk;apps/android-service-runtime/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-id: ${{ needs.create-release.outputs.releaseId }}
+
+  release-example-client-app:
+    permissions: write-all
+    environment: Android Service Runtime Release
+    needs: 
+      - create-release
+    runs-on: 'ubuntu-22.04' 
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: false
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
+      - name: Install and prepare
+        run: |
+          nix develop --no-update-lock-file --command bash -c "pnpm install && pnpm run build:tauri-plugin-client"
+
+      - name: setup Android signing
+        run: |
+          cd apps/example-client-app/src-tauri/gen/android
+          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
+          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> key.properties
+          echo "storePassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
+
+      - name: Build android AAB
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app --aab --target aarch64 --target i686 --target x86_64 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (aarch64)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app --apk --split-per-abi --target aarch64 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (i686)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app --apk --split-per-abi --target i686 --features ${{ matrix.feature }}"
+
+      - name: Build android APK (x86_64)
+        run: |
+          cargo clean
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:example-client-app --apk --split-per-abi --target x86_64 --features ${{ matrix.feature }}"
+
+      - name: Rename android APKs and ABBs
+        run: |
+          sudo apt install rename
+
+          # Rename apk to include the feature build label
+          find apps/example-client-app/src-tauri/gen/android/app/build/outputs/apk/*/release -type f -name "*.apk" -exec rename -v 's/release\/app/release\/example-client-app/' {} \;
+          find apps/example-client-app/src-tauri/gen/android/app/build/outputs/bundle -type f -name "*.aab" -exec rename -v 's/app-universal-release/example-client-app-universal-release/' {} \;
+
+      - uses: AButler/upload-release-assets@v3.0
+        with:
+          files: "apps/example-client-app/src-tauri/gen/android/app/build/outputs/apk/*/release/*.apk;apps/example-client-app/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-id: ${{ needs.create-release.outputs.releaseId }}

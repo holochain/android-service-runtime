@@ -33,7 +33,11 @@ class HolochainServiceAppClient(
             }
         }
 
-    // / Connect to the service
+    /**
+     * Connects to the Holochain service using the App API for a specific app.
+     * 
+     * @param installedAppId The ID of the app to connect to
+     */
     fun connect(installedAppId: String) {
         Log.d(logTag, "connect")
 
@@ -48,11 +52,23 @@ class HolochainServiceAppClient(
         this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
     }
 
-    // / Entire process to setup an app
-    // /
-    // / Check if app is installed.
-    // / If not, install it and (optionally) enable it.
-    // / Then ensure there is an app websocket available for it
+    /**
+     * Complete process to setup a Holochain app.
+     * 
+     * This method will:
+     * 1. Check if the app is installed
+     * 2. If not installed, install it
+     * 3. Optionally enable it
+     * 4. Ensure there is an app websocket available for it
+     *
+     * If an app is already installed, it will not be enabled automatically. It is only enabled after
+     * a successful install. The reasoning is that if an app is disabled after initial installation,
+     *
+     * @param installAppPayload The payload containing app installation data
+     * @param enableAfterInstall Whether to enable the app after installation
+     * @return AppAuthFfi object containing authentication and connection information
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun setupApp(
         installAppPayload: InstallAppPayloadFfi,
         enableAfterInstall: Boolean,
@@ -72,7 +88,15 @@ class HolochainServiceAppClient(
         return callbackDeferred.await()
     }
 
-    // / Connect to service, wait for connection to be ready, and setupApp
+    /**
+     * Connects to service, waits for connection to be ready, and sets up an app.
+     * 
+     * Convenience method that combines connect(), waitForConnectReady(), and setupApp() into a single call.
+     *
+     * @param installAppPayload The payload containing app installation data
+     * @param enableAfterInstall Whether to enable the app after installation
+     * @return AppAuthFfi object containing authentication and connection information
+     */
     suspend fun connectSetupApp(
         installAppPayload: InstallAppPayloadFfi,
         enableAfterInstall: Boolean,
@@ -82,7 +106,13 @@ class HolochainServiceAppClient(
         return this.setupApp(installAppPayload, enableAfterInstall)
     }
 
-    // / Enable an installed app
+    /**
+     * Enables an installed Holochain app.
+     * 
+     * @param installedAppId The ID of the app to enable
+     * @return AppInfoFfi object with information about the enabled app
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun enableApp(installedAppId: String): AppInfoFfi {
         Log.d(logTag, "enableApp")
         if (this.mService == null) {
@@ -95,7 +125,15 @@ class HolochainServiceAppClient(
         return callbackDeferred.await()
     }
 
-    // / Sign a zome call
+    /**
+     * Signs a zome call with the agent's private key.
+     * 
+     * This is required for making authenticated calls to Holochain zome functions.
+     * 
+     * @param args The unsigned zome call to sign
+     * @return The signed zome call ready to be executed
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
         Log.d(logTag, "signZomeCall")
         if (this.mService == null) {
@@ -108,7 +146,12 @@ class HolochainServiceAppClient(
         return callbackDeferred.await()
     }
 
-    // / Poll until we are connected to the service, or the timeout has elapsed
+    /**
+     * Polls until connected to the service, or the timeout has elapsed.
+     * 
+     * @param timeoutMs Maximum time to wait for connection in milliseconds (default: 100ms)
+     * @param intervalMs Time between connection checks in milliseconds (default: 5ms)
+     */
     private suspend fun waitForConnectReady(
         timeoutMs: Long = 100L,
         intervalMs: Long = 5L,

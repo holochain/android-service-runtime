@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { onMount } from "svelte";
   import BaseInstalledAppCard from "../components/BaseInstalledAppCard.svelte";
-  import { apps, loadingApps, loadingToggleEnableApp, loadApps, toggleEnableApp } from "../stores/holochain";
+  import { apps, loadingApps, loadingToggleEnableApp, loadApps, toggleEnableApp, isRunning } from "../stores/holochain";
 
   onMount(() => {
-    loadApps();
+    if($isRunning) {
+      loadApps();
+    }
   });
 </script>
 
 <div class="flex justify-between items-center mx-4">
   <h4>Installed Apps</h4>
-  <button on:click={loadApps} class="btn btn-sm btn-circle btn-outline">
+  <button on:click={loadApps} disabled={!$isRunning} class="btn btn-sm btn-circle btn-outline">
     {#if $loadingApps}
       <span class="loading loading-spinner loading-xs"></span>
     {:else}
@@ -19,7 +21,9 @@
   </button>
 </div>
 
-{#if $apps.length > 0}
+{#if !$isRunning}
+  <div class="alert my-4">Start service to view installed apps</div>
+{:else if $apps.length > 0}
   {#each $apps as appInfo}
     <BaseInstalledAppCard 
       {appInfo} 
@@ -28,5 +32,5 @@
     />
   {/each} 
 {:else}
- <p class="text-center">No apps installed.</p>
+  <div class="alert my-4">No apps installed</div>
 {/if}

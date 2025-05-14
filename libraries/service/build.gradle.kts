@@ -6,6 +6,7 @@ plugins {
   id("org.jetbrains.kotlin.android")
   id("com.vanniktech.maven.publish") version ("0.30.0")
   id("org.jmailen.kotlinter") version("5.0.1")
+  id("org.jetbrains.dokka") version("2.0.0")
 }
 
 // The uniffi-generated kotlin bindings violate some linter rules
@@ -45,7 +46,7 @@ mavenPublishing {
       signAllPublications()
   }
 
-  coordinates("org.holochain.androidserviceruntime", "service", "0.0.11")
+  coordinates("org.holochain.androidserviceruntime", "service", "0.0.13")
 
   pom {
     name.set("Holochain Service")
@@ -76,7 +77,7 @@ mavenPublishing {
 
 dependencies {
   // Subprojects
-  implementation("org.holochain.androidserviceruntime:client:0.0.11")
+  implementation("org.holochain.androidserviceruntime:client:0.0.13")
   // Kotlin
   implementation("androidx.core:core-ktx:1.7.0")
   implementation("androidx.appcompat:appcompat:1.6.0")

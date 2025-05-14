@@ -10,6 +10,9 @@ pub enum RuntimeError {
     #[error(transparent)]
     Conductor(#[from] ConductorError),
 
+    #[error("Conductor was never started")]
+    ConductorNotStarted,
+
     #[error("Failed to shutdown conductor {0}")]
     ConductorShutdown(String),
 
@@ -34,11 +37,11 @@ pub enum RuntimeError {
     #[error("InstalledAppId must be specified when installing an app")]
     InstalledAppIdNotSpecified,
 
-    #[error("Failed to read authorized_app_clients file: {0}")]
-    AuthorizedAppClientsFileReadError(String),
+    #[error("Failed to read persisted data from file: {0}")]
+    PersistedFileReadError(String),
 
-    #[error("Failed to write authorized_app_clients file: {0}")]
-    AuthorizedAppClientsFileWriteError(String),
+    #[error("Failed to write persisted data to file: {0}")]
+    PersistedFileWriteError(String),
 }
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;

@@ -33,7 +33,11 @@ class HolochainServiceAdminClient(
             }
         }
 
-    // / Connect to the service
+    /**
+     * Connects to the Holochain service using the Admin API.
+     * 
+     * This must be called before any other methods can be used.
+     */
     fun connect() {
         Log.d(logTag, "connect")
 
@@ -47,16 +51,24 @@ class HolochainServiceAdminClient(
         this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
     }
 
-    // / Full process to setup an app
-    // /
-    // / Check if app is installed, if not install it, then optionally enable it.
-    // / Then ensure there is an app websocket and authentication for it.
-    // /
-    // / If an app is already installed, it will not be enabled. It is only enabled after a successful
-    // install.
-    // / The reasoning is that if an app is disabled after that point,
-    // / it is assumed to have been manually disabled in the admin interface, which we don't want to
-    // override.
+    /**
+     * Full process to setup a Holochain app.
+     * 
+     * This function will:
+     * 1. Check if the app is installed
+     * 2. If not installed, install it
+     * 3. Optionally optionally enable it
+     * 4. Ensure there is an app websocket and authentication for it
+     *
+     * If an app is already installed, it will not be enabled automatically. It is only enabled after
+     * a successful install. The reasoning is that if an app is disabled after initial installation,
+     * it is assumed to have been manually disabled via the admin UI, which we don't want to override.
+     *
+     * @param installAppPayload The payload containing app installation data
+     * @param enableAfterInstall Whether to enable the app after installation
+     * @return AppAuthFfi object containing app websocket authentication and connection information
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun setupApp(
         installAppPayload: InstallAppPayloadFfi,
         enableAfterInstall: Boolean,
@@ -76,7 +88,15 @@ class HolochainServiceAdminClient(
         return callbackDeferred.await()
     }
 
-    // / Connect to service, wait for connection to be ready, and setupApp
+    /**
+     * Connects to service, waits for connection to be ready, and sets up an app.
+     * 
+     * Convenience method that combines connect(), waitForConnectReady(), and setupApp() into a single call.
+     *
+     * @param installAppPayload The payload containing app installation data
+     * @param enableAfterInstall Whether to enable the app after installation
+     * @return AppAuthFfi object containing authentication and connection information
+     */
     suspend fun connectSetupApp(
         installAppPayload: InstallAppPayloadFfi,
         enableAfterInstall: Boolean,
@@ -86,7 +106,13 @@ class HolochainServiceAdminClient(
         return this.setupApp(installAppPayload, enableAfterInstall)
     }
 
-    // / Stop the service
+    /**
+     * Stops the Holochain service.
+     * 
+     * This will shutdown the Holochain conductor and stop the service process.
+     * 
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     fun stop() {
         if (this.mService == null) {
             throw HolochainServiceNotConnectedException()
@@ -94,7 +120,11 @@ class HolochainServiceAdminClient(
         this.mService!!.stop()
     }
 
-    // / Is the service ready to receive calls
+    /**
+     * Checks if the service is ready to receive calls.
+     * 
+     * @return true if connected to the service and the Holochain conductor is running, false otherwise
+     */
     fun isReady(): Boolean {
         if (this.mService == null) {
             return false
@@ -102,7 +132,13 @@ class HolochainServiceAdminClient(
         return this.mService!!.isReady()
     }
 
-    // / Install an app
+    /**
+     * Installs a Holochain app
+     * 
+     * @param payload The installation payload containing the app bundle and configuration
+     * @return AppInfoFfi object with information about the installed app
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun installApp(payload: InstallAppPayloadFfi): AppInfoFfi {
         Log.d(logTag, "installApp")
         if (this.mService == null) {
@@ -115,7 +151,13 @@ class HolochainServiceAdminClient(
         return callbackDeferred.await()
     }
 
-    // / Is an app with the given app_id installed
+    /**
+     * Checks if an app with the given app ID is installed.
+     * 
+     * @param installedAppId The ID of the app to check
+     * @return true if the app is installed, false otherwise
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun isAppInstalled(installedAppId: String): Boolean {
         Log.d(logTag, "isAppInstalled")
         if (this.mService == null) {
@@ -128,7 +170,12 @@ class HolochainServiceAdminClient(
         return callbackDeferred.await()
     }
 
-    // / Uninstall an installed app
+    /**
+     * Uninstalls an installed Holochain app.
+     * 
+     * @param installedAppId The ID of the app to uninstall
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun uninstallApp(installedAppId: String) {
         Log.d(logTag, "uninstallApp")
         if (this.mService == null) {
@@ -141,7 +188,13 @@ class HolochainServiceAdminClient(
         callbackDeferred.await()
     }
 
-    // / Enable an installed app
+    /**
+     * Enables an installed Holochain app.
+     * 
+     * @param installedAppId The ID of the app to enable
+     * @return AppInfoFfi object with information about the enabled app
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun enableApp(installedAppId: String): AppInfoFfi {
         Log.d(logTag, "enableApp")
         if (this.mService == null) {
@@ -153,7 +206,12 @@ class HolochainServiceAdminClient(
         return callbackDeferred.await()
     }
 
-    // / Disable an installed app
+    /**
+     * Disables an installed Holochain app.
+     * 
+     * @param installedAppId The ID of the app to disable
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun disableApp(installedAppId: String) {
         Log.d(logTag, "disableApp")
         if (this.mService == null) {
@@ -165,7 +223,12 @@ class HolochainServiceAdminClient(
         callbackDeferred.await()
     }
 
-    // / List installed happs in conductor
+    /**
+     * Lists all installed Holochain apps in the conductor.
+     * 
+     * @return List of AppInfoFfi objects containing information about all installed apps
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun listApps(): List<AppInfoFfi> {
         Log.d(logTag, "listApps")
         if (this.mService == null) {
@@ -178,7 +241,13 @@ class HolochainServiceAdminClient(
         return callbackDeferred.await()
     }
 
-    // / Get or create an app websocket with authentication token
+    /**
+     * Gets or creates an app websocket with authentication token.
+     * 
+     * @param installedAppId The ID of the app to create a websocket for
+     * @return AppAuthFfi object containing websocket URL and authentication information
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun ensureAppWebsocket(installedAppId: String): AppAuthFfi {
         Log.d(logTag, "ensureAppWebsocket")
         if (this.mService == null) {
@@ -191,7 +260,15 @@ class HolochainServiceAdminClient(
         return callbackDeferred.await()
     }
 
-    // / Sign a zome call
+    /**
+     * Signs a zome call with the agent's private key.
+     * 
+     * This is required for making authenticated calls to Holochain zome functions.
+     * 
+     * @param args The unsigned zome call to sign
+     * @return The signed zome call ready to be executed
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
     suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
         Log.d(logTag, "signZomeCall")
         if (this.mService == null) {
@@ -204,7 +281,11 @@ class HolochainServiceAdminClient(
         return callbackDeferred.await()
     }
 
-    // / Poll until we are connected to the service, or the timeout has elapsed
+    /**
+     * Polls until connected to the service, or the timeout has elapsed.
+     * 
+     * @param timeoutMs Maximum time to wait for connection in milliseconds (default: 100ms)
+     */
     suspend fun waitForConnectReady(timeoutMs: Long = 100L) {
         var intervalMs = 5L
         var elapsedMs = 0L

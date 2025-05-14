@@ -7,6 +7,7 @@ plugins {
   id("org.jetbrains.kotlin.plugin.parcelize")
   id("com.vanniktech.maven.publish") version ("0.30.0")
   id("org.jmailen.kotlinter") version("5.0.1")
+  id("org.jetbrains.dokka") version("2.0.0")
 }
 
 // The uniffi-generated kotlin bindings violate some linter rules
@@ -46,7 +47,7 @@ mavenPublishing {
       signAllPublications()
   }
 
-  coordinates("org.holochain.androidserviceruntime", "client", "0.0.11")
+  coordinates("org.holochain.androidserviceruntime", "client", "0.0.13")
 
   pom {
     name.set("Holochain Service Client")
@@ -91,4 +92,6 @@ dependencies {
   testImplementation("junit:junit:4.13.2")
   androidTestImplementation("androidx.test.ext:junit:1.1.5")
   androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+  // Docs
+  dokkaPlugin("org.jetbrains.dokka:gfm-plugin:2.0.0")
 }

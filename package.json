@@ -21,6 +21,11 @@
       "lint:fix:tauri-plugin-client": "cd crates/tauri-plugin-client/android && ./gradlew formatKotlin",
       "lint:fix:tauri-plugin-service": "cd crates/tauri-plugin-service/android && ./gradlew formatKotlin",
       "lint:fix": "pnpm run lint:fix:client && pnpm run lint:fix:service && pnpm run lint:fix:tauri-plugin-client && pnpm run lint:fix:tauri-plugin-service",
+      "lint:client": "cd libraries/client && ./gradlew lintKotlin",
+      "lint:service": "cd libraries/service && ./gradlew lintKotlin",
+      "lint:tauri-plugin-client": "cd crates/tauri-plugin-client/android && ./gradlew lintKotlin",
+      "lint:tauri-plugin-service": "cd crates/tauri-plugin-service/android && ./gradlew lintKotlin",
+      "lint": "pnpm run lint:client && pnpm run lint:service && pnpm run lint:tauri-plugin-client && pnpm run lint:tauri-plugin-service",
 
       "publish:client": "cd libraries/client && ./gradlew publish",
       "publish:service": "cd libraries/service && ./gradlew publish",
@@ -29,6 +34,14 @@
       "publish:local:client": "cd libraries/client && ./gradlew publishToMavenLocal",
       "publish:local:service": "cd libraries/service && ./gradlew publishToMavenLocal",
       "publish:local": "pnpm run publish:local:client && pnpm run publish:local:service",
+
+      "doc:md:client": "cd libraries/client && ./gradlew dokkaGfm",
+      "doc:md:service": "cd libraries/service && ./gradlew dokkaGfm",
+      "doc:md": "pnpm run doc:md:client && pnpm run doc:md:service",
+      "copy-doc:md:client": "cp -r libraries/client/build/dokka/html/client/* libraries/client/docs",
+      "copy-doc:md:service": "cp -r libraries/service/build/dokka/html/service/* libraries/service/docs",
+      "copy-doc:md": "pnpm run copy-doc:md:client && pnpm run copy-doc:md:service",
+      "build:doc": "pnpm run doc:md && pnpm run copy-doc:md",
 
       "test:runtime": "RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime -- --nocapture",
       "test:runtime-ffi": " RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime-ffi -- --nocapture",

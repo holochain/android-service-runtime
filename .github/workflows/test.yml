@@ -108,6 +108,10 @@ jobs:
           cp libraries/service/gradle.properties.ci libraries/service/gradle.properties
           pnpm run build:service
 
+      - name: Lint client, service, tauri-plugin-client, tauri-plugin-service
+        run: |
+          pnpm run lint
+
       - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
         with:

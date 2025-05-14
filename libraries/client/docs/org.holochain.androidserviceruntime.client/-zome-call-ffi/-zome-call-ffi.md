@@ -1,0 +1,6 @@
+//[client](../../../index.md)/[org.holochain.androidserviceruntime.client](../index.md)/[ZomeCallFfi](index.md)/[ZomeCallFfi](-zome-call-ffi.md)
+
+# ZomeCallFfi
+
+[androidJvm]\
+constructor(cellId: [CellIdFfi](../-cell-id-ffi/index.md), zomeName: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), fnName: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), payload: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html), capSecret: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html)?, provenance: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html), signature: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html), nonce: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html), expiresAt: [Long](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html))

@@ -1,5 +1,6 @@
 # Forum
 
+
 ## Environment Setup
 
 > PREREQUISITE: set up the [holochain development environment](https://developer.holochain.org/docs/install/).
@@ -48,6 +49,11 @@ npm run package
 
 You'll have the `forum.webhapp` in `workdir`. This is what you should distribute so that the Holochain Launcher can install it.
 You will also have its subcomponent `forum.happ` in the same folder`.
+
+## Build an Android App
+
+- Copy `src-tauri/gen/android/key.properties.example` to `src-tauri/gen/android/key.properties` and fill in the values
+- Run `npm bun build:android`
 
 ## Documentation
 

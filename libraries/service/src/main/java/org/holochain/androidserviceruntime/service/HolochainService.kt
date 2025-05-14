@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -34,6 +35,7 @@ import java.security.InvalidParameterException
 class HolochainService : Service() {
     // / The uniffi-generated holochain runtime bindings
     private val logTag = "HolochainService"
+    private var autostartConfigManager: AutostartConfigManagerFfi? = null
     private var runtime: RuntimeFfi? = null
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
@@ -51,14 +53,17 @@ class HolochainService : Service() {
         // Notification Channel Id for app authorization notifications
         const val NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.APP_AUTHORIZATION"
 
+        // Start the Service, and the Holochain conductor
+        const val ACTION_START = "org.holochain.androidserviceruntime.service.ACTION_START"
+
+        // Start the Service, and the Holochain conductor, if autostart on boot is enabled
+        const val ACTION_BOOT_COMPLETED = "org.holochain.androidserviceruntime.service.ACTION_BOOT_COMPLETED"
+
         // Approve app authorization request
         const val ACTION_APPROVE_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.APPROVE_APP_AUTHORIZATION"
 
         // Deny app authorization request
         const val ACTION_DENY_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.DENY_APP_AUTHORIZATION"
-
-        // Start the Service, and the Holochain conductor
-        const val ACTION_START = "org.holochain.androidserviceruntime.service.ACTION_START"
     }
 
     private inner class AdminBinder : IHolochainServiceAdmin.Stub() {
@@ -79,6 +84,10 @@ class HolochainService : Service() {
                 return
             }
 
+            // Disable conductor autostart on system boot
+            this@HolochainService.getAutostartConfigManager().disable()
+
+            // Stop conductor and service
             this@HolochainService.stopForeground()
         }
 
@@ -397,7 +406,12 @@ class HolochainService : Service() {
     }
 
     /**
-     * Check if POST_NOTIFICATIONS permission has been granted
+     * Checks if the POST_NOTIFICATIONS permission has been granted.
+     * 
+     * On Android 13 (API 33) and above, the app must request this permission at runtime.
+     * On earlier Android versions, this permission was granted automatically.
+     * 
+     * @return true if the permission is granted or not required, false otherwise
      */
     private fun checkNotificationPermission(): Boolean {
         Log.d(logTag, "checkNotificationPermission")
@@ -413,7 +427,16 @@ class HolochainService : Service() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    // Show the notification and return the requestId
+    /**
+     * Shows a notification asking the user to authorize an app's access to a Holochain app.
+     * 
+     * Creates a notification with approve and deny actions, and stores the request in the
+     * authorization request map for later retrieval.
+     * 
+     * @param clientPackageName The package name of the Android app requesting access
+     * @param installedAppId The ID of the Holochain app being accessed
+     * @return The UUID of the stored authorization request
+     */
     private fun showAppAuthorizationNotification(
         clientPackageName: String,
         installedAppId: String,
@@ -482,6 +505,20 @@ class HolochainService : Service() {
         return putResponse.uuid
     }
 
+    /**
+     * Called by the system when the service is first created or when an intent is delivered to the service.
+     * 
+     * Handles several actions:
+     * - ACTION_START: Enables autostart and starts the Holochain service
+     * - ACTION_BOOT_COMPLETED: Starts the service if autostart is enabled
+     * - ACTION_APPROVE_APP_AUTHORIZATION: Authorizes an app to access Holochain
+     * - ACTION_DENY_APP_AUTHORIZATION: Dismisses an authorization request
+     *
+     * @param intent The Intent supplied to startService(Intent)
+     * @param flags Additional data about this start request
+     * @param startId A unique integer representing this specific request to start
+     * @return How to continue running the service (NOT_STICKY in this case)
+     */
     override fun onStartCommand(
         intent: Intent?,
         flags: Int,
@@ -495,7 +532,23 @@ class HolochainService : Service() {
                     logTag,
                     "onStartCommand ACTION_START",
                 )
+
+                // Enable conductor to autostart on system boot
+                getAutostartConfigManager().enable()
+
+                // Start service
                 startForeground()
+            }
+            ACTION_BOOT_COMPLETED -> {
+                Log.d(
+                    logTag,
+                    "onStartCommand ACTION_BOOT_COMPLETED",
+                )
+
+                // If autostart is enabled, start service
+                if (getAutostartConfigManager().isEnabled()) {
+                    startForeground()
+                }
             }
             ACTION_APPROVE_APP_AUTHORIZATION -> {
                 Log.d(logTag, "onStartCommand ACTION_APPROVE_APP_AUTHORIZATION")
@@ -529,6 +582,16 @@ class HolochainService : Service() {
         super.onDestroy()
     }
 
+    /**
+     * Called when a client binds to the service with bindService().
+     * 
+     * Returns either an AdminBinder or AppBinder based on the "api" extra in the intent.
+     * For AppBinder, also requires an "installedAppId" extra.
+     *
+     * @param intent The Intent passed to bindService()
+     * @return An IBinder through which clients can call on to the service
+     * @throws InvalidParameterException if required parameters are missing or invalid
+     */
     override fun onBind(intent: Intent): IBinder? {
         var api = intent.getStringExtra("api")
         Log.d(logTag, "onBind: api=$api action=${intent.action}")
@@ -552,7 +615,14 @@ class HolochainService : Service() {
         }
     }
 
-    // Get or create an AppServiceBinder for this app
+    /**
+     * Gets or creates an AppBinder for a specific Holochain app.
+     * 
+     * Maintains a map of app IDs to binders to avoid creating duplicate binders.
+     *
+     * @param installedAppId The ID of the Holochain app to bind to
+     * @return An AppBinder for the specified app
+     */
     private fun getOrCreateAppBinder(installedAppId: String): AppBinder {
         if (!this.appBinders.containsKey(installedAppId)) {
             this.appBinders[installedAppId] = AppBinder(installedAppId)
@@ -560,6 +630,28 @@ class HolochainService : Service() {
         return this.appBinders[installedAppId]!!
     }
 
+    /**
+     * Gets the AutostartConfigManager, initializing it if necessary.
+     * 
+     * The AutostartConfigManager handles persistence of autostart settings and
+     * determines whether the service should start automatically on device boot.
+     *
+     * @return The AutostartConfigManagerFfi instance
+     */
+    private fun getAutostartConfigManager(): AutostartConfigManagerFfi {
+        if (this.autostartConfigManager == null) {
+            this.autostartConfigManager = AutostartConfigManagerFfi(getFilesDir().toString())
+        }
+
+        return this.autostartConfigManager as AutostartConfigManagerFfi
+    }
+
+    /**
+     * Starts the service in the foreground and launches the Holochain conductor.
+     * 
+     * Creates a persistent notification indicating that the Holochain service is running,
+     * and starts the Holochain conductor with a default configuration.
+     */
     private fun startForeground() {
         try {
             // Create the notification to display while the service is running
@@ -571,7 +663,12 @@ class HolochainService : Service() {
                     .setSmallIcon(R.drawable.holochain_logo)
                     .setOngoing(true)
                     .build()
-            startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
+            } else {
+                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            }
 
             // Start holochain conductor
             val passphrase = byteArrayOf(0x48, 101, 108, 108, 111)
@@ -592,11 +689,14 @@ class HolochainService : Service() {
         }
     }
 
+    /**
+     * Stops the foreground service and shuts down the Holochain conductor.
+     */
     fun stopForeground() {
         Log.d(logTag, "stopForeground")
 
         // Shutdown conductor
-        runBlocking { runtime?.stop() }
+        runBlocking { runtime!!.stop() }
         runtime = null
 
         // Stop service
