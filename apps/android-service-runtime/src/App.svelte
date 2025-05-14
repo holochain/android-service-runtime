@@ -3,18 +3,19 @@
   import Status from './pages/Status.svelte';
   import MyApps from './pages/MyApps.svelte';
   import Toasts from './components/Toasts.svelte';
+  import { _ } from 'svelte-i18n';
 
   export let activeTab = 0;
 
-  let tabs = [
-    {text: "Status", component: Status},
-    {text: "My Apps", component: MyApps},
+  $: tabs = [
+    {text: $_('status'), component: Status},
+    {text: $_('my_apps'), component: MyApps},
   ];
 </script>
 
 <nav class="navbar bg-base-100 border-b-2 border-gray-300 fixed top-0 z-50">
   <div class="flex-1">
-    <span class="btn btn-ghost text-xl">Holochain Service Runtime</span>
+    <span class="btn btn-ghost text-xl">{$_('app_title')}</span>
   </div>
 </nav>
 

@@ -20,7 +20,8 @@
 		"async-retry": "^1.3.3",
 		"lodash": "^4.17.21",
 		"tauri-plugin-holochain-service-api": "link:../../crates/tauri-plugin-service",
-		"uuid": "^10.0.0"
+		"uuid": "^10.0.0",
+		"svelte-i18n": "^4.0.1"
 	},
 	"devDependencies": {
 		"@sveltejs/vite-plugin-svelte": "^1.0.1",
