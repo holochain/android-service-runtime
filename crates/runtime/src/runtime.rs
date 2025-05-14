@@ -286,6 +286,7 @@ mod test {
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
     use kitsune_p2p_types::config::TransportConfig;
+    use serde_json::json;
     use tempfile::TempDir;
     use url2::Url2;
     use uuid::Uuid;
@@ -361,7 +362,9 @@ mod test {
                 .clone(),
             TransportConfig::WebRTC {
                 signal_url: signal_url.into(),
-                webrtc_config: None
+                webrtc_config: Some(
+                    json!({"ice_servers": [{"urls": vec!["stun:stun.l.google.com:19302".to_string()]}]})
+                ),
             }
         );
 
