@@ -1,5 +1,6 @@
 # Unreleased
 - CI to publish kotlin libraries to Maven Central, triggered by a release tag.
+- Specify ICE Servers in `RuntimeConfigFfi`
 
 # 0.1.0
 - Replace 3rd party `holochain_runtime` with `holochain-conductor-runtime`, modify FFI-bindings wrapper crate to use it. The runtime now makes calls via the `ConductorHandle` directly, without going through an `AdminWebsocket` to prevent unauthenticated access.
@@ -39,4 +40,3 @@
 - Lint all kotlin libraries in CI
 - Build android-service-runtime and example-client-app in CI
 - Build html docs for both kotlin libraries, and publish to github pages, in CI.
-- Specify ICE Servers in `RuntimeConfigFfi`
