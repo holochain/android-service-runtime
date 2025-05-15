@@ -578,3 +578,30 @@ object AppBinderUnauthorizedExceptionParceler : Parceler<AppBinderUnauthorizedEx
         parcel.writeString(message)
     }
 }
+
+object RuntimeConfigFfiParceler : Parceler<RuntimeConfigFfi> {
+    override fun create(parcel: Parcel): RuntimeConfigFfi {
+        val dataRootPath = parcel.readString() ?: ""
+        val bootstrapUrl = parcel.readString() ?: ""
+        val signalUrl = parcel.readString() ?: ""
+        var iceUrls = mutableListOf<String>()
+        parcel.readStringList(iceUrls)
+
+        return RuntimeConfigFfi(
+            dataRootPath = dataRootPath,
+            bootstrapUrl = bootstrapUrl,
+            signalUrl = signalUrl,
+            iceUrls = iceUrls,
+        )
+    }
+
+    override fun RuntimeConfigFfi.write(
+        parcel: Parcel,
+        flags: Int,
+    ) {
+        parcel.writeString(dataRootPath)
+        parcel.writeString(bootstrapUrl)
+        parcel.writeString(signalUrl)
+        parcel.writeStringList(iceUrls)
+    }
+}

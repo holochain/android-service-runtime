@@ -286,6 +286,7 @@ mod test {
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
     use kitsune_p2p_types::config::TransportConfig;
+    use serde_json::json;
     use tempfile::TempDir;
     use url2::Url2;
     use uuid::Uuid;
@@ -312,6 +313,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let bootstrap_url = Url2::try_parse("https://bootstrap.holo.host").unwrap();
         let signal_url = Url2::try_parse("wss://sbd.holo.host").unwrap();
+        let ice_urls = vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()];
 
         let runtime = Runtime::new(
             BufRead::from(vec![0, 0, 0, 0]),
@@ -319,6 +321,7 @@ mod test {
                 data_root_path: tmp_dir.path().into(),
                 bootstrap_url: bootstrap_url.clone(),
                 signal_url: signal_url.clone(),
+                ice_urls: ice_urls.clone(),
             },
         )
         .await
@@ -359,7 +362,9 @@ mod test {
                 .clone(),
             TransportConfig::WebRTC {
                 signal_url: signal_url.into(),
-                webrtc_config: None
+                webrtc_config: Some(
+                    json!({"ice_servers": {"urls": vec!["stun:stun.l.google.com:19302".to_string()]}})
+                ),
             }
         );
 
@@ -379,6 +384,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -402,6 +408,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -434,6 +441,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -457,6 +465,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -481,6 +490,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -510,6 +520,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -531,6 +542,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -555,6 +567,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -592,6 +605,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -651,6 +665,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -671,6 +686,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -725,6 +741,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await
@@ -762,6 +779,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
                 signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
+                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
             },
         )
         .await

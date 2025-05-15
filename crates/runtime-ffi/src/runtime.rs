@@ -29,6 +29,11 @@ impl RuntimeFfi {
                 data_root_path: runtime_config.data_root_path.into(),
                 bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
                 signal_url: Url2::try_parse(runtime_config.signal_url)?,
+                ice_urls: runtime_config
+                    .ice_urls
+                    .into_iter()
+                    .flat_map(Url2::try_parse)
+                    .collect(),
             },
         )
         .await?;
@@ -191,15 +196,13 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().as_os_str().to_str().unwrap().to_string();
 
-        let bootstrap_url = "https://bootstrap.holo.host".to_string();
-        let signal_url = "wss://sbd.holo.host".to_string();
-
         let runtime = RuntimeFfi::start(
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: bootstrap_url.clone(),
-                signal_url: signal_url.clone(),
+                bootstrap_url: "https://bootstrap.holo.host".to_string(),
+                signal_url: "wss://sbd.holo.host".to_string(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -219,6 +222,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -240,6 +244,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -269,6 +274,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -292,6 +298,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -316,6 +323,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -345,6 +353,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -366,6 +375,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -390,6 +400,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -434,6 +445,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -476,6 +488,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
@@ -496,6 +509,7 @@ mod test {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: "https://bootstrap.holo.host".into(),
                 signal_url: "wss://sbd.holo.host".into(),
+                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
             },
         )
         .await
