@@ -46,7 +46,7 @@ mavenPublishing {
       signAllPublications()
   }
 
-  coordinates("org.holochain.androidserviceruntime", "service", "0.0.13")
+  coordinates("org.holochain.androidserviceruntime", "service", "0.0.14")
 
   pom {
     name.set("Holochain Service")
@@ -77,7 +77,7 @@ mavenPublishing {
 
 dependencies {
   // Subprojects
-  implementation("org.holochain.androidserviceruntime:client:0.0.13")
+  implementation("org.holochain.androidserviceruntime:client:0.0.14")
   // Kotlin
   implementation("androidx.core:core-ktx:1.7.0")
   implementation("androidx.appcompat:appcompat:1.6.0")

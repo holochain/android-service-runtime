@@ -1,12 +1,13 @@
 [package]
 name = "tauri-plugin-holochain-service"
 version = "0.1.0"
-authors = [ "You" ]
-description = ""
-edition = "2021"
-rust-version = "1.70"
 exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
-links = "tauri-plugin-holochain-service"
+description = "Tauri plugin enabling an Android app to run Holochain as a foreground service"
+license = "CAL-1.0"
+authors.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+edition.workspace = true
 
 [dependencies]
 tauri = { workspace = true }
