@@ -66,6 +66,305 @@ class HolochainService : Service() {
         const val ACTION_DENY_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.DENY_APP_AUTHORIZATION"
     }
 
+    /**
+     * Called by the system when the service is first created or when an intent is delivered to the service.
+     *
+     * Handles several actions:
+     * - ACTION_START: Enables autostart and starts the Holochain service
+     * - ACTION_BOOT_COMPLETED: Starts the service if autostart is enabled
+     * - ACTION_APPROVE_APP_AUTHORIZATION: Authorizes an app to access Holochain
+     * - ACTION_DENY_APP_AUTHORIZATION: Dismisses an authorization request
+     *
+     * @param intent The Intent supplied to startService(Intent)
+     * @param flags Additional data about this start request
+     * @param startId A unique integer representing this specific request to start
+     * @return How to continue running the service (NOT_STICKY in this case)
+     */
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
+        Log.d(logTag, "onStartCommand")
+
+        when (intent?.action) {
+            ACTION_START -> {
+                Log.d(
+                    logTag,
+                    "onStartCommand ACTION_START",
+                )
+
+                // Enable conductor to autostart on system boot
+                getAutostartConfigManager().enable()
+
+                // Start service
+                startForeground()
+            }
+            ACTION_BOOT_COMPLETED -> {
+                Log.d(
+                    logTag,
+                    "onStartCommand ACTION_BOOT_COMPLETED",
+                )
+
+                // If autostart is enabled, start service
+                if (getAutostartConfigManager().isEnabled()) {
+                    startForeground()
+                }
+            }
+            ACTION_APPROVE_APP_AUTHORIZATION -> {
+                Log.d(logTag, "onStartCommand ACTION_APPROVE_APP_AUTHORIZATION")
+
+                val requestId = intent.getStringExtra("requestId")
+                if (requestId != null) {
+                    val request = appAuthorizationRequests.pop(requestId)
+                    if (request != null) {
+                        NotificationManagerCompat.from(this).cancel(NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION, request.notificationId)
+                        runtime!!.authorizeAppClient(request.request.clientPackageName, request.request.installedAppId)
+                    }
+                }
+            }
+            ACTION_DENY_APP_AUTHORIZATION -> {
+                Log.d(logTag, "onStartCommand ACTION_DENY_APP_AUTHORIZATION, ignoring")
+
+                val requestId = intent.getStringExtra("requestId")
+                if (requestId != null) {
+                    val request = appAuthorizationRequests.pop(requestId)
+                    if (request != null) {
+                        NotificationManagerCompat.from(this).cancel(NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION, request.notificationId)
+                    }
+                }
+            }
+        }
+
+        return START_NOT_STICKY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
+    /**
+     * Called when a client binds to the service with bindService().
+     *
+     * Returns either an AdminBinder or AppBinder based on the "api" extra in the intent.
+     * For AppBinder, also requires an "installedAppId" extra.
+     *
+     * @param intent The Intent passed to bindService()
+     * @return An IBinder through which clients can call on to the service
+     * @throws InvalidParameterException if required parameters are missing or invalid
+     */
+    override fun onBind(intent: Intent): IBinder? {
+        var api = intent.getStringExtra("api")
+        Log.d(logTag, "onBind: api=$api action=${intent.action}")
+
+        when (api) {
+            "admin" -> {
+                return adminBinder
+            }
+            "app" -> {
+                var installedAppId =
+                    intent.getStringExtra("installedAppId")
+                        ?: throw InvalidParameterException(
+                            "When binding with api=app, installedAppId must be provided",
+                        )
+
+                return this.getOrCreateAppBinder(installedAppId)
+            }
+            else -> {
+                throw InvalidParameterException("Intent extra 'api' must be 'admin' or 'app'")
+            }
+        }
+    }
+
+    /**
+     * Stops the foreground service and shuts down the Holochain conductor.
+     */
+    fun stopForeground() {
+        Log.d(logTag, "stopForeground")
+
+        // Shutdown conductor
+        runBlocking { runtime!!.stop() }
+        runtime = null
+
+        // Stop service
+        super.stopForeground(true)
+        stopSelf()
+    }
+
+    /**
+     * Starts the service in the foreground and launches the Holochain conductor.
+     *
+     * Creates a persistent notification indicating that the Holochain service is running,
+     * and starts the Holochain conductor with a default configuration.
+     */
+    private fun startForeground() {
+        try {
+            // Create the notification to display while the service is running
+            val notification =
+                NotificationCompat
+                    .Builder(this, NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE)
+                    .setContentTitle("Holochain Service")
+                    .setContentText("Holochain Service is running")
+                    .setSmallIcon(R.drawable.holochain_logo)
+                    .setOngoing(true)
+                    .build()
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
+            } else {
+                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            }
+
+            // Start holochain conductor
+            val passphrase = byteArrayOf(0x48, 101, 108, 108, 111)
+            val config =
+                RuntimeConfigFfi(
+                    getFilesDir().toString(),
+                    "https://bootstrap-0.infra.holochain.org",
+                    "wss://sbd.holo.host",
+                    listOf("stun:stun.l.google.com:19302"),
+                )
+
+            serviceScope.launch(Dispatchers.IO) {
+                runtime = RuntimeFfi.start(passphrase, config)
+                Log.d(logTag, "Holochain started successfully")
+            }
+        } catch (e: Exception) {
+            Log.e(logTag, "Holochain failed to start $e")
+        }
+    }
+
+    /**
+     * Gets or creates an AppBinder for a specific Holochain app.
+     *
+     * Maintains a map of app IDs to binders to avoid creating duplicate binders.
+     *
+     * @param installedAppId The ID of the Holochain app to bind to
+     * @return An AppBinder for the specified app
+     */
+    private fun getOrCreateAppBinder(installedAppId: String): AppBinder {
+        if (!this.appBinders.containsKey(installedAppId)) {
+            this.appBinders[installedAppId] = AppBinder(installedAppId)
+        }
+        return this.appBinders[installedAppId]!!
+    }
+
+    /**
+     * Gets the AutostartConfigManager, initializing it if necessary.
+     *
+     * The AutostartConfigManager handles persistence of autostart settings and
+     * determines whether the service should start automatically on device boot.
+     *
+     * @return The AutostartConfigManagerFfi instance
+     */
+    private fun getAutostartConfigManager(): AutostartConfigManagerFfi {
+        if (this.autostartConfigManager == null) {
+            this.autostartConfigManager = AutostartConfigManagerFfi(getFilesDir().toString())
+        }
+
+        return this.autostartConfigManager as AutostartConfigManagerFfi
+    }
+
+    /**
+     * Checks if the POST_NOTIFICATIONS permission has been granted.
+     *
+     * On Android 13 (API 33) and above, the app must request this permission at runtime.
+     * On earlier Android versions, this permission was granted automatically.
+     *
+     * @return true if the permission is granted or not required, false otherwise
+     */
+    private fun checkNotificationPermission(): Boolean {
+        Log.d(logTag, "checkNotificationPermission")
+
+        // On Android 13 (API 33) and above, your app must request `POST_NOTIFICATIONS` permission at runtime.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return true
+        }
+
+        return ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    /**
+     * Shows a notification asking the user to authorize an app's access to a Holochain app.
+     *
+     * Creates a notification with approve and deny actions, and stores the request in the
+     * authorization request map for later retrieval.
+     *
+     * @param clientPackageName The package name of the Android app requesting access
+     * @param installedAppId The ID of the Holochain app being accessed
+     * @return The UUID of the stored authorization request
+     */
+    private fun showAppAuthorizationNotification(
+        clientPackageName: String,
+        installedAppId: String,
+    ): String {
+        Log.d(
+            logTag,
+            "showAppAuthorizationNotification clientPackageName=$clientPackageName installedAppId=$installedAppId",
+        )
+
+        // Store app authorization request
+        val putResponse = appAuthorizationRequests.put(AppAuthorizationRequest(clientPackageName, installedAppId))
+
+        // Create action intents, including id of app authorization request
+        // so we can retrieve it later
+        val approveIntent =
+            Intent(this, HolochainService::class.java).apply {
+                action = ACTION_APPROVE_APP_AUTHORIZATION
+                putExtra("requestId", putResponse.uuid)
+            }
+        val approvePendingIntent =
+            PendingIntent.getService(
+                this,
+                2,
+                approveIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+
+        val denyIntent =
+            Intent(this, HolochainService::class.java).apply {
+                action = ACTION_DENY_APP_AUTHORIZATION
+                putExtra("requestId", putResponse.uuid)
+            }
+        val denyPendingIntent =
+            PendingIntent.getService(
+                this,
+                3,
+                denyIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+
+        // Build the notification
+        val notification =
+            NotificationCompat
+                .Builder(this, NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION)
+                .setContentTitle("Authorize App Connection")
+                .setStyle(
+                    NotificationCompat
+                        .BigTextStyle()
+                        .bigText(
+                            "The app \"$clientPackageName\" wants to connect to the Holochain app: \"$installedAppId\".\n\nDo you want to allow this connection?",
+                        ),
+                ).setSmallIcon(R.drawable.holochain_logo)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .addAction(R.drawable.ic_baseline_check, "Approve", approvePendingIntent)
+                .addAction(R.drawable.ic_outline_cancel, "Deny", denyPendingIntent)
+                .build()
+
+        // Show the notification
+        if (checkNotificationPermission()) {
+            NotificationManagerCompat.from(this).notify(NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION, putResponse.notificationId, notification)
+        } else {
+            Log.w(logTag, "Cannot show authorization notification: POST_NOTIFICATIONS permission not granted")
+        }
+
+        return putResponse.uuid
+    }
+
     private inner class AdminBinder : IHolochainServiceAdmin.Stub() {
         private val logTag = "IHolochainServiceAdmin"
         private var authorized = false
@@ -403,304 +702,5 @@ class HolochainService : Service() {
                 ),
             )
         }
-    }
-
-    /**
-     * Checks if the POST_NOTIFICATIONS permission has been granted.
-     *
-     * On Android 13 (API 33) and above, the app must request this permission at runtime.
-     * On earlier Android versions, this permission was granted automatically.
-     *
-     * @return true if the permission is granted or not required, false otherwise
-     */
-    private fun checkNotificationPermission(): Boolean {
-        Log.d(logTag, "checkNotificationPermission")
-
-        // On Android 13 (API 33) and above, your app must request `POST_NOTIFICATIONS` permission at runtime.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return true
-        }
-
-        return ContextCompat.checkSelfPermission(
-            this,
-            android.Manifest.permission.POST_NOTIFICATIONS,
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    /**
-     * Shows a notification asking the user to authorize an app's access to a Holochain app.
-     *
-     * Creates a notification with approve and deny actions, and stores the request in the
-     * authorization request map for later retrieval.
-     *
-     * @param clientPackageName The package name of the Android app requesting access
-     * @param installedAppId The ID of the Holochain app being accessed
-     * @return The UUID of the stored authorization request
-     */
-    private fun showAppAuthorizationNotification(
-        clientPackageName: String,
-        installedAppId: String,
-    ): String {
-        Log.d(
-            logTag,
-            "showAppAuthorizationNotification clientPackageName=$clientPackageName installedAppId=$installedAppId",
-        )
-
-        // Store app authorization request
-        val putResponse = appAuthorizationRequests.put(AppAuthorizationRequest(clientPackageName, installedAppId))
-
-        // Create action intents, including id of app authorization request
-        // so we can retrieve it later
-        val approveIntent =
-            Intent(this, HolochainService::class.java).apply {
-                action = ACTION_APPROVE_APP_AUTHORIZATION
-                putExtra("requestId", putResponse.uuid)
-            }
-        val approvePendingIntent =
-            PendingIntent.getService(
-                this,
-                2,
-                approveIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-
-        val denyIntent =
-            Intent(this, HolochainService::class.java).apply {
-                action = ACTION_DENY_APP_AUTHORIZATION
-                putExtra("requestId", putResponse.uuid)
-            }
-        val denyPendingIntent =
-            PendingIntent.getService(
-                this,
-                3,
-                denyIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            )
-
-        // Build the notification
-        val notification =
-            NotificationCompat
-                .Builder(this, NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION)
-                .setContentTitle("Authorize App Connection")
-                .setStyle(
-                    NotificationCompat
-                        .BigTextStyle()
-                        .bigText(
-                            "The app \"$clientPackageName\" wants to connect to the Holochain app: \"$installedAppId\".\n\nDo you want to allow this connection?",
-                        ),
-                ).setSmallIcon(R.drawable.holochain_logo)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .addAction(R.drawable.ic_baseline_check, "Approve", approvePendingIntent)
-                .addAction(R.drawable.ic_outline_cancel, "Deny", denyPendingIntent)
-                .build()
-
-        // Show the notification
-        if (checkNotificationPermission()) {
-            NotificationManagerCompat.from(this).notify(NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION, putResponse.notificationId, notification)
-        } else {
-            Log.w(logTag, "Cannot show authorization notification: POST_NOTIFICATIONS permission not granted")
-        }
-
-        return putResponse.uuid
-    }
-
-    /**
-     * Called by the system when the service is first created or when an intent is delivered to the service.
-     *
-     * Handles several actions:
-     * - ACTION_START: Enables autostart and starts the Holochain service
-     * - ACTION_BOOT_COMPLETED: Starts the service if autostart is enabled
-     * - ACTION_APPROVE_APP_AUTHORIZATION: Authorizes an app to access Holochain
-     * - ACTION_DENY_APP_AUTHORIZATION: Dismisses an authorization request
-     *
-     * @param intent The Intent supplied to startService(Intent)
-     * @param flags Additional data about this start request
-     * @param startId A unique integer representing this specific request to start
-     * @return How to continue running the service (NOT_STICKY in this case)
-     */
-    override fun onStartCommand(
-        intent: Intent?,
-        flags: Int,
-        startId: Int,
-    ): Int {
-        Log.d(logTag, "onStartCommand")
-
-        when (intent?.action) {
-            ACTION_START -> {
-                Log.d(
-                    logTag,
-                    "onStartCommand ACTION_START",
-                )
-
-                // Enable conductor to autostart on system boot
-                getAutostartConfigManager().enable()
-
-                // Start service
-                startForeground()
-            }
-            ACTION_BOOT_COMPLETED -> {
-                Log.d(
-                    logTag,
-                    "onStartCommand ACTION_BOOT_COMPLETED",
-                )
-
-                // If autostart is enabled, start service
-                if (getAutostartConfigManager().isEnabled()) {
-                    startForeground()
-                }
-            }
-            ACTION_APPROVE_APP_AUTHORIZATION -> {
-                Log.d(logTag, "onStartCommand ACTION_APPROVE_APP_AUTHORIZATION")
-
-                val requestId = intent.getStringExtra("requestId")
-                if (requestId != null) {
-                    val request = appAuthorizationRequests.pop(requestId)
-                    if (request != null) {
-                        NotificationManagerCompat.from(this).cancel(NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION, request.notificationId)
-                        runtime!!.authorizeAppClient(request.request.clientPackageName, request.request.installedAppId)
-                    }
-                }
-            }
-            ACTION_DENY_APP_AUTHORIZATION -> {
-                Log.d(logTag, "onStartCommand ACTION_DENY_APP_AUTHORIZATION, ignoring")
-
-                val requestId = intent.getStringExtra("requestId")
-                if (requestId != null) {
-                    val request = appAuthorizationRequests.pop(requestId)
-                    if (request != null) {
-                        NotificationManagerCompat.from(this).cancel(NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION, request.notificationId)
-                    }
-                }
-            }
-        }
-
-        return START_NOT_STICKY
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
-    /**
-     * Called when a client binds to the service with bindService().
-     *
-     * Returns either an AdminBinder or AppBinder based on the "api" extra in the intent.
-     * For AppBinder, also requires an "installedAppId" extra.
-     *
-     * @param intent The Intent passed to bindService()
-     * @return An IBinder through which clients can call on to the service
-     * @throws InvalidParameterException if required parameters are missing or invalid
-     */
-    override fun onBind(intent: Intent): IBinder? {
-        var api = intent.getStringExtra("api")
-        Log.d(logTag, "onBind: api=$api action=${intent.action}")
-
-        when (api) {
-            "admin" -> {
-                return adminBinder
-            }
-            "app" -> {
-                var installedAppId =
-                    intent.getStringExtra("installedAppId")
-                        ?: throw InvalidParameterException(
-                            "When binding with api=app, installedAppId must be provided",
-                        )
-
-                return this.getOrCreateAppBinder(installedAppId)
-            }
-            else -> {
-                throw InvalidParameterException("Intent extra 'api' must be 'admin' or 'app'")
-            }
-        }
-    }
-
-    /**
-     * Gets or creates an AppBinder for a specific Holochain app.
-     *
-     * Maintains a map of app IDs to binders to avoid creating duplicate binders.
-     *
-     * @param installedAppId The ID of the Holochain app to bind to
-     * @return An AppBinder for the specified app
-     */
-    private fun getOrCreateAppBinder(installedAppId: String): AppBinder {
-        if (!this.appBinders.containsKey(installedAppId)) {
-            this.appBinders[installedAppId] = AppBinder(installedAppId)
-        }
-        return this.appBinders[installedAppId]!!
-    }
-
-    /**
-     * Gets the AutostartConfigManager, initializing it if necessary.
-     *
-     * The AutostartConfigManager handles persistence of autostart settings and
-     * determines whether the service should start automatically on device boot.
-     *
-     * @return The AutostartConfigManagerFfi instance
-     */
-    private fun getAutostartConfigManager(): AutostartConfigManagerFfi {
-        if (this.autostartConfigManager == null) {
-            this.autostartConfigManager = AutostartConfigManagerFfi(getFilesDir().toString())
-        }
-
-        return this.autostartConfigManager as AutostartConfigManagerFfi
-    }
-
-    /**
-     * Starts the service in the foreground and launches the Holochain conductor.
-     *
-     * Creates a persistent notification indicating that the Holochain service is running,
-     * and starts the Holochain conductor with a default configuration.
-     */
-    private fun startForeground() {
-        try {
-            // Create the notification to display while the service is running
-            val notification =
-                NotificationCompat
-                    .Builder(this, NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE)
-                    .setContentTitle("Holochain Service")
-                    .setContentText("Holochain Service is running")
-                    .setSmallIcon(R.drawable.holochain_logo)
-                    .setOngoing(true)
-                    .build()
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
-            } else {
-                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-            }
-
-            // Start holochain conductor
-            val passphrase = byteArrayOf(0x48, 101, 108, 108, 111)
-            val config =
-                RuntimeConfigFfi(
-                    getFilesDir().toString(),
-                    "https://bootstrap-0.infra.holochain.org",
-                    "wss://sbd.holo.host",
-                    listOf("stun:stun.l.google.com:19302"),
-                )
-
-            serviceScope.launch(Dispatchers.IO) {
-                runtime = RuntimeFfi.start(passphrase, config)
-                Log.d(logTag, "Holochain started successfully")
-            }
-        } catch (e: Exception) {
-            Log.e(logTag, "Holochain failed to start $e")
-        }
-    }
-
-    /**
-     * Stops the foreground service and shuts down the Holochain conductor.
-     */
-    fun stopForeground() {
-        Log.d(logTag, "stopForeground")
-
-        // Shutdown conductor
-        runBlocking { runtime!!.stop() }
-        runtime = null
-
-        // Stop service
-        super.stopForeground(true)
-        stopSelf()
     }
 }
