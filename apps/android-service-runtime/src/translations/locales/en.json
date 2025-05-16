@@ -13,5 +13,13 @@
   "agent_public_key": "Agent Public Key",
   "seconds_short": "secs",
   "nanoseconds_short": "nanos",
-  "uninstall": "Uninstall"
+  "uninstall": "Uninstall",
+  "cells": "Cells",
+  "role_name": "Role Name",
+  "cell_name": "Cell Name",
+  "dna_modifiers": "DNA Modifiers",
+  "network_seed": "Network Seed",
+  "origin_time": "Origin Time",
+  "properties": "Properties",
+  "quantum_time": "Quantum Time"
 }

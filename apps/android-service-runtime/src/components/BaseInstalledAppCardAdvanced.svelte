@@ -21,35 +21,35 @@
     {encodeHashToBase64(Uint8Array.from(appInfo.agentPubKey))}
   </BaseLabelled>
 
-  <BaseLabelled label="Cells">
+  <BaseLabelled label={$_('cells')}>
     <ul>
       {#each Object.entries(appInfo.cellInfo) as [baseRoleName, allCellInfos]}
         <li>
-          <BaseLabelled label="Role Name">
+          <BaseLabelled label={$_('role_name')}>
             {baseRoleName}
           </BaseLabelled>
           {#each allCellInfos as cellInfo}
-            <BaseLabelled label="Cell Name">
+            <BaseLabelled label={$_('cell_name')}>
               {cellInfo.v1.name}
             </BaseLabelled>
-            <BaseLabelled label="Agent Pub Key">
+            <BaseLabelled label={$_('agent_public_key')}>
               {encodeHashToBase64(Uint8Array.from(cellInfo.v1.cellId.agentPubKey))}
             </BaseLabelled>
-            <BaseLabelled label="DNA Hash">
+            <BaseLabelled label={$_('dna_hash')}>
               {encodeHashToBase64(Uint8Array.from(cellInfo.v1.cellId.dnaHash))}
             </BaseLabelled>
-            <BaseLabelled label="DNA Modifiers">
+            <BaseLabelled label={$_('dna_modifiers')}>
               <div style="margin-left: 20px">
-                <BaseLabelled label="Network Seed">
+                <BaseLabelled label={$_('network_seed')}>
                   {cellInfo.v1.dnaModifiers.networkSeed}
                 </BaseLabelled>
-                <BaseLabelled label="Origin Time">
+                <BaseLabelled label={$_('origin_time')}>
                   {cellInfo.v1.dnaModifiers.originTime}
                 </BaseLabelled>
-                <BaseLabelled label="Properties">
+                <BaseLabelled label={$_('properties')}>
                   {decode(cellInfo.v1.dnaModifiers.properties)}
                 </BaseLabelled>
-                <BaseLabelled label="Quantum Time">
+                <BaseLabelled label={$_('quantum_time')}>
                   {cellInfo.v1.dnaModifiers.quantumTime.secs} {$_('seconds_short')}, {cellInfo.v1.dnaModifiers.quantumTime.secs} {$_('nanoseconds_short')}
                 </BaseLabelled>
               </div>
