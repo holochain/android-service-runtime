@@ -15,12 +15,15 @@
     "README.md"
   ],
   "scripts": {
-    "build": "pnpm run build:js:tauri-commands:esm && pnpm run build:js:holochain-env && rollup -c",
     "build:js:tauri-commands:esm": "tsc guest-js/tauri-commands/*.ts --outDir dist-js/tauri-commands/  --declaration --target es2021 --moduleResolution bundler --module esnext  --skipLibCheck true",
     "build:js:holochain-env": "tsc guest-js/holochain-env/*.ts --outDir dist-js-tmp/holochain-env/ --target es2021 --moduleResolution bundler --module esnext --skipLibCheck true",
-    "prepublishOnly": "pnpm build",
-    "pretest": "pnpm build",
-    "prepare": "pnpm build"
+    "build:js": "pnpm run build:js:tauri-commands:esm && pnpm run build:js:holochain-env && rollup -c",
+    "build:gradle": "cd android && ./gradlew build",
+    "build": "pnpm run build:js && pnpm run build:gradle",
+
+    "prepublishOnly": "pnpm build:js",
+    "pretest": "pnpm build:js",
+    "prepare": "pnpm build:js"
   },
   "dependencies": {
     "@holochain/client": "0.18.0",
