@@ -7,5 +7,19 @@
   "no_apps_installed": "No apps installed",
   "service_status": "Service Status",
   "running": "Running",
-  "stopped": "Stopped"
+  "stopped": "Stopped",
+  "advanced_settings": "Advanced Settings",
+  "app_id": "App ID",
+  "agent_public_key": "Agent Public Key",
+  "seconds_short": "secs",
+  "nanoseconds_short": "nanos",
+  "uninstall": "Uninstall",
+  "cells": "Cells",
+  "role_name": "Role Name",
+  "cell_name": "Cell Name",
+  "dna_modifiers": "DNA Modifiers",
+  "network_seed": "Network Seed",
+  "origin_time": "Origin Time",
+  "properties": "Properties",
+  "quantum_time": "Quantum Time"
 }
