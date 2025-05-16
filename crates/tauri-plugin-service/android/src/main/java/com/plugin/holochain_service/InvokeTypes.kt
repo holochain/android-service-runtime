@@ -50,3 +50,17 @@ fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi =
         this.nonce,
         this.expiresAt,
     )
+
+@InvokeArg
+class RuntimeNetworkConfigFfiInvokeArg {
+    lateinit var bootstrap_url: String
+    lateinit var signal_url: String
+    lateinit var ice_urls: List<String>
+}
+
+fun RuntimeNetworkConfigFfiInvokeArg.toFfi(): RuntimeNetworkConfigFfi =
+    RuntimeNetworkConfigFfi(
+        this.bootstrap_url,
+        this.signal_url,
+        this.ice_urls
+    )

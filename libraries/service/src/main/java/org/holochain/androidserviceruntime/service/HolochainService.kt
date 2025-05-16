@@ -93,12 +93,16 @@ class HolochainService : Service() {
                     logTag,
                     "onStartCommand ACTION_START",
                 )
+                
+                // Get config from intent
+                val config = intent.getExtra("config")
+                if (config != null) {
+                    // Enable conductor to autostart on system boot
+                    getAutostartConfigManager().enable(config)
 
-                // Enable conductor to autostart on system boot
-                getAutostartConfigManager().enable()
-
-                // Start service
-                startForeground()
+                    // Start service
+                    startForeground(config)
+                }
             }
             ACTION_BOOT_COMPLETED -> {
                 Log.d(
@@ -107,8 +111,9 @@ class HolochainService : Service() {
                 )
 
                 // If autostart is enabled, start service
-                if (getAutostartConfigManager().isEnabled()) {
-                    startForeground()
+                val config = getAutostartConfigManager().getEnabledConfig()
+                if (config) {
+                    startForeground(config)
                 }
             }
             ACTION_APPROVE_APP_AUTHORIZATION -> {
@@ -197,40 +202,34 @@ class HolochainService : Service() {
      * Creates a persistent notification indicating that the Holochain service is running,
      * and starts the Holochain conductor with a default configuration.
      */
-    private fun startForeground() {
-        try {
-            // Create the notification to display while the service is running
-            val notification =
-                NotificationCompat
-                    .Builder(this, NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE)
-                    .setContentTitle("Holochain Service")
-                    .setContentText("Holochain Service is running")
-                    .setSmallIcon(R.drawable.holochain_logo)
-                    .setOngoing(true)
-                    .build()
+    private fun startForeground(config: RuntimeNetworkConfigFfi) {
+        // Create the notification to display while the service is running
+        val notification =
+            NotificationCompat
+                .Builder(this, NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE)
+                .setContentTitle("Holochain Service")
+                .setContentText("Holochain Service is running")
+                .setSmallIcon(R.drawable.holochain_logo)
+                .setOngoing(true)
+                .build()
 
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
-            } else {
-                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-            }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
+        } else {
+            this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        }
 
-            // Start holochain conductor
-            val passphrase = byteArrayOf(0x48, 101, 108, 108, 111)
-            val config =
-                RuntimeConfigFfi(
-                    getFilesDir().toString(),
-                    "https://bootstrap-0.infra.holochain.org",
-                    "wss://sbd.holo.host",
-                    listOf("stun:stun.l.google.com:19302"),
-                )
+        // Passphrase is currently *hard-coded*
+        // See https://github.com/holochain/android-service-runtime/issues/11
+        val passphrase = byteArrayOf(0x48, 101, 108, 108, 111)
 
-            serviceScope.launch(Dispatchers.IO) {
-                runtime = RuntimeFfi.start(passphrase, config)
-                Log.d(logTag, "Holochain started successfully")
-            }
-        } catch (e: Exception) {
-            Log.e(logTag, "Holochain failed to start $e")
+        // Start holochain conductor
+        serviceScope.launch(Dispatchers.IO) {
+            runtime = RuntimeFfi.start(
+                passphrase, 
+                RuntimeConfigFfi(getFilesDir().toString(), config)
+            )
+            Log.d(logTag, "Holochain started successfully")
         }
     }
 
