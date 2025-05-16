@@ -5,17 +5,19 @@
   import BaseLoadingButton from "./BaseLoadingButton.svelte";
   import { loadingUninstallApp, loadUninstallApp } from "../stores/holochain";
   import { decode } from "@msgpack/msgpack";
+  import { _ } from 'svelte-i18n';
+
   export let appInfo: AppInfo;
 </script>
 
 <div >
-  <BaseLabelled label="App Id">
+  <BaseLabelled label={$_('app_id')}>
     {appInfo.installedAppId}
   </BaseLabelled>
-  <BaseLabelled label="Status">
+  <BaseLabelled label={$_('status')}>
     {appInfo.status.type}
   </BaseLabelled>
-  <BaseLabelled label="Agent Pub Key">
+  <BaseLabelled label={$_('agent_public_key')}>
     {encodeHashToBase64(Uint8Array.from(appInfo.agentPubKey))}
   </BaseLabelled>
 
@@ -48,7 +50,7 @@
                   {decode(cellInfo.v1.dnaModifiers.properties)}
                 </BaseLabelled>
                 <BaseLabelled label="Quantum Time">
-                  {cellInfo.v1.dnaModifiers.quantumTime.secs} secs, {cellInfo.v1.dnaModifiers.quantumTime.secs} nanos
+                  {cellInfo.v1.dnaModifiers.quantumTime.secs} {$_('seconds_short')}, {cellInfo.v1.dnaModifiers.quantumTime.secs} {$_('nanoseconds_short')}
                 </BaseLabelled>
               </div>
             </BaseLabelled>
@@ -59,6 +61,8 @@
   </BaseLabelled>
   
   <div class="flex justify-end">
-    <BaseLoadingButton btnClass="btn-sm btn-error" loading={$loadingUninstallApp[appInfo.installedAppId]} on:click={() => loadUninstallApp(appInfo.installedAppId)}>Uninstall</BaseLoadingButton>
+    <BaseLoadingButton btnClass="btn-sm btn-error" loading={$loadingUninstallApp[appInfo.installedAppId]} on:click={() => loadUninstallApp(appInfo.installedAppId)}>
+      {$_('uninstall')}
+    </BaseLoadingButton>
   </div>
 </div>
