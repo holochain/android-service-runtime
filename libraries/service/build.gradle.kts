@@ -15,6 +15,7 @@ tasks.withType<ConfigurableKtLintTask> {
 }
 
 android {
+  buildToolsVersion = "34.0.0"
   namespace = "org.holochain.androidserviceruntime.service"
   compileSdk = 34
 
