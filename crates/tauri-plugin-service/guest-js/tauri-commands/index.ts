@@ -34,9 +34,14 @@ export interface AppInfo {
   cellInfo: Map<string, CellInfo>;
 }
 
+export type RuntimeNetworkConfig = {
+  bootstrapUrl: string;
+  signalUrl: string;
+  iceUrls: string[];
+}
 
-export async function start(): Promise<string | null> {
-  return await invoke('plugin:holochain-service|start');
+export async function start(request: RuntimeNetworkConfig): Promise<string | null> {
+  return await invoke('plugin:holochain-service|start', request);
 }
 
 export async function stop(): Promise<string | null> {

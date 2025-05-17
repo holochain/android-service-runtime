@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
@@ -111,13 +110,14 @@ class HolochainServicePlugin(
     fun start(invoke: Invoke) {
         Log.d(logTag, "start")
 
+        // Parse args
+        val args = invoke.parseArgs(RuntimeNetworkConfigFfiInvokeArg::class.java)
+
         // Request POST_NOTIFICATION permission, so the HolochainService can create notifications
         this.requestPostNotificationsPermission()
 
         // Start service
-        val intent = Intent(HolochainService.ACTION_START)
-        intent.setComponent(this.serviceComponentName)
-        this.activity.startForegroundService(intent)
+        this.serviceClient.start(args.toFfi())
 
         // Connect to service
         this.serviceClient.connect()
