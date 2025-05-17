@@ -59,12 +59,19 @@
               nodejs_20 # For UI development
               pnpm
               binaryen # For WASM optimisation
+
+              # Project Utils
+              gnumake
+
               # Android development
               android
               gradle
               jdk17
               cargo-ndk
-              gnumake
+
+              # Tauri
+              curl
+              xz
             ]);
 
             ANDROID_HOME = "${android}/share/android-sdk";

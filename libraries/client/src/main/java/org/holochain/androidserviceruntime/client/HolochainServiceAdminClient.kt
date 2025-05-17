@@ -39,13 +39,13 @@ class HolochainServiceAdminClient(
      * This must be called before `connect()` can be called.
      */
     fun start(config: RuntimeNetworkConfigFfi) {
-        val intent = Intent(HolochainService.ACTION_START)
-        intent.setComponent(this.serviceComponentName)
-        intent.setExtra("config", config)
-        
+        val intent = Intent(HolochainServiceIntentActions.ACTION_START)
+        intent.component = this.serviceComponentName
+        intent.putExtra("config", RuntimeNetworkConfigFfiParcel(config))
+
         this.activity.startForegroundService(intent)
     }
-    
+
     /**
      * Connect to the Holochain service using the Admin API.
      *
