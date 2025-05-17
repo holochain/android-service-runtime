@@ -44,7 +44,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/installedAppId"
+            android:id="@+id/message1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
@@ -52,7 +52,7 @@
             android:text='To approve this connection, open the system notification "App Authorization Request", and choose "Approve".' />
 
         <TextView
-            android:id="@+id/installedAppId"
+            android:id="@+id/message2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"

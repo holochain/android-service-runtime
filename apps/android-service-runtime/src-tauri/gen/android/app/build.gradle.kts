@@ -19,6 +19,7 @@ val keystoreProperties = Properties()
 keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
+    buildToolsVersion = "34.0.0"
     compileSdk = 34
     namespace = "org.holochain.androidserviceruntime.app"
     defaultConfig {

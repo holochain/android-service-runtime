@@ -23,7 +23,7 @@
             android:layout_marginBottom="8dp"
             android:gravity="center" />
         <TextView
-            android:id="@+id/message"
+            android:id="@+id/message1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text='This app requires a connection to the Holochain Service. Open the settings and choose "start" to start the service.'
@@ -37,7 +37,7 @@
             android:text="Open Settings" />
 
         <TextView
-            android:id="@+id/message"
+            android:id="@+id/message2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"

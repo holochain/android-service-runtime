@@ -39,10 +39,10 @@
 
             android = inputs.android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [
               cmdline-tools-latest
-              build-tools-35-0-0
+              build-tools-34-0-0
               platform-tools
               platforms-android-34
-              ndk-25-2-9519653
+              ndk-27-2-12479018
             ]);
           in
           pkgs.mkShell {
@@ -65,11 +65,10 @@
               jdk17
               cargo-ndk
               gnumake
-              pkg-config
             ]);
 
             ANDROID_HOME = "${android}/share/android-sdk";
-            NDK_HOME = "${android}/share/android-sdk/ndk/25.2.9519653";
+            NDK_HOME = "${android}/share/android-sdk/ndk/27.2.12479018";
             JAVA_HOME = pkgs.jdk17.home;
 
             shellHook = ''
