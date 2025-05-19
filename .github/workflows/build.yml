@@ -13,14 +13,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        - name: android-service-runtime
-          features: ""
-        
-        - name: android-service-runtime
-          features: system_settings
+        build:
+          - name: android-service-runtime
+            features: ""
 
-        - name: example-client-app
-          features: ""
+          - name: android-service-runtime
+            features: system_settings
+
+          - name: example-client-app
+            features: ""
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,9 +48,9 @@ jobs:
         with:
           name: holochain-ci
 
-      - name: Build app ${{ matrix.name }} ${{ matrix.features }}
+      - name: Build app ${{ matrix.build.name }} ${{ matrix.build.features }}
         run: |
-          nix develop --no-update-lock-file --command bash -c "pnpm install && pnpm run build:${{ matrix.name }}  --features ${{ matrix.features }} --target x86_64 --apk"
+          nix develop --no-update-lock-file --command bash -c "pnpm install && pnpm run build:${{ matrix.build.name }}  --features ${{ matrix.build.features }} --target x86_64 --apk"
 
   build-tauri-plugins:
     name: Build tauri-plugins
