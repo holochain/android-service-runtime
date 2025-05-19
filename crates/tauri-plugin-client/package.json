@@ -20,7 +20,7 @@
     "build:js": "pnpm run build:js:tauri-commands:esm && pnpm run build:js:holochain-env && rollup -c",
     "build:gradle": "cd android && ./gradlew build",
     "build:cargo": "cargo build -p tauri-plugin-holochain-service-client",
-    "build": "pnpm run build:cargo && pnpm run build:js && pnpm run build:gradle",
+    "build": "pnpm run build:js && pnpm run build:cargo --target x86_64-linux-android && pnpm run build:gradle",
 
     "prepublishOnly": "pnpm build:js",
     "pretest": "pnpm build:js",

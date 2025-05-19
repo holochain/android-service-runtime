@@ -20,7 +20,7 @@
       "build:single-target:runtime-ffi": "cd crates/runtime-ffi && ./scripts/build-single-target.sh",
       "build:single-target:runtime-types-ffi": "cd crates/runtime-types-ffi && ./scripts/build-single-target.sh",
       "build:single-target-arch:aarch64-linux-android": "pnpm run build:single-target:runtime-types-ffi aarch64-linux-android && pnpm run build:client && pnpm run publish:local:client && pnpm run build:single-target:runtime-ffi aarch64-linux-android && pnpm run build:service && pnpm run publish:local:service && pnpm run build:tauri-plugin-client && pnpm run build:tauri-plugin-service",
-      
+
       "build:example-client-app": "pnpm run --dir apps/example-client-app build:android",
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
 
