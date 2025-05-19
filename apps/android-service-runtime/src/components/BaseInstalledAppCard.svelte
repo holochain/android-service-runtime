@@ -4,7 +4,8 @@
   import BaseLabelled from "./BaseLabelled.svelte";
   import BaseInstalledAppCardAdvanced from "./BaseInstalledAppCardAdvanced.svelte";
   import BaseLoadingToggle from './BaseLoadingToggle.svelte';
-
+  import { _ } from 'svelte-i18n';
+  
   export let appInfo: AppInfo;
   export let loadingToggleEnable: boolean = false;
   let showAdvanced = false;
@@ -20,11 +21,13 @@
     <BaseLoadingToggle loading={loadingToggleEnable} value={appInfo.status.type === "Running"} on:toggle={() => dispatch('toggleEnable')} />
   </div>
   <div class="mt-4">
-    <BaseLabelled label="App Id">{appInfo.installedAppId}</BaseLabelled>
+    <BaseLabelled label={$_('app_id')}>{appInfo.installedAppId}</BaseLabelled>
   </div>
 
   <div class={`collapse collapse-arrow border-base-300 bg-base-200 border`}>
-    <button class="collapse-title text-sm font-medium bg-base-300 shadow-none focus:border-none" on:click={() => (showAdvanced = !showAdvanced)}>Advanced Settings</button>
+    <button class="collapse-title text-sm font-medium bg-base-300 shadow-none focus:border-none" on:click={() => (showAdvanced = !showAdvanced)}>
+      {$_('advanced_settings')}
+    </button>
     <div class={`p-4 text-sm font-medium bg-base-300  ${!showAdvanced ? 'hidden' : ''}`}>
       <BaseInstalledAppCardAdvanced {appInfo} />
     </div>
