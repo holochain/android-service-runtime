@@ -6,16 +6,11 @@
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
     rust-overlay.follows = "holonix/rust-overlay";
-
-    android-nixpkgs = {
-      url = "github:tadfisher/android-nixpkgs";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
   outputs = inputs@{ flake-parts, nixpkgs, rust-overlay, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = builtins.attrNames inputs.holonix.devShells;
-      perSystem = { inputs', config, pkgs, system, ... }: {
+      perSystem = { inputs', config, pkgs, system, lib, stdenv, ... }: {
         formatter = pkgs.nixpkgs-fmt;
 
         devShells.default =
@@ -23,6 +18,7 @@
             overlays = [ (import rust-overlay) ];
             pkgs = import nixpkgs {
               inherit system overlays;
+              config.allowUnfree = true;
             };
 
             rust = (pkgs.rust-bin.stable.latest.minimal.override
@@ -37,19 +33,30 @@
                 ];
               });
 
-            android = inputs.android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [
-              cmdline-tools-latest
-              build-tools-34-0-0
-              platform-tools
-              platforms-android-34
-              ndk-27-2-12479018
-            ]);
+              androidEnv = pkgs.androidenv.override { licenseAccepted = true; };
+              androidComposition = androidEnv.composeAndroidPackages {
+                includeNDK = true;
+                includeEmulator = true;
+                platformToolsVersion = "35.0.2";
+                buildToolsVersions = [ "34.0.0" ];
+                platformVersions = [ "34"];
+                cmakeVersions = [ "3.10.2" ];
+                extraLicenses = [
+                  "android-googletv-license"
+                  "android-sdk-arm-dbt-license"
+                  "android-sdk-license"
+                  "android-sdk-preview-license"
+                  "google-gdk-license"
+                  "intel-android-extra-license"
+                  "intel-android-sysimage-license"
+                  "mips-android-sysimage-license"
+                ];
+              };
           in
           pkgs.mkShell {
             packages = [
               rust
             ] ++ (with inputs'.holonix.packages; [
-              # For the example-client-app
               holochain
               lair-keystore
               hc-launch
@@ -59,34 +66,53 @@
               nodejs_20 # For UI development
               pnpm
               binaryen # For WASM optimisation
+              
+              # Repo Utils
+              gnumake
+              cargo-ndk
 
               # Android development
-              android
+              androidComposition.androidsdk
+              androidComposition.ndk-bundle
               gradle
               jdk17
-              cargo-ndk
-              gnumake
             ]);
 
             # Tauri
-            buildInputs = (with pkgs; [
+            buildInputs = lib.optionals pkgs.stdenv.isLinux (with pkgs; [
               glibc
               libsoup
               cairo
-              atk
-              webkitgtk_4_1
-              openssl
-              librsvg
+              gtk3
+              webkitgtk
+            ]) ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
+              CoreServices
+              Security 
             ]);
             nativeBuildInputs = (with pkgs; [
+              openssl.dev
+              libsoup
+              cairo
+              atk
+              gst_all_1.gstreamer
+              gst_all_1.gst-plugins-base
+              gst_all_1.gst-plugins-good
+              gst_all_1.gst-plugins-bad
+              librsvg
+              webkitgtk_4_1
               pkg-config
             ]);
 
-            ANDROID_HOME = "${android}/share/android-sdk";
-            NDK_HOME = "${android}/share/android-sdk/ndk/27.2.12479018";
+            NIX_LD = "${pkgs.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2";
+            ANDROID_HOME = "${androidComposition.androidsdk}/libexec/android-sdk";
+            NDK_HOME = "${androidComposition.androidsdk}/libexec/android-sdk/ndk/${builtins.head (pkgs.lib.lists.reverseList (builtins.split "-" "${androidComposition.ndk-bundle}"))}";
+            ANDROID_SDK_ROOT = "${androidComposition.androidsdk}/libexec/android-sdk";
+            ANDROID_NDK_ROOT = "${androidComposition.androidsdk}/libexec/android-sdk/ndk-bundle";
             JAVA_HOME = pkgs.jdk17.home;
 
             shellHook = ''
+              export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools:$ANDROID_HOME/tools:$PATH
+
               export PS1='\[\033[1;34m\][holonix-android:\w]\$\[\033[0m\] '
             '';
           };
