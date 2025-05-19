@@ -8800,7 +8800,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "tauri",
- "tauri-build",
  "tauri-plugin",
  "thiserror 2.0.12",
 ]
@@ -8813,7 +8812,6 @@ dependencies = [
  "holochain-conductor-runtime-types-ffi",
  "serde",
  "tauri",
- "tauri-build",
  "tauri-plugin",
  "thiserror 2.0.12",
 ]
