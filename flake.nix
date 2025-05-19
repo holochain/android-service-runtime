@@ -59,12 +59,27 @@
               nodejs_20 # For UI development
               pnpm
               binaryen # For WASM optimisation
+
               # Android development
               android
               gradle
               jdk17
               cargo-ndk
               gnumake
+            ]);
+
+            # Tauri
+            buildInputs = (with pkgs; [
+              glibc
+              libsoup
+              cairo
+              atk
+              webkitgtk_4_1
+              openssl
+              librsvg
+            ]);
+            nativeBuildInputs = (with pkgs; [
+              pkg-config
             ]);
 
             ANDROID_HOME = "${android}/share/android-sdk";
