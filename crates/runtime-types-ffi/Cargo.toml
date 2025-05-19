@@ -7,7 +7,7 @@ license = "MIT OR Apache-2.0"
 
 
 [lib]
-crate-type = ["lib", "cdylib", "staticlib"]
+crate-type = ["lib", "cdylib"]
 name = "holochain_conductor_runtime_types_ffi"
 
 [dependencies]
