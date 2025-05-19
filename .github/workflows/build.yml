@@ -9,6 +9,11 @@ on:
 jobs:
   build-apps:
     name: Build apps
+    
+    # This ensures we have access to android signing key
+    # which is required to build the apps.
+    environment: Android Service Runtime Release
+    
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
