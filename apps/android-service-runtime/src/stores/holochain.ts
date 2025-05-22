@@ -4,7 +4,6 @@ import { sortBy } from 'lodash';
 import { addToast } from './toasts';
 import { tick } from 'svelte';
 import retry from 'async-retry';
-import { RUNTIME_NETWORK_CONFIG } from '../config';
 
 function repaint() {
   return new Promise<void>(resolve =>
