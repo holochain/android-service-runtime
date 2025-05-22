@@ -20,9 +20,10 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:text="Authorize App Connection"
+            android:text="@string/authorize_title"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+        />
 
         <TextView
             android:id="@+id/message"
@@ -30,16 +31,17 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:text="This app requires a connection to the Holochain Service app:"
+            android:text="@string/authorize_description_1"
         />
 
+        <!-- This text will be updated with the installedAppId -->
         <TextView
             android:id="@+id/installedAppId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:text="forum"
+            android:text=""
             android:textSize="18dp"
             android:textStyle="bold" />
 
@@ -49,7 +51,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:gravity="center"
-            android:text='To approve this connection, open the system notification "App Authorization Request", and choose "Approve".' />
+            android:text="@string/authorize_description_2"
+        />
 
         <TextView
             android:id="@+id/installedAppId"
@@ -58,13 +61,14 @@
             android:layout_marginBottom="16dp"
             android:gravity="center"
             android:paddingTop="18dp"
-            android:text="Once the connection has been approved, you must restart the app." />
+            android:text="@string/authorize_description_3"
+        />
 
         <Button
             android:id="@+id/restartAction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Restart"
+            android:text="@string/restart"
         />
     </LinearLayout>
 </androidx.cardview.widget.CardView>
