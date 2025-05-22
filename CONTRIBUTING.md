@@ -36,3 +36,9 @@
 2. Create and push a git tag with a matching format to trigger the release CI.
 
     The git tag format is: `service-vX.Y.Z`, where "X.Y.Z" is replaced with the version number.
+
+## CI
+
+Note that CI checks for building `tauri-plugin-holochain-service` and `tauri-plugin-holochain-service-client` do *not* publishing the client & service libraries to a local maven repository, but instead use the versions published to Maven Central.
+
+If your PR makes changes to the client or service library, it will need to be published to Maven Central, before the CI checks of `tauri-plugin-holochain-service` and `tauri-plugin-holochain-service-client` will pass.
