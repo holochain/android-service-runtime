@@ -17,11 +17,3 @@ By default, this will be built as a standard user app that only appears in the A
 To build as a system app that only appears in the Android System Settings page, use the feature flag `system_settings`.
 
 i.e. `npm run tauri build -- --features system_settings`
-
-## Configure
-
-The network settings of the holochain runtime are configurable via the app UI.
-
-Most of the network settings must be set by the distributor of this app, rather than the users, to ensure all users can communicate with each other.
-
-To modify the network config, edit the [config file](./config).
