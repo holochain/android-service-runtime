@@ -19,4 +19,3 @@ bytes = { workspace = true }
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
-tauri-build = { workspace = true }

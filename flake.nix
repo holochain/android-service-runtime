@@ -74,6 +74,20 @@
               xz
             ]);
 
+            # Tauri
+            buildInputs = (with pkgs; [
+              glibc
+              libsoup
+              cairo
+              atk
+              webkitgtk_4_1
+              openssl
+              librsvg
+            ]);
+            nativeBuildInputs = (with pkgs; [
+              pkg-config
+            ]);
+
             ANDROID_HOME = "${android}/share/android-sdk";
             NDK_HOME = "${android}/share/android-sdk/ndk/27.2.12479018";
             JAVA_HOME = pkgs.jdk17.home;
