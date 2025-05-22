@@ -95,4 +95,6 @@ dependencies {
   androidTestImplementation("androidx.test:core:1.6.1")
   androidTestImplementation("androidx.test:runner:1.6.2")
   androidTestImplementation("androidx.test:rules:1.6.1")
+  // Docs
+  dokkaPlugin("org.jetbrains.dokka:gfm-plugin:2.0.0")
 }
