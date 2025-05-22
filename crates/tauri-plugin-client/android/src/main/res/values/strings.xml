@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- unauthorized_notice -->
+    <string name="authorize_title">Authorize App Connection</string>
+    <string name="authorize_description_1">This app requires a connection to the Holochain Service app:</string>
+    <string name="authorize_description_2">To approve this connection, open the system notification "App Authorization Request", and choose "Approve".</string>
+    <string name="authorize_description_3">Once the connection has been approved, you must restart the app.</string>
+    <string name="restart">Restart</string>
+
+    <!-- disconnected_notice -->
+    <string name="disconnected_title">Start Holochain Service</string>
+    <string name="disconnected_description_1">This app requires a connection to the Holochain Service. Open the settings and choose "start" to start the service.</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="disconnected_description_2">Once the service is started, you must restart the app.</string>
+    <string name="restart">Restart</string>
+</resources>
