@@ -133,7 +133,7 @@ class HolochainServicePlugin(
         // Request POST_NOTIFICATION permission, so the HolochainService can create notifications
         this.requestPostNotificationsPermission()
 
-        if(this.runtimeNetworkConfig == null) {
+        if (this.runtimeNetworkConfig == null) {
             invoke.reject("You must call 'setConfig' before calling 'start'")
             return
         }
