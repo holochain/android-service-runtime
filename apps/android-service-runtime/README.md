@@ -17,3 +17,12 @@ By default, this will be built as a standard user app that only appears in the A
 To build as a system app that only appears in the Android System Settings page, use the feature flag `system_settings`.
 
 i.e. `npm run tauri build -- --features system_settings`
+
+## Development
+
+### Internationalization
+
+To add additional translation locales to the android-service-runtime webview UI, fill in the corresponding file `src/translations/locales/<LANGUAGE>.json` where `<LANGUAGE>` is the language code. Copy the string keys from `src/translations/locales/en.json` which is the default fallback language.
+
+
+To add additional translation locales to the android native UI widgets, see the [tauri-plugin-holochain-service-client docs](../../crates/tauri-plugin-client/README.md#internationalization).
