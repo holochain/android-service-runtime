@@ -40,8 +40,12 @@ export type RuntimeNetworkConfig = {
   iceUrls: string[];
 }
 
-export async function start(request: RuntimeNetworkConfig): Promise<string | null> {
-  return await invoke('plugin:holochain-service|start', request);
+export async function setConfig(request: RuntimeNetworkConfig): Promise<null> {
+  return await invoke('plugin:holochain-service|set_config', request);
+}
+
+export async function start(): Promise<string | null> {
+  return await invoke('plugin:holochain-service|start');
 }
 
 export async function stop(): Promise<string | null> {

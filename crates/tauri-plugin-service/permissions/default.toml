@@ -1,3 +1,3 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-start", "allow-stop", "allow-is-ready", "allow-install-app", "allow-uninstall-app", "allow-enable-app", "allow-disable-app", "allow-list-apps", "allow-is-app-installed", "allow-sign-zome-call"]
+permissions = ["allow-set-config", "allow-start", "allow-stop", "allow-is-ready", "allow-install-app", "allow-uninstall-app", "allow-enable-app", "allow-disable-app", "allow-list-apps", "allow-is-app-installed", "allow-sign-zome-call"]

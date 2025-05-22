@@ -86,7 +86,7 @@ export const toggleLaunch = async () => {
 
 const startInner = async () => {
   try {
-    await start(RUNTIME_NETWORK_CONFIG);
+    await start();
     await retry(async () => {
       const ready = await isReady();
       if(!ready) throw new Error("Conductor not ready");

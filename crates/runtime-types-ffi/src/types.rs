@@ -424,7 +424,8 @@ pub struct RuntimeConfigFfi {
     pub network: RuntimeNetworkConfigFfi,
 }
 
-#[derive(uniffi::Record, Clone, Debug)]
+#[derive(uniffi::Record, Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RuntimeNetworkConfigFfi {
     /// URL of the bootstrap server
     pub bootstrap_url: String,
