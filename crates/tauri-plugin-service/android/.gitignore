@@ -11,3 +11,4 @@ src/main/**/*_ffi
 src/main/res/raw/holochainenv.js
 
 lib
+local.properties

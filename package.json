@@ -5,8 +5,8 @@
       "build:runtime-types-ffi": "cd crates/runtime-types-ffi && ./scripts/build.sh",
       "build:client": "cd libraries/client && ./gradlew build",
       "build:service": "cd libraries/service && ./gradlew build",
-      "build:tauri-plugin-client": "pnpm run --dir crates/tauri-plugin-client build",
-      "build:tauri-plugin-service": "pnpm run --dir crates/tauri-plugin-service build",
+      "build:tauri-plugin-client": "pnpm run --dir crates/tauri-plugin-client build:single-target-arch:x86_64",
+      "build:tauri-plugin-service": "pnpm run --dir crates/tauri-plugin-service build:single-target-arch:x86_64",
       
       "build-deps:client": "pnpm run build:runtime-types-ffi && pnpm run build:client",
       "build-deps:service": "pnpm run build:runtime-ffi && pnpm run build:service",
@@ -19,8 +19,10 @@
 
       "build:single-target:runtime-ffi": "cd crates/runtime-ffi && ./scripts/build-single-target.sh",
       "build:single-target:runtime-types-ffi": "cd crates/runtime-types-ffi && ./scripts/build-single-target.sh",
-      "build:single-target-arch:aarch64-linux-android": "pnpm run build:single-target:runtime-types-ffi aarch64-linux-android && pnpm run build:client && pnpm run publish:local:client && pnpm run build:single-target:runtime-ffi aarch64-linux-android && pnpm run build:service && pnpm run publish:local:service && pnpm run build:tauri-plugin-client && pnpm run build:tauri-plugin-service",
-      
+      "build:single-target:tauri-plugin-client": "pnpm run --dir crates/tauri-plugin-client build:single-target",
+      "build:single-target:tauri-plugin-service": "pnpm run --dir crates/tauri-plugin-service build:single-target",
+      "build:single-target-arch:aarch64-linux-android": "pnpm run build:single-target:runtime-types-ffi aarch64-linux-android && pnpm run build:client && pnpm run publish:local:client && pnpm run build:single-target:runtime-ffi aarch64-linux-android && pnpm run build:service && pnpm run publish:local:service && pnpm run build:single-target:tauri-plugin-client aarch64-linux-android && pnpm run build:single-target:tauri-plugin-service aarch64-linux-android",
+
       "build:example-client-app": "pnpm run --dir apps/example-client-app build:android",
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
 
@@ -57,8 +59,8 @@
       "test:client": "cd libraries/client && ./gradlew connectedDebugAndroidTest",
       "test": " npm run test:runtime && pnpm run test:runtime-ffi && pnpm run test:service && pnpm run test:client",
 
-      "start:android-service-runtime": "pnpm run publish:local:client && pnpm run build:tauri-plugin-service && pnpm run --dir apps/android-service-runtime start:android",
-      "start:example-client-app": "pnpm run publish:local:client && pnpm run build:tauri-plugin-client && pnpm run --dir apps/example-client-app start:android"
+      "start:android-service-runtime": "pnpm run --dir apps/android-service-runtime start:android",
+      "start:example-client-app": "pnpm run --dir apps/example-client-app start:android"
     },
     "dependencies": {
       "tslib": "^2.7.0"

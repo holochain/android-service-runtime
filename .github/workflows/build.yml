@@ -1,0 +1,106 @@
+name: Build Apps
+
+on:
+  pull_request:
+    branches:
+      - main
+      - main-*
+
+jobs:
+  build-apps:
+    name: Build apps
+    
+    # This ensures we have access to android signing key
+    # which is required to build the apps.
+    environment: Android Service Runtime Release
+    
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - name: android-service-runtime
+            features: ""
+
+          - name: android-service-runtime
+            features: system_settings
+
+          - name: example-client-app
+            features: ""
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: false
+          swap-storage: false
+        
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
+      - name: setup Android signing
+        run: |
+          cd apps/${{ matrix.build.name }}/src-tauri/gen/android
+          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
+          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> key.properties
+          echo "storePassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> key.properties
+
+      - name: Build app ${{ matrix.build.name }} ${{ matrix.build.features }}
+        run: |
+          nix develop --no-update-lock-file --command bash -c "pnpm install && pnpm run build:${{ matrix.build.name }}  --features ${{ matrix.build.features }} --target x86_64 --apk"
+
+  build-tauri-plugins:
+    name: Build tauri plugins
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        name:
+          - tauri-plugin-service
+          - tauri-plugin-client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: false
+          swap-storage: false
+        
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
+      - name: Build tauri plugin ${{ matrix.name }}
+        run: |
+          nix develop --no-update-lock-file --command bash -c "pnpm install && pnpm run build:single-target:${{ matrix.name }} x86_64-linux-android"

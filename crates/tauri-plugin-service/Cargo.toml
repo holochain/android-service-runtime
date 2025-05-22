@@ -2,6 +2,7 @@
 name = "tauri-plugin-holochain-service"
 version = "0.1.0"
 exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
+links = "tauri-plugin-holochain-service"
 description = "Tauri plugin enabling an Android app to run Holochain as a foreground service"
 license = "CAL-1.0"
 authors.workspace = true
@@ -16,4 +17,3 @@ thiserror = { workspace = true }
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
-tauri-build = { workspace = true }
