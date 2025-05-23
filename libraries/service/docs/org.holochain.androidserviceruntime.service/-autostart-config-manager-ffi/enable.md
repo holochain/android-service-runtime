@@ -3,4 +3,4 @@
 # enable
 
 [androidJvm]\
-open override fun [enable](enable.md)()
+open override fun [enable](enable.md)(config: RuntimeNetworkConfigFfi)

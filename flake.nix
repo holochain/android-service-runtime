@@ -60,12 +60,18 @@
               pnpm
               binaryen # For WASM optimisation
 
+              # Project Utils
+              gnumake
+
               # Android development
               android
               gradle
               jdk17
               cargo-ndk
-              gnumake
+
+              # Tauri
+              curl
+              xz
             ]);
 
             # Tauri

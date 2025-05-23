@@ -21,5 +21,5 @@ interface [AutostartConfigManagerFfiInterface](index.md)
 | Name | Summary |
 |---|---|
 | [disable](disable.md) | [androidJvm]<br>abstract fun [disable](disable.md)() |
-| [enable](enable.md) | [androidJvm]<br>abstract fun [enable](enable.md)() |
-| [isEnabled](is-enabled.md) | [androidJvm]<br>abstract fun [isEnabled](is-enabled.md)(): [Boolean](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html) |
+| [enable](enable.md) | [androidJvm]<br>abstract fun [enable](enable.md)(config: RuntimeNetworkConfigFfi) |
+| [getEnabledConfig](get-enabled-config.md) | [androidJvm]<br>abstract fun [getEnabledConfig](get-enabled-config.md)(): RuntimeNetworkConfigFfi? |

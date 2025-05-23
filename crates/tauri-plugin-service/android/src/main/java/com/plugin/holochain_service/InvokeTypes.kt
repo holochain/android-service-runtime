@@ -4,6 +4,7 @@ import app.tauri.annotation.InvokeArg
 import org.holochain.androidserviceruntime.client.CellIdFfi
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfi
 import org.holochain.androidserviceruntime.client.RoleSettingsFfi
+import org.holochain.androidserviceruntime.client.RuntimeNetworkConfigFfi
 import org.holochain.androidserviceruntime.client.ZomeCallUnsignedFfi
 
 @InvokeArg
@@ -49,4 +50,18 @@ fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi =
         this.payload,
         this.nonce,
         this.expiresAt,
+    )
+
+@InvokeArg
+class RuntimeNetworkConfigFfiInvokeArg {
+    lateinit var bootstrapUrl: String
+    lateinit var signalUrl: String
+    lateinit var iceUrls: List<String>
+}
+
+fun RuntimeNetworkConfigFfiInvokeArg.toFfi(): RuntimeNetworkConfigFfi =
+    RuntimeNetworkConfigFfi(
+        this.bootstrapUrl,
+        this.signalUrl,
+        this.iceUrls,
     )

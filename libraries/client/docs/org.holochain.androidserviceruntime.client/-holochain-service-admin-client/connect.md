@@ -5,6 +5,6 @@
 [androidJvm]\
 fun [connect](connect.md)()
 
-Connects to the Holochain service using the Admin API.
+Connect to the Holochain service using the Admin API.
 
-This must be called before any other methods can be used.
+This must be called before using any functions on the Admin API binder.

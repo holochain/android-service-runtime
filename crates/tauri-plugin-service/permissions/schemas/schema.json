@@ -379,6 +379,18 @@
           "markdownDescription": "Denies the list_apps command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_config command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-config",
+          "markdownDescription": "Enables the set_config command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_config command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-config",
+          "markdownDescription": "Denies the set_config command without any pre-configured scope."
+        },
+        {
           "description": "Enables the sign_zome_call command without any pre-configured scope.",
           "type": "string",
           "const": "allow-sign-zome-call",
@@ -427,10 +439,10 @@
           "markdownDescription": "Denies the uninstall_app command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-start`\n- `allow-stop`\n- `allow-is-ready`\n- `allow-install-app`\n- `allow-uninstall-app`\n- `allow-enable-app`\n- `allow-disable-app`\n- `allow-list-apps`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`",
+          "description": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-config`\n- `allow-start`\n- `allow-stop`\n- `allow-is-ready`\n- `allow-install-app`\n- `allow-uninstall-app`\n- `allow-enable-app`\n- `allow-disable-app`\n- `allow-list-apps`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-start`\n- `allow-stop`\n- `allow-is-ready`\n- `allow-install-app`\n- `allow-uninstall-app`\n- `allow-enable-app`\n- `allow-disable-app`\n- `allow-list-apps`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`"
+          "markdownDescription": "Default permissions for the plugin\n#### This default permission set includes:\n\n- `allow-set-config`\n- `allow-start`\n- `allow-stop`\n- `allow-is-ready`\n- `allow-install-app`\n- `allow-uninstall-app`\n- `allow-enable-app`\n- `allow-disable-app`\n- `allow-list-apps`\n- `allow-is-app-installed`\n- `allow-sign-zome-call`"
         }
       ]
     }

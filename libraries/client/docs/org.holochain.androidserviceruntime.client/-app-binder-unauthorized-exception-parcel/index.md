@@ -21,5 +21,5 @@ data class [AppBinderUnauthorizedExceptionParcel](index.md)(var inner: [AppBinde
 
 | Name | Summary |
 |---|---|
-| [describeContents](index.md#-1578325224%2FFunctions%2F275946699) | [androidJvm]<br>abstract fun [describeContents](index.md#-1578325224%2FFunctions%2F275946699)(): [Int](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html) |
-| [writeToParcel](index.md#-1754457655%2FFunctions%2F275946699) | [androidJvm]<br>abstract fun [writeToParcel](index.md#-1754457655%2FFunctions%2F275946699)(p0: [Parcel](https://developer.android.com/reference/kotlin/android/os/Parcel.html), p1: [Int](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html)) |
+| [describeContents](../-runtime-network-config-ffi-parcel/index.md#-1578325224%2FFunctions%2F275946699) | [androidJvm]<br>abstract fun [describeContents](../-runtime-network-config-ffi-parcel/index.md#-1578325224%2FFunctions%2F275946699)(): [Int](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html) |
+| [writeToParcel](../-runtime-network-config-ffi-parcel/index.md#-1754457655%2FFunctions%2F275946699) | [androidJvm]<br>abstract fun [writeToParcel](../-runtime-network-config-ffi-parcel/index.md#-1754457655%2FFunctions%2F275946699)(p0: [Parcel](https://developer.android.com/reference/kotlin/android/os/Parcel.html), p1: [Int](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html)) |
