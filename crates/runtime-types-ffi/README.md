@@ -1,22 +1,33 @@
 # holochain-conductor-runtime-types-ffi
 
-This crate contains wrappers around types used in requests & responses of `holochain-conductor-runtime`.
+This crate contains wrappers around types used in requests & responses of `holochain-conductor-runtime-ffi`, which are compatible with uniffi.
 
 It generates FFI bindings for Kotlin.
 
-## Building
+## Build
 
-- Run `./generate-bindings-release.sh`
-- Copy the out/**/*.so directories into jniLib directory of your android project
-- Copy the out/uniffi directory into java directory of your android project
+This repo includes two scripts to build the crate as a library for android targets, generate kotlin bindings, and copy both the library and bindings into the kotlin library [`org.holochain.androidserviceruntime.client`](../../libraries/client/README.md).
 
-## Development
+Supported android targets are `aarch64-linux-android`, `x86_64-linux-android`, and `i686-linux-android`.
 
-### Adding Types
-When adding new types to this crate that will be used in FFI-exposed interfaces in `holochain_runtime_uniffi` crate, you will also need to add the type to the [UDL file](../holochain_runtime_uniffi/src/holochain_runtime_uniffi.udl) in `holochain_runtime_uniffi`.
+### For all supported android targets
 
-See [Uniffi Docs](https://mozilla.github.io/uniffi-rs/latest/udl/external_types.html) for more info on including external types.
+To build for all supported android targets, run:
 
-### Gotchas!!!
+```bash
+./build.sh
+```
+
+### For a single target
+
+To build for a single android target, run:
+
+```bash
+./build-single-target.sh <TARGET-ARCH>
+```
+
+where `<TARGET_ARCH>` is the rust target triple, i.e. `aarch64-linux-android`.
+
+## Uniffi Gotchas
 - Enum variants cannot have the same name as other types (i.e. Error enum variants cannot match other error types)
 - Generated types may have different casing. For example kotlin types use TitleCase

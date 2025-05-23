@@ -1,5 +1,6 @@
 # Forum
 
+The scaffolded holochain example app ["forum"](https://developer.holochain.org/get-started/3-forum-app-tutorial/), with a simple tauri app wrapper using the `tauri-plugin-holochain-service-client` to connect to holochain.
 
 ## Environment Setup
 
