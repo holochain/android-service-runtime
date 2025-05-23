@@ -14,8 +14,6 @@
 
 #![cfg(mobile)]
 
-To use this plugin in your tauri app, load 
-
 mod error;
 mod mobile;
 mod types;
