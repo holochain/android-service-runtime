@@ -3,7 +3,7 @@
 A simple wrapper around `holochain-conductor-runtime`, with the addition of using [`uniffi`](https://docs.rs/uniffi/latest/uniffi/) to generate FFI functions and Kotlin bindings to them.
 ## Build
 
-This repo includes two scripts to build the crate as a library for android targets, generate kotlin bindings, and copy both the library and bindings into the kotlin library [`org.holochain.androidserviceruntime.service`](../../libraries/service/README.md).
+This repo includes a script to build the crate as a library for android targets, generate kotlin bindings, and copy both the library and bindings into the kotlin library [`org.holochain.androidserviceruntime.service`](../../libraries/service/README.md).
 
 Supported android targets are `aarch64-linux-android`, `x86_64-linux-android`, and `i686-linux-android`.
 

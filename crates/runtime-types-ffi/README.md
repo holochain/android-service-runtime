@@ -6,7 +6,7 @@ It generates FFI bindings for Kotlin.
 
 ## Build
 
-This repo includes two scripts to build the crate as a library for android targets, generate kotlin bindings, and copy both the library and bindings into the kotlin library [`org.holochain.androidserviceruntime.client`](../../libraries/client/README.md).
+This repo includes a script to build the crate as a library for android targets, generate kotlin bindings, and copy both the library and bindings into the kotlin library [`org.holochain.androidserviceruntime.client`](../../libraries/client/README.md).
 
 Supported android targets are `aarch64-linux-android`, `x86_64-linux-android`, and `i686-linux-android`.
 

@@ -39,6 +39,6 @@
 
 ## CI
 
-Note that CI checks for building `tauri-plugin-holochain-service` and `tauri-plugin-holochain-service-client` do *not* publishing the client & service libraries to a local maven repository, but instead use the versions published to Maven Central.
+Note that CI checks for building `tauri-plugin-holochain-service` and `tauri-plugin-holochain-service-client` do *not* publish the client & service libraries to a local maven repository, but instead use the versions published to Maven Central.
 
 If your PR makes changes to the client or service library, it will need to be published to Maven Central, before the CI checks of `tauri-plugin-holochain-service` and `tauri-plugin-holochain-service-client` will pass.
