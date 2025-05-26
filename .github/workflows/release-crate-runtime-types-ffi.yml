@@ -1,4 +1,4 @@
-name: "release-runtime-types-ffi"
+name: "Release runtime-types-ffi"
 on:
   push:
     tags:
@@ -10,8 +10,6 @@ jobs:
   release:
     permissions: write-all
     environment: Cargo Release
-    needs: 
-      - create-release
     runs-on: 'ubuntu-22.04' 
     strategy:
       fail-fast: false
