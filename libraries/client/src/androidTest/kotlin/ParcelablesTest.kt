@@ -878,13 +878,14 @@ class ParcelablesTest {
 
     @Test
     fun testRuntimeNetworkConfigFfiParcel() {
-        val value =  RuntimeNetworkConfigFfiParcel(
-            RuntimeNetworkConfigFfi(
-                bootstrapUrl = "2",
-                signalUrl = "3",
-                iceUrls = listOf("4", "5"),
+        val value =
+            RuntimeNetworkConfigFfiParcel(
+                RuntimeNetworkConfigFfi(
+                    bootstrapUrl = "2",
+                    signalUrl = "3",
+                    iceUrls = listOf("4", "5"),
+                ),
             )
-        )
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
