@@ -1,9 +1,9 @@
+use holochain_conductor_runtime_types_ffi::RuntimeNetworkConfigFfi;
 use serde::de::DeserializeOwned;
 use tauri::{
     plugin::{PluginApi, PluginHandle},
     AppHandle, Runtime,
 };
-use holochain_conductor_runtime_types_ffi::RuntimeNetworkConfigFfi;
 
 #[cfg(target_os = "android")]
 const PLUGIN_IDENTIFIER: &str = "org.holochain.androidserviceruntime.plugin.service";
@@ -34,8 +34,6 @@ pub struct HolochainService<R: Runtime>(pub PluginHandle<R>);
 
 impl<R: Runtime> HolochainService<R> {
     pub fn set_config(&self, config: RuntimeNetworkConfigFfi) -> crate::Result<()> {
-        Ok(self
-            .0
-            .run_mobile_plugin::<()>("setConfig", config)?)
+        Ok(self.0.run_mobile_plugin::<()>("setConfig", config)?)
     }
 }

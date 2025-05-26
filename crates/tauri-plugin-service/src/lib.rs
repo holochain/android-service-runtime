@@ -4,12 +4,12 @@ mod error;
 mod mobile;
 
 pub use error::{Error, Result};
+pub use holochain_conductor_runtime_types_ffi::RuntimeNetworkConfigFfi;
 use mobile::HolochainService;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Manager, Runtime,
 };
-pub use holochain_conductor_runtime_types_ffi::RuntimeNetworkConfigFfi;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the holochain-service APIs.
 pub trait HolochainServiceExt<R: Runtime> {
