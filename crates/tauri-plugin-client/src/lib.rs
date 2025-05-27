@@ -1,3 +1,17 @@
+//! A Tauri plugin for holochain end-user apps.
+//!
+//! With this plugin, you can write an android app that relies on holochain,
+//! without bundling the holochain conductor.
+//! 
+//! Instead, this plugin expects that you have *another* android app installed,
+//! with the tauri plugin `tauri-plugin-holochain-service`,
+//! and will use that app's holochain conductor.
+//!
+//! ## Usage
+//!
+//! See the [example-client-app](https://github.com/holochain/android-service-runtime/blob/main/apps/example-client-app/src-tauri/src/lib.rs) 
+//! for a demo of how to integrate this plugin in your Tauri app.
+
 #![cfg(mobile)]
 
 mod error;
