@@ -1,6 +1,6 @@
 # holochain-conductor-runtime
 
-A simple wrapper around the [`holochain`](https://docs.rs/holochain/latest/holochain/) create, with functions to expose interacting with the [`holochain::Conductor`](https://docs.rs/holochain/latest/holochain/conductor/index.html) directly.
+A simple wrapper around the [`holochain`](https://docs.rs/holochain/latest/holochain/) crate, with functions to expose interacting with the [`holochain::Conductor`](https://docs.rs/holochain/latest/holochain/conductor/index.html) directly.
 
 It is intended to be a general-purpose wrapper for holochain runtime. 
 
