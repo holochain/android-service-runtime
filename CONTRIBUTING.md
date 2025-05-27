@@ -41,4 +41,4 @@
 
 Note that the CI jobs `build-tauri-plugins` do *not* publish the kotlin client and service libraries to the local Maven repository.
 
-If your PR makes changes to the client or service library, it will need to be published to Maven Central, before the CI checks of `tauri-plugin-holochain-service` and `tauri-plugin-holochain-service-client` will pass.
+If your PR makes changes to the client or service library, it will need to be published to Maven Central, before the CI jobs `build-tauri-plugins` will pass.
