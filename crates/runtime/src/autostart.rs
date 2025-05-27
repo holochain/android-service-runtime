@@ -20,7 +20,7 @@ struct AutostartConfig {
 
 /// Manager for reading & writing persisted autostart config
 ///
-/// Not this does *not* actually handle starting the runtime,
+/// This does *not* actually handle starting the runtime,
 /// but is purely a configuration, which the consumer of this
 /// crate can read during its boot process.
 #[derive(Clone)]
