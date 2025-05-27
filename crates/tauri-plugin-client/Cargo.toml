@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin-holochain-service-client"
-version = "0.1.0"
+version = "0.1.1"
 exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
 links = "tauri-plugin-holochain-service-client"
 description = "Tauri plugin enabling an Android app to run as a client of the tauri-plugin-holochain-service"
