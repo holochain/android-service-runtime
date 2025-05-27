@@ -39,6 +39,9 @@
 
       "publish:client": "cd libraries/client && ./gradlew publishAndReleaseToMavenCentral",
       "publish:service": "cd libraries/service && ./gradlew publishAndReleaseToMavenCentral",
+      "publish:runtime-types-ffi": "cargo publish -p holochain-conductor-runtime-types-ffi",
+      "publish:tauri-plugin-client": "cargo publish -p tauri-plugin-holochain-service-client --no-verify",
+      "publish:tauri-plugin-service": "cargo publish -p tauri-plugin-holochain-service --no-verify",
       "publish": "pnpm run publish:client && pnpm run publish:service",
 
       "publish:local:client": "cd libraries/client && ./gradlew publishToMavenLocal",
