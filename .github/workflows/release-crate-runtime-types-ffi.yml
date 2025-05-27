@@ -34,5 +34,5 @@ jobs:
       - name: Publish to crates.io
         run: |
           nix develop --no-update-lock-file --command bash -c "pnpm run publish:runtime-types-ffi"
-        with:
+        env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
