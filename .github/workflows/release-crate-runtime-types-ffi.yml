@@ -1,4 +1,4 @@
-name: "Release runtime-types-ffi"
+name: "release-runtime-types-ffi"
 on:
   push:
     tags:
