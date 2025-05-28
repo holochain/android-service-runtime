@@ -62,3 +62,9 @@
 2. Create and push a git tag with a matching format to trigger the release CI.
 
     The git tag format is: `tauri-plugin-service-vX.Y.Z`, where "X.Y.Z" is replaced with the version number.
+
+## CI
+
+Note that the CI jobs `build-tauri-plugins` do *not* publish the kotlin client and service libraries to the local Maven repository.
+
+If your PR makes changes to the client or service library, it will need to be published to Maven Central, before the CI jobs `build-tauri-plugins` will pass.
