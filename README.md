@@ -6,7 +6,7 @@ An Android app and Tauri plugins that provide an integrated approach for running
 - A Tauri plugin for your tauri holochain app, so that it uses the system-wide Holochain conductor service, rather than bundling its own conductor.
 
 
-## Components (from highest level to lowest)
+## Components
 
 ### Android Apps
 

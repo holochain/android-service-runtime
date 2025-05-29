@@ -2,7 +2,7 @@
 
 An Android app for managing a system-wide Holochain conductor running as an [Android Foreground Service](https://developer.android.com/develop/background-work/services/fgs).
 
-The Foreground Service can run persistently, even when the app is closed, ensuring that you can be a reliable contributor to the peer-to-peer networks of your apps.
+The Foreground Service can run persistently, even when the app is closed, ensuring that your node remains a participant in the peer-to-peer networks of your apps.
 
 ## Build
 

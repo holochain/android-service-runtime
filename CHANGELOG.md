@@ -2,6 +2,7 @@
 - CI to publish kotlin libraries to Maven Central, triggered by a release tag.
 - Specify ICE Servers in `RuntimeConfigFfi`
 - Add support for translations, with only english locale written.
+- CI to publish tauri-plugin-holochain-service, tauri-plugin-holochain-service-client and holochain-conductor-runtime-types-ffi to crates.io, triggered by release tag.
 - The runtime network configuration must now be specified when initializing `tauri-plugin-holochain-service`. Previously, it was hard-coded.
 
 # 0.1.0
