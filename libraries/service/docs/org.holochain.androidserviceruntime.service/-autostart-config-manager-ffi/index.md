@@ -24,6 +24,6 @@ open class [AutostartConfigManagerFfi](index.md) : [Disposable](../-disposable/i
 | [close](close.md) | [androidJvm]<br>@[Synchronized](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-synchronized/index.html)<br>open override fun [close](close.md)() |
 | [destroy](destroy.md) | [androidJvm]<br>open override fun [destroy](destroy.md)() |
 | [disable](disable.md) | [androidJvm]<br>open override fun [disable](disable.md)() |
-| [enable](enable.md) | [androidJvm]<br>open override fun [enable](enable.md)() |
-| [isEnabled](is-enabled.md) | [androidJvm]<br>open override fun [isEnabled](is-enabled.md)(): [Boolean](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html) |
+| [enable](enable.md) | [androidJvm]<br>open override fun [enable](enable.md)(config: RuntimeNetworkConfigFfi) |
+| [getEnabledConfig](get-enabled-config.md) | [androidJvm]<br>open override fun [getEnabledConfig](get-enabled-config.md)(): RuntimeNetworkConfigFfi? |
 | [uniffiClonePointer](uniffi-clone-pointer.md) | [androidJvm]<br>fun [uniffiClonePointer](uniffi-clone-pointer.md)(): Pointer |

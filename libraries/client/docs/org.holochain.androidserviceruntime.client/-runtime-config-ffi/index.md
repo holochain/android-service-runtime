@@ -3,13 +3,13 @@
 # RuntimeConfigFfi
 
 [androidJvm]\
-data class [RuntimeConfigFfi](index.md)(var dataRootPath: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), var bootstrapUrl: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), var signalUrl: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html))
+data class [RuntimeConfigFfi](index.md)(var dataRootPath: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), var network: [RuntimeNetworkConfigFfi](../-runtime-network-config-ffi/index.md))
 
 ## Constructors
 
 | | |
 |---|---|
-| [RuntimeConfigFfi](-runtime-config-ffi.md) | [androidJvm]<br>constructor(dataRootPath: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), bootstrapUrl: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), signalUrl: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html)) |
+| [RuntimeConfigFfi](-runtime-config-ffi.md) | [androidJvm]<br>constructor(dataRootPath: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), network: [RuntimeNetworkConfigFfi](../-runtime-network-config-ffi/index.md)) |
 
 ## Types
 
@@ -21,6 +21,5 @@ data class [RuntimeConfigFfi](index.md)(var dataRootPath: [String](https://kotli
 
 | Name | Summary |
 |---|---|
-| [bootstrapUrl](bootstrap-url.md) | [androidJvm]<br>var [bootstrapUrl](bootstrap-url.md): [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html)<br>URL of the bootstrap server |
 | [dataRootPath](data-root-path.md) | [androidJvm]<br>var [dataRootPath](data-root-path.md): [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html)<br>Path where conductor data is stored |
-| [signalUrl](signal-url.md) | [androidJvm]<br>var [signalUrl](signal-url.md): [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html)<br>URL of the sbd server |
+| [network](network.md) | [androidJvm]<br>var [network](network.md): [RuntimeNetworkConfigFfi](../-runtime-network-config-ffi/index.md)<br>Network config |
