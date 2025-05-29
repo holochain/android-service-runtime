@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
-/// Name of file to persit data to
+/// Name of file to persist data to
 const PERSISTED_FILE_NAME: &str = "autostart_config.msgpack";
 
 /// Is Auto Start on Boot enabled?

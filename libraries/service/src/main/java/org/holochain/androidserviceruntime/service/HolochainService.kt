@@ -28,8 +28,8 @@ import org.holochain.androidserviceruntime.client.IHolochainServiceApp
 import org.holochain.androidserviceruntime.client.IHolochainServiceCallback
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfiParcel
 import org.holochain.androidserviceruntime.client.RuntimeConfigFfi
-import org.holochain.androidserviceruntime.client.ZomeCallFfiParcel
-import org.holochain.androidserviceruntime.client.ZomeCallUnsignedFfiParcel
+import org.holochain.androidserviceruntime.client.ZomeCallParamsFfiParcel
+import org.holochain.androidserviceruntime.client.ZomeCallParamsSignedFfiParcel
 import java.security.InvalidParameterException
 
 class HolochainService : Service() {
@@ -529,7 +529,7 @@ class HolochainService : Service() {
         // / Sign a zome call
         override fun signZomeCall(
             callback: IHolochainServiceCallback,
-            req: ZomeCallUnsignedFfiParcel,
+            req: ZomeCallParamsFfiParcel,
         ) {
             Log.d(logTag, "signZomeCall")
             if (!this.isAuthorized()) {
@@ -538,7 +538,7 @@ class HolochainService : Service() {
             }
 
             serviceScope.launch(Dispatchers.IO) {
-                callback.signZomeCall(ZomeCallFfiParcel(runtime!!.signZomeCall(req.inner)))
+                callback.signZomeCall(ZomeCallParamsSignedFfiParcel(runtime!!.signZomeCall(req.inner)))
             }
         }
 
@@ -645,7 +645,7 @@ class HolochainService : Service() {
         // / Sign a zome call
         override fun signZomeCall(
             callback: IHolochainServiceCallback,
-            req: ZomeCallUnsignedFfiParcel,
+            req: ZomeCallParamsFfiParcel,
         ) {
             Log.d(logTag, "signZomeCall")
             if (!this.isAuthorized()) {
@@ -654,7 +654,7 @@ class HolochainService : Service() {
             }
 
             serviceScope.launch(Dispatchers.IO) {
-                callback.signZomeCall(ZomeCallFfiParcel(runtime!!.signZomeCall(req.inner)))
+                callback.signZomeCall(ZomeCallParamsSignedFfiParcel(runtime!!.signZomeCall(req.inner)))
             }
         }
 

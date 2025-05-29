@@ -17,7 +17,7 @@ function injectHolochainClientEnv(installedAppId: String, port: number, token: U
         const expiresAt = 1e3*(Date.now()+3e5);
         const payload = Array.from(encode(request.payload));
 
-        const zomeCallUnsigned = {
+        const ZomeCallParams = {
             provenance: request.provenance,
             cellId: request.cell_id,
             zomeName: request.zome_name,
@@ -27,16 +27,9 @@ function injectHolochainClientEnv(installedAppId: String, port: number, token: U
             nonce,
             expiresAt,
         };
-        const response = await (window as any).__TAURI_INTERNALS__.invoke("plugin:holochain-service|sign_zome_call", zomeCallUnsigned);
+        const response = await (window as any).__TAURI_INTERNALS__.invoke("plugin:holochain-service|sign_zome_call", ZomeCallParams);
         const zomeCallSigned = {
-            provenance: request.provenance,
-            cell_id: request.cell_id,
-            zome_name: request.zome_name,
-            fn_name: request.fn_name,
-            cap_secret: null,
-            payload,
-            nonce,
-            expires_at: expiresAt,
+            bytes: Uint8Array.from(response.bytes),
             signature: Uint8Array.from(response.signature),
         } as CallZomeRequestSigned;
 

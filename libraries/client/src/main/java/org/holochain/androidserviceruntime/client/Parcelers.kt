@@ -260,9 +260,9 @@ object AppAuthFfiParceler : Parceler<AppAuthFfi> {
     }
 }
 
-object ZomeCallUnsignedFfiParceler : Parceler<ZomeCallUnsignedFfi> {
-    override fun create(parcel: Parcel): ZomeCallUnsignedFfi =
-        ZomeCallUnsignedFfi(
+object ZomeCallParamsFfiParceler : Parceler<ZomeCallParamsFfi> {
+    override fun create(parcel: Parcel): ZomeCallParamsFfi =
+        ZomeCallParamsFfi(
             provenance = parcel.createByteArray() ?: ByteArray(0),
             cellId = parcelableCreator<CellIdFfiParcel>().createFromParcel(parcel).inner,
             zomeName = parcel.readString() ?: "",
@@ -273,7 +273,7 @@ object ZomeCallUnsignedFfiParceler : Parceler<ZomeCallUnsignedFfi> {
             expiresAt = parcel.readLong(),
         )
 
-    override fun ZomeCallUnsignedFfi.write(
+    override fun ZomeCallParamsFfi.write(
         parcel: Parcel,
         flags: Int,
     ) {
@@ -295,40 +295,19 @@ object ZomeCallUnsignedFfiParceler : Parceler<ZomeCallUnsignedFfi> {
     }
 }
 
-object ZomeCallFfiParceler : Parceler<ZomeCallFfi> {
-    override fun create(parcel: Parcel): ZomeCallFfi =
-        ZomeCallFfi(
-            cellId = parcelableCreator<CellIdFfiParcel>().createFromParcel(parcel).inner,
-            zomeName = parcel.readString() ?: "",
-            fnName = parcel.readString() ?: "",
-            payload = parcel.createByteArray() ?: ByteArray(0),
-            capSecret = if (parcel.readInt() == 1) parcel.createByteArray() else null,
-            provenance = parcel.createByteArray() ?: ByteArray(0),
+object ZomeCallParamsSignedFfiParceler : Parceler<ZomeCallParamsSignedFfi> {
+    override fun create(parcel: Parcel): ZomeCallParamsSignedFfi =
+        ZomeCallParamsSignedFfi(
+            bytes = parcel.createByteArray() ?: ByteArray(0),
             signature = parcel.createByteArray() ?: ByteArray(0),
-            nonce = parcel.createByteArray() ?: ByteArray(0),
-            expiresAt = parcel.readLong(),
         )
 
-    override fun ZomeCallFfi.write(
+    override fun ZomeCallParamsSignedFfi.write(
         parcel: Parcel,
         flags: Int,
     ) {
-        CellIdFfiParcel(cellId).writeToParcel(parcel, flags)
-        parcel.writeString(zomeName)
-        parcel.writeString(fnName)
-        parcel.writeByteArray(payload)
-
-        if (capSecret != null) {
-            parcel.writeInt(1)
-            parcel.writeByteArray(capSecret)
-        } else {
-            parcel.writeInt(0)
-        }
-
-        parcel.writeByteArray(provenance)
+        parcel.writeByteArray(bytes)
         parcel.writeByteArray(signature)
-        parcel.writeByteArray(nonce)
-        parcel.writeLong(expiresAt)
     }
 }
 
@@ -457,8 +436,6 @@ object DnaModifiersFfiParceler : Parceler<DnaModifiersFfi> {
         DnaModifiersFfi(
             networkSeed = parcel.readString() ?: "",
             properties = parcel.createByteArray() ?: ByteArray(0),
-            originTime = parcel.readLong(),
-            quantumTime = parcelableCreator<DurationFfiParcel>().createFromParcel(parcel).inner,
         )
 
     override fun DnaModifiersFfi.write(
@@ -467,8 +444,6 @@ object DnaModifiersFfiParceler : Parceler<DnaModifiersFfi> {
     ) {
         parcel.writeString(networkSeed)
         parcel.writeByteArray(properties)
-        parcel.writeLong(originTime)
-        DurationFfiParcel(quantumTime).writeToParcel(parcel, flags)
     }
 }
 
@@ -477,8 +452,6 @@ object DnaModifiersOptFfiParceler : Parceler<DnaModifiersOptFfi> {
         DnaModifiersOptFfi(
             networkSeed = parcel.readString() ?: "",
             properties = parcel.createByteArray() ?: ByteArray(0),
-            originTime = parcel.readLong(),
-            quantumTime = parcelableCreator<DurationFfiParcel>().createFromParcel(parcel).inner,
         )
 
     override fun DnaModifiersOptFfi.write(
@@ -487,25 +460,6 @@ object DnaModifiersOptFfiParceler : Parceler<DnaModifiersOptFfi> {
     ) {
         parcel.writeString(networkSeed)
         parcel.writeByteArray(properties)
-
-        if (originTime != null) {
-            parcel.writeLong(originTime!!)
-        }
-        if (quantumTime != null) {
-            DurationFfiParcel(quantumTime!!).writeToParcel(parcel, flags)
-        }
-    }
-}
-
-object DurationFfiParceler : Parceler<DurationFfi> {
-    override fun create(parcel: Parcel): DurationFfi = DurationFfi(secs = parcel.readLong().toULong(), nanos = parcel.readInt().toUInt())
-
-    override fun DurationFfi.write(
-        parcel: Parcel,
-        flags: Int,
-    ) {
-        parcel.writeLong(secs.toLong())
-        parcel.writeInt(nanos.toInt())
     }
 }
 

@@ -19,6 +19,7 @@ uniffi = { workspace = true, features = ["tokio"] }
 thiserror = { workspace = true }
 url2 = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
+sodoken = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }

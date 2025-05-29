@@ -1,19 +1,19 @@
 use crate::{AppAuth, RuntimeConfig, RuntimeError, RuntimeResult, DEVICE_SEED_LAIR_TAG};
 use crate::{AuthorizedAppClientsManager, ClientId};
-use holochain::conductor::api::AppAuthenticationTokenIssued;
+use holochain::conductor::api::{AppAuthenticationTokenIssued, ZomeCallParamsSigned};
 use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
 use holochain::{
     conductor::{
-        api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo, ZomeCall},
+        api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo},
         ConductorBuilder, ConductorHandle,
     },
-    prelude::{InstallAppPayload, InstalledAppId, ZomeCallUnsigned},
+    prelude::{InstallAppPayload, InstalledAppId, ZomeCallParams},
 };
 use holochain_types::websocket::AllowedOrigins;
-use kitsune_p2p_types::dependencies::lair_keystore_api::dependencies::sodoken::BufRead;
 use log::debug;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use lair_keystore_api::types::SharedLockedArray;
 
 /// Map of app ids to their associated app websocket & authentication
 pub type AppAuths = Arc<RwLock<HashMap<InstalledAppId, AppAuth>>>;
@@ -28,7 +28,7 @@ pub struct Runtime {
 
 impl Runtime {
     /// Initialize and start a new Conductor
-    pub async fn new(passphrase: BufRead, runtime_config: RuntimeConfig) -> RuntimeResult<Self> {
+    pub async fn new(passphrase: SharedLockedArray, runtime_config: RuntimeConfig) -> RuntimeResult<Self> {
         let conductor = ConductorBuilder::default()
             .passphrase(Some(passphrase))
             .config(runtime_config.clone().into())
@@ -143,11 +143,20 @@ impl Runtime {
 
     pub async fn sign_zome_call(
         &self,
-        zome_call_unsigned: ZomeCallUnsigned,
-    ) -> RuntimeResult<ZomeCall> {
-        ZomeCall::try_from_unsigned_zome_call(self.conductor.keystore(), zome_call_unsigned)
+        zome_call_params: ZomeCallParams,
+    ) -> RuntimeResult<ZomeCallParamsSigned> {
+        let (bytes, hash) = zome_call_params.serialize_and_hash()
+            .map_err(|e| RuntimeError::ZomeCallParamsInvalid(e.to_string()))?;
+        let signer_key: [u8; 32] = zome_call_params.provenance.into_inner().try_into()
+            .map_err(|_| RuntimeError::ZomeCallParamsInvalid("Invalid provenance".to_string()))?;
+        let signature = self.conductor.keystore().lair_client().sign_by_pub_key(signer_key.into(), None, hash.into())
             .await
-            .map_err(RuntimeError::Lair)
+            .map_err(RuntimeError::Lair)?;
+
+        Ok(ZomeCallParamsSigned {
+            bytes: bytes.into(),
+            signature: (*signature.0).into(),
+        })
     }
 
     pub async fn ensure_app_websocket(
@@ -285,7 +294,7 @@ mod test {
     use holochain_types::prelude::DisabledAppReason;
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
-    use kitsune_p2p_types::config::TransportConfig;
+    use holochain::conductor::config::NetworkConfig;
     use serde_json::json;
     use tempfile::TempDir;
     use url2::Url2;
@@ -316,7 +325,7 @@ mod test {
         let ice_urls = vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()];
 
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir.path().into(),
                 bootstrap_url: bootstrap_url.clone(),
@@ -379,7 +388,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -403,7 +412,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -436,7 +445,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -460,7 +469,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -485,7 +494,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -515,7 +524,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -537,7 +546,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -562,7 +571,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -581,7 +590,7 @@ mod test {
         };
 
         let res = runtime
-            .sign_zome_call(ZomeCallUnsigned {
+            .sign_zome_call(ZomeCallParams {
                 provenance: cell_id.agent_pubkey().clone(),
                 cell_id: cell_id.clone(),
                 zome_name: "forum".into(),
@@ -600,7 +609,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -660,7 +669,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -681,7 +690,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -736,7 +745,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
@@ -774,7 +783,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),

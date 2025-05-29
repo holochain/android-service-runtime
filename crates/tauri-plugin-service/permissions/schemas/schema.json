@@ -379,6 +379,18 @@
           "markdownDescription": "Denies the list_apps command without any pre-configured scope."
         },
         {
+          "description": "Enables the set_config command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-set-config",
+          "markdownDescription": "Enables the set_config command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the set_config command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-set-config",
+          "markdownDescription": "Denies the set_config command without any pre-configured scope."
+        },
+        {
           "description": "Enables the sign_zome_call command without any pre-configured scope.",
           "type": "string",
           "const": "allow-sign-zome-call",

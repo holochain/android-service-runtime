@@ -143,14 +143,14 @@ importers:
   crates/tauri-plugin-client:
     dependencies:
       '@holochain/client':
-        specifier: 0.18.0
-        version: 0.18.0(bufferutil@4.0.8)
+        specifier: ^0.19.0
+        version: 0.19.0(bufferutil@4.0.8)
       '@msgpack/msgpack':
         specifier: ^3.1.1
         version: 3.1.1
       '@tauri-apps/api':
-        specifier: '>=2.0.0-beta.6'
-        version: 2.3.0
+        specifier: ^2.5.0
+        version: 2.5.0
     devDependencies:
       '@rollup/plugin-node-resolve':
         specifier: ^15.2.3
@@ -171,14 +171,14 @@ importers:
   crates/tauri-plugin-service:
     dependencies:
       '@holochain/client':
-        specifier: 0.18.0
-        version: 0.18.0(bufferutil@4.0.8)
+        specifier: ^0.19.0
+        version: 0.19.0(bufferutil@4.0.8)
       '@msgpack/msgpack':
         specifier: ^3.1.1
         version: 3.1.1
       '@tauri-apps/api':
-        specifier: '>=2.0.0-beta.6'
-        version: 2.3.0
+        specifier: ^2.5.0
+        version: 2.5.0
     devDependencies:
       '@rollup/plugin-node-resolve':
         specifier: ^15.2.3
@@ -587,6 +587,10 @@ packages:
     resolution: {integrity: sha512-2avPfwkJhniymgQHO7/X8+IaX8kR/5kPz6J1wf82s8JZzFt13911aSu+NiXnPkQNyozwaCwl5pdsq/n6haLcPA==}
     engines: {node: '>=18.0.0 || >=20.0.0'}
 
+  '@holochain/client@0.19.0':
+    resolution: {integrity: sha512-LAiuQwyAQlLJp5Y0uT7EKuWy2AoCxMLdTECCLOs8ALADZzhNykFi2rmeC9hzskPXMR441bOhHPBWynqzQH95Ew==}
+    engines: {node: '>=18.0.0 || >=20.0.0'}
+
   '@holochain/hc-spin-rust-utils-darwin-arm64@0.400.0':
     resolution: {integrity: sha512-FL/pnutrsj7AfIyml4flM2FpMMjm6KCDfaR+e+xB9d4dyFxAc1h9YcuUDHZkAGBhqCiLJ5FtiIOHqu770XCQIg==}
     engines: {node: '>= 10'}
@@ -851,6 +855,9 @@ packages:
 
   '@tauri-apps/api@2.3.0':
     resolution: {integrity: sha512-33Z+0lX2wgZbx1SPFfqvzI6su63hCBkbzv+5NexeYjIx7WA9htdOKoRR7Dh3dJyltqS5/J8vQFyybiRoaL0hlA==}
+
+  '@tauri-apps/api@2.5.0':
+    resolution: {integrity: sha512-Ldux4ip+HGAcPUmuLT8EIkk6yafl5vK0P0c0byzAKzxJh7vxelVtdPONjfgTm96PbN24yjZNESY8CKo8qniluA==}
 
   '@tauri-apps/cli-darwin-arm64@2.3.1':
     resolution: {integrity: sha512-TOhSdsXYt+f+asRU+Dl+Wufglj/7+CX9h8RO4hl5k7D6lR4L8yTtdhpS7btaclOMmjYC4piNfJE70GoxhOoYWw==}
@@ -1948,6 +1955,9 @@ packages:
 
   js-base64@3.7.7:
     resolution: {integrity: sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==}
+
+  js-sha512@0.9.0:
+    resolution: {integrity: sha512-mirki9WS/SUahm+1TbAPkqvbCiCfOAAsyXeHxK1UkullnJVVqoJG2pL9ObvT05CN+tM7fxhfYm0NbXn+1hWoZg==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -3229,6 +3239,21 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@holochain/client@0.19.0(bufferutil@4.0.8)':
+    dependencies:
+      '@bitgo/blake2b': 3.2.4
+      '@msgpack/msgpack': 3.1.1
+      emittery: 1.1.0
+      isomorphic-ws: 5.0.0(ws@8.18.1(bufferutil@4.0.8))
+      js-base64: 3.7.7
+      js-sha512: 0.9.0
+      libsodium-wrappers: 0.7.15
+      lodash-es: 4.17.21
+      ws: 8.18.1(bufferutil@4.0.8)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@holochain/hc-spin-rust-utils-darwin-arm64@0.400.0':
     optional: true
 
@@ -3465,6 +3490,8 @@ snapshots:
       tailwindcss: 3.4.17
 
   '@tauri-apps/api@2.3.0': {}
+
+  '@tauri-apps/api@2.5.0': {}
 
   '@tauri-apps/cli-darwin-arm64@2.3.1':
     optional: true
@@ -4606,6 +4633,8 @@ snapshots:
   jiti@1.21.7: {}
 
   js-base64@3.7.7: {}
+
+  js-sha512@0.9.0: {}
 
   js-tokens@4.0.0: {}
 

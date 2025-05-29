@@ -3,7 +3,6 @@ name: forum
 integrity:
   network_seed: null
   properties: null
-  origin_time: 1742858088507250
   zomes:
   - name: posts_integrity
     hash: null

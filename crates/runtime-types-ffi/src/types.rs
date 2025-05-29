@@ -1,6 +1,6 @@
 use holochain_conductor_api::{
     AppAuthenticationTokenIssued, AppInfo, AppInfoStatus, CellInfo, ProvisionedCell, StemCell,
-    ZomeCall,
+    ZomeCallParamsSigned,
 };
 use holochain_types::{
     app::{
@@ -13,40 +13,17 @@ use holochain_types::{
     },
     prelude::{
         CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName,
-        Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties, ZomeCallUnsigned,
+        Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties, ZomeCallParams,
         ZomeName,
     },
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, time::Duration};
-
-#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
-pub struct DurationFfi {
-    pub secs: u64,
-    pub nanos: u32,
-}
-
-impl From<Duration> for DurationFfi {
-    fn from(value: Duration) -> Self {
-        Self {
-            secs: value.as_secs(),
-            nanos: value.subsec_nanos(),
-        }
-    }
-}
-
-impl From<DurationFfi> for Duration {
-    fn from(val: DurationFfi) -> Self {
-        Duration::from_nanos(val.secs * 1000 + val.nanos as u64)
-    }
-}
+use std::collections::HashMap;
 
 #[derive(uniffi::Record)]
 pub struct DnaModifiersFfi {
     pub network_seed: String,
     pub properties: Vec<u8>,
-    pub origin_time: i64,
-    pub quantum_time: DurationFfi,
 }
 
 impl From<DnaModifiers> for DnaModifiersFfi {
@@ -54,8 +31,6 @@ impl From<DnaModifiers> for DnaModifiersFfi {
         Self {
             network_seed: value.network_seed,
             properties: value.properties.bytes().to_owned(),
-            origin_time: value.origin_time.0,
-            quantum_time: value.quantum_time.into(),
         }
     }
 }
@@ -64,8 +39,6 @@ impl From<DnaModifiers> for DnaModifiersFfi {
 pub struct DnaModifiersOptFfi {
     pub network_seed: Option<String>,
     pub properties: Option<Vec<u8>>,
-    pub origin_time: Option<i64>,
-    pub quantum_time: Option<DurationFfi>,
 }
 
 impl From<DnaModifiersOptFfi> for DnaModifiersOpt<YamlProperties> {
@@ -75,8 +48,6 @@ impl From<DnaModifiersOptFfi> for DnaModifiersOpt<YamlProperties> {
             properties: val.properties.map(|p| {
                 YamlProperties::try_from(SerializedBytes::from(UnsafeBytes::from(p))).unwrap()
             }),
-            origin_time: val.origin_time.map(Timestamp),
-            quantum_time: val.quantum_time.map(|d| d.into()),
         }
     }
 }
@@ -280,14 +251,14 @@ impl From<CellId> for CellIdFfi {
 impl From<CellIdFfi> for CellId {
     fn from(val: CellIdFfi) -> Self {
         CellId::new(
-            HoloHash::<Dna>::from_raw_39(val.dna_hash).unwrap(),
-            HoloHash::<Agent>::from_raw_39(val.agent_pub_key).unwrap(),
+            HoloHash::<Dna>::from_raw_39(val.dna_hash),
+            HoloHash::<Agent>::from_raw_39(val.agent_pub_key),
         )
     }
 }
 
 #[derive(uniffi::Record)]
-pub struct ZomeCallUnsignedFfi {
+pub struct ZomeCallParamsFfi {
     pub provenance: Vec<u8>,
     pub cell_id: CellIdFfi,
     pub zome_name: String,
@@ -298,8 +269,8 @@ pub struct ZomeCallUnsignedFfi {
     pub expires_at: i64,
 }
 
-impl From<ZomeCallUnsigned> for ZomeCallUnsignedFfi {
-    fn from(value: ZomeCallUnsigned) -> Self {
+impl From<ZomeCallParams> for ZomeCallParamsFfi {
+    fn from(value: ZomeCallParams) -> Self {
         Self {
             provenance: value.provenance.get_raw_39().to_vec(),
             cell_id: value.cell_id.into(),
@@ -313,13 +284,13 @@ impl From<ZomeCallUnsigned> for ZomeCallUnsignedFfi {
     }
 }
 
-impl From<ZomeCallUnsignedFfi> for ZomeCallUnsigned {
-    fn from(val: ZomeCallUnsignedFfi) -> Self {
+impl From<ZomeCallParamsFfi> for ZomeCallParams {
+    fn from(val: ZomeCallParamsFfi) -> Self {
         let nonce: [u8; 32] = val.nonce.as_slice().try_into().unwrap();
         let cap_secret: Option<[u8; 64]> = val.cap_secret.map(|s| s.as_slice().try_into().unwrap());
 
-        ZomeCallUnsigned {
-            provenance: HoloHash::<Agent>::from_raw_39(val.provenance).unwrap(),
+        ZomeCallParams {
+            provenance: HoloHash::<Agent>::from_raw_39(val.provenance),
             cell_id: val.cell_id.into(),
             zome_name: ZomeName::new(val.zome_name),
             fn_name: FunctionName::new(val.fn_name),
@@ -332,30 +303,16 @@ impl From<ZomeCallUnsignedFfi> for ZomeCallUnsigned {
 }
 
 #[derive(uniffi::Record)]
-pub struct ZomeCallFfi {
-    pub cell_id: CellIdFfi,
-    pub zome_name: String,
-    pub fn_name: String,
-    pub payload: Vec<u8>,
-    pub cap_secret: Option<Vec<u8>>,
-    pub provenance: Vec<u8>,
+pub struct ZomeCallParamsSignedFfi {
+    pub bytes: Vec<u8>,
     pub signature: Vec<u8>,
-    pub nonce: Vec<u8>,
-    pub expires_at: i64,
 }
 
-impl From<ZomeCall> for ZomeCallFfi {
-    fn from(value: ZomeCall) -> Self {
+impl From<ZomeCallParamsSigned> for ZomeCallParamsSignedFfi {
+    fn from(value: ZomeCallParamsSigned) -> Self {
         Self {
-            cell_id: value.cell_id.into(),
-            zome_name: value.zome_name.0.to_string(),
-            fn_name: value.fn_name.into(),
-            payload: value.payload.into(),
-            cap_secret: value.cap_secret.map(|s| s.as_ref().to_vec()),
-            provenance: value.provenance.get_raw_39().to_vec(),
-            signature: value.signature.0.to_vec(),
-            nonce: value.nonce.into_inner().to_vec(),
-            expires_at: value.expires_at.0,
+            bytes: value.bytes.into(),
+            signature: value.signature.0.into()
         }
     }
 }
