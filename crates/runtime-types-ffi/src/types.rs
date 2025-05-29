@@ -420,6 +420,13 @@ pub struct RuntimeConfigFfi {
     /// Path where conductor data is stored
     pub data_root_path: String,
 
+    /// Network config
+    pub network: RuntimeNetworkConfigFfi,
+}
+
+#[derive(uniffi::Record, Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RuntimeNetworkConfigFfi {
     /// URL of the bootstrap server
     pub bootstrap_url: String,
 
@@ -428,4 +435,17 @@ pub struct RuntimeConfigFfi {
 
     /// URLs of ICE servers
     pub ice_urls: Vec<String>,
+}
+
+impl Default for RuntimeNetworkConfigFfi {
+    fn default() -> Self {
+        Self {
+            bootstrap_url: "https://bootstrap-0.infra.holochain.org".to_string(),
+            signal_url: "wss://sbd.holo.host".to_string(),
+            ice_urls: vec![
+                "stun:stun.cloudflare.com:3478".to_string(),
+                "stun:stun.l.google.com:19302".to_string(),
+            ],
+        }
+    }
 }

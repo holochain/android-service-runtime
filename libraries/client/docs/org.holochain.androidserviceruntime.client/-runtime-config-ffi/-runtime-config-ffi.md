@@ -3,4 +3,4 @@
 # RuntimeConfigFfi
 
 [androidJvm]\
-constructor(dataRootPath: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), bootstrapUrl: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), signalUrl: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html))
+constructor(dataRootPath: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), network: [RuntimeNetworkConfigFfi](../-runtime-network-config-ffi/index.md))

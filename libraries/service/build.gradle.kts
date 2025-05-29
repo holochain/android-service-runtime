@@ -47,7 +47,7 @@ mavenPublishing {
       signAllPublications()
   }
 
-  coordinates("org.holochain.androidserviceruntime", "service", "0.0.14")
+  coordinates("org.holochain.androidserviceruntime", "service", "0.0.15")
 
   pom {
     name.set("Holochain Service")
@@ -78,7 +78,7 @@ mavenPublishing {
 
 dependencies {
   // Subprojects
-  implementation("org.holochain.androidserviceruntime:client:0.0.14")
+  implementation("org.holochain.androidserviceruntime:client:0.0.15")
   // Kotlin
   implementation("androidx.core:core-ktx:1.7.0")
   implementation("androidx.appcompat:appcompat:1.6.0")
@@ -95,4 +95,6 @@ dependencies {
   androidTestImplementation("androidx.test:core:1.6.1")
   androidTestImplementation("androidx.test:runner:1.6.2")
   androidTestImplementation("androidx.test:rules:1.6.1")
+  // Docs
+  dokkaPlugin("org.jetbrains.dokka:gfm-plugin:2.0.0")
 }

@@ -3,4 +3,4 @@
 # enable
 
 [androidJvm]\
-abstract fun [enable](enable.md)()
+abstract fun [enable](enable.md)(config: RuntimeNetworkConfigFfi)

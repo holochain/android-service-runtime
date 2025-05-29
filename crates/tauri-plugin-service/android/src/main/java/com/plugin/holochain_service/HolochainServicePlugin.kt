@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
@@ -23,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.holochain.androidserviceruntime.client.HolochainServiceAdminClient
+import org.holochain.androidserviceruntime.client.RuntimeNetworkConfigFfi
 import org.holochain.androidserviceruntime.client.toJSONArrayString
 import org.holochain.androidserviceruntime.client.toJSONObjectString
 import org.holochain.androidserviceruntime.service.HolochainService
@@ -33,8 +33,9 @@ class HolochainServicePlugin(
 ) : Plugin(activity) {
     private lateinit var webView: WebView
     private lateinit var injectHolochainClientEnvJavascript: String
+    private var runtimeNetworkConfig: RuntimeNetworkConfigFfi? = null
     private val serviceComponentName = ComponentName(this.activity, HolochainService::class.java)
-    private var serviceClient = HolochainServiceAdminClient(this.activity, this.serviceComponentName)
+    private val serviceClient = HolochainServiceAdminClient(this.activity, this.serviceComponentName)
     private val supervisorJob = SupervisorJob()
     private val serviceScope = CoroutineScope(supervisorJob)
     private val logTag = "HolochainServicePlugin"
@@ -104,6 +105,24 @@ class HolochainServicePlugin(
         }
     }
 
+    /*
+     * Set the runtime network config
+     *
+     * This will be applied the next time `start` is called.
+     */
+    @Command
+    fun setConfig(invoke: Invoke) {
+        Log.d(logTag, "setConfig")
+
+        // Parse args
+        val args = invoke.parseArgs(RuntimeNetworkConfigFfiInvokeArg::class.java)
+
+        // Set default config
+        this.runtimeNetworkConfig = args.toFfi()
+
+        invoke.resolve()
+    }
+
     /**
      * Start the service
      */
@@ -114,13 +133,17 @@ class HolochainServicePlugin(
         // Request POST_NOTIFICATION permission, so the HolochainService can create notifications
         this.requestPostNotificationsPermission()
 
+        if (this.runtimeNetworkConfig == null) {
+            invoke.reject("You must call 'setConfig' before calling 'start'")
+            return
+        }
+
         // Start service
-        val intent = Intent(HolochainService.ACTION_START)
-        intent.setComponent(this.serviceComponentName)
-        this.activity.startForegroundService(intent)
+        this.serviceClient.start(this.runtimeNetworkConfig as RuntimeNetworkConfigFfi)
 
         // Connect to service
         this.serviceClient.connect()
+
         invoke.resolve()
     }
 
