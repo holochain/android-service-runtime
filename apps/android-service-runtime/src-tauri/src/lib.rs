@@ -18,7 +18,7 @@ pub fn run() {
             RuntimeNetworkConfigFfi {
                 bootstrap_url: "https://bootstrap-0.infra.holochain.org".to_string(),
                 signal_url: "wss://sbd.holo.host".to_string(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                ice_urls: vec!["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302".to_string()],
             },
         ))
         .plugin(tauri_plugin_log::Builder::new().skip_logger().build())

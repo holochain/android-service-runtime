@@ -33,7 +33,7 @@ impl Default for RuntimeNetworkConfig {
         Self {
             bootstrap_url: Url2::parse("https://bootstrap-0.infra.holochain.org"),
             signal_url: Url2::parse("wss://sbd.holo.host"),
-            ice_urls: vec![Url2::parse("stun:stun.l.google.com:19302")],
+            ice_urls: vec![Url2::parse("stun:stun.cloudflare.com:3478"), Url2::parse("stun:stun.l.google.com:19302")],
         }
     }
 }
@@ -46,11 +46,11 @@ impl From<RuntimeNetworkConfig> for KitsuneP2pConfig {
             .ice_urls
             .clone()
             .into_iter()
-            .map(|u| json!(u.to_string()))
+            .map(|u| json!({"urls": [u]}))
             .collect();
         res.transport_pool.push(TransportConfig::WebRTC {
             signal_url: val.signal_url.clone().into(),
-            webrtc_config: Some(json!({"ice_servers": {"urls": ice_urls}})),
+            webrtc_config: Some(json!({"ice_servers": ice_urls})),
         });
         res.bootstrap_service = Some(val.bootstrap_url.clone());
 
