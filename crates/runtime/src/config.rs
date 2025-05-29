@@ -33,7 +33,10 @@ impl Default for RuntimeNetworkConfig {
         Self {
             bootstrap_url: Url2::parse("https://bootstrap-0.infra.holochain.org"),
             signal_url: Url2::parse("wss://sbd.holo.host"),
-            ice_urls: vec![Url2::parse("stun:stun.cloudflare.com:3478"), Url2::parse("stun:stun.l.google.com:19302")],
+            ice_urls: vec![
+                Url2::parse("stun:stun.cloudflare.com:3478"),
+                Url2::parse("stun:stun.l.google.com:19302"),
+            ],
         }
     }
 }

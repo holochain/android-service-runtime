@@ -442,7 +442,10 @@ impl Default for RuntimeNetworkConfigFfi {
         Self {
             bootstrap_url: "https://bootstrap-0.infra.holochain.org".to_string(),
             signal_url: "wss://sbd.holo.host".to_string(),
-            ice_urls: vec!["stun:stun.cloudflare.com:3478".to_string(), "stun:stun.l.google.com:19302".to_string()],
+            ice_urls: vec![
+                "stun:stun.cloudflare.com:3478".to_string(),
+                "stun:stun.l.google.com:19302".to_string(),
+            ],
         }
     }
 }
