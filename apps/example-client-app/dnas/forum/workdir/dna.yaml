@@ -17,4 +17,3 @@ coordinator:
     dependencies:
     - name: posts_integrity
     dylib: null
-lineage: []
