@@ -312,7 +312,7 @@ impl From<ZomeCallParamsSigned> for ZomeCallParamsSignedFfi {
     fn from(value: ZomeCallParamsSigned) -> Self {
         Self {
             bytes: value.bytes.into(),
-            signature: value.signature.0.into()
+            signature: value.signature.0.into(),
         }
     }
 }

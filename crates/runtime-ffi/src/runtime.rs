@@ -5,9 +5,9 @@ use holochain_conductor_runtime::{ClientId, Runtime, RuntimeConfig, RuntimeNetwo
 use holochain_conductor_runtime_types_ffi::*;
 use holochain_types::prelude::InstallAppPayload;
 use log::{debug, LevelFilter};
-use url2::Url2;
-use std::sync::{Arc, Mutex};
 use sodoken::LockedArray;
+use std::sync::{Arc, Mutex};
+use url2::Url2;
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
 #[derive(uniffi::Object, Clone)]

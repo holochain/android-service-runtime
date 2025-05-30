@@ -1,7 +1,7 @@
 use crate::{AppAuth, RuntimeConfig, RuntimeError, RuntimeResult, DEVICE_SEED_LAIR_TAG};
 use crate::{AuthorizedAppClientsManager, ClientId};
-use holochain::conductor::api::{AppAuthenticationTokenIssued, ZomeCallParamsSigned};
 use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
+use holochain::conductor::api::{AppAuthenticationTokenIssued, ZomeCallParamsSigned};
 use holochain::{
     conductor::{
         api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo},
@@ -10,10 +10,10 @@ use holochain::{
     prelude::{InstallAppPayload, InstalledAppId, ZomeCallParams},
 };
 use holochain_types::websocket::AllowedOrigins;
+use lair_keystore_api::types::SharedLockedArray;
 use log::debug;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use lair_keystore_api::types::SharedLockedArray;
 
 /// Map of app ids to their associated app websocket & authentication
 pub type AppAuths = Arc<RwLock<HashMap<InstalledAppId, AppAuth>>>;
@@ -28,7 +28,10 @@ pub struct Runtime {
 
 impl Runtime {
     /// Initialize and start a new Conductor
-    pub async fn new(passphrase: SharedLockedArray, runtime_config: RuntimeConfig) -> RuntimeResult<Self> {
+    pub async fn new(
+        passphrase: SharedLockedArray,
+        runtime_config: RuntimeConfig,
+    ) -> RuntimeResult<Self> {
         let conductor = ConductorBuilder::default()
             .passphrase(Some(passphrase))
             .config(runtime_config.clone().into())
@@ -145,11 +148,19 @@ impl Runtime {
         &self,
         zome_call_params: ZomeCallParams,
     ) -> RuntimeResult<ZomeCallParamsSigned> {
-        let (bytes, hash) = zome_call_params.serialize_and_hash()
+        let (bytes, hash) = zome_call_params
+            .serialize_and_hash()
             .map_err(|e| RuntimeError::ZomeCallParamsInvalid(e.to_string()))?;
-        let signer_key: [u8; 32] = zome_call_params.provenance.into_inner().try_into()
+        let signer_key: [u8; 32] = zome_call_params
+            .provenance
+            .into_inner()
+            .try_into()
             .map_err(|_| RuntimeError::ZomeCallParamsInvalid("Invalid provenance".to_string()))?;
-        let signature = self.conductor.keystore().lair_client().sign_by_pub_key(signer_key.into(), None, hash.into())
+        let signature = self
+            .conductor
+            .keystore()
+            .lair_client()
+            .sign_by_pub_key(signer_key.into(), None, hash.into())
             .await
             .map_err(RuntimeError::Lair)?;
 
@@ -296,8 +307,9 @@ mod test {
     use holochain_types::prelude::DisabledAppReason;
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
-    use holochain::conductor::config::NetworkConfig;
     use serde_json::json;
+    use sodoken::LockedArray;
+    use std::sync::Mutex;
     use tempfile::TempDir;
     use url2::Url2;
     use uuid::Uuid;
@@ -322,9 +334,10 @@ mod test {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_new_runtime() {
         let tmp_dir = TempDir::new().unwrap();
-        let bootstrap_url = Url2::try_parse("https://bootstrap.holo.host").unwrap();
-        let signal_url = Url2::try_parse("wss://sbd.holo.host").unwrap();
-        let ice_urls = vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()];
+        let bootstrap_url = Url2::try_parse("https://bootstrap.com").unwrap();
+        let signal_url = Url2::try_parse("wss://signal.com").unwrap();
+        let stun_url = Url2::try_parse("stun:stun.com:1234").unwrap();
+        let ice_urls = vec![stun_url];
 
         let runtime = Runtime::new(
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
@@ -355,30 +368,22 @@ mod test {
             KeystoreConfig::LairServerInProc { lair_root: None }
         );
         assert_eq!(
-            runtime
-                .conductor
-                .config
-                .network
-                .bootstrap_service
-                .clone()
-                .unwrap(),
+            runtime.conductor.config.network.bootstrap_url.clone(),
             bootstrap_url
+        );
+        assert_eq!(
+            runtime.conductor.config.network.signal_url.clone(),
+            signal_url
         );
         assert_eq!(
             runtime
                 .conductor
                 .config
                 .network
-                .transport_pool
-                .first()
-                .unwrap()
-                .clone(),
-            TransportConfig::WebRTC {
-                signal_url: signal_url.into(),
-                webrtc_config: Some(
-                    json!({"ice_servers": vec![json!({"urls": vec!["stun:stun.l.google.com:19302".to_string()]})]})
-                ),
-            }
+                .webrtc_config
+                .clone()
+                .unwrap(),
+            json!({"ice_servers": vec![json!({"urls": vec![stun_url.to_string()]})]}),
         );
 
         let res = AdminInterfaceApi::new(runtime.conductor)
