@@ -285,6 +285,8 @@ impl Runtime {
 
 #[cfg(test)]
 mod test {
+    use crate::RuntimeNetworkConfig;
+
     use super::*;
     use holochain::conductor::api::AppInfoStatus;
     use holochain::conductor::api::CellInfo::Provisioned;
@@ -328,9 +330,11 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir.path().into(),
-                bootstrap_url: bootstrap_url.clone(),
-                signal_url: signal_url.clone(),
-                ice_urls: ice_urls.clone(),
+                network: RuntimeNetworkConfig {
+                    bootstrap_url: bootstrap_url.clone(),
+                    signal_url: signal_url.clone(),
+                    ice_urls: ice_urls.clone(),
+                },
             },
         )
         .await
@@ -372,7 +376,7 @@ mod test {
             TransportConfig::WebRTC {
                 signal_url: signal_url.into(),
                 webrtc_config: Some(
-                    json!({"ice_servers": {"urls": vec!["stun:stun.l.google.com:19302".to_string()]}})
+                    json!({"ice_servers": vec![json!({"urls": vec!["stun:stun.l.google.com:19302".to_string()]})]})
                 ),
             }
         );
@@ -391,9 +395,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -415,9 +417,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -448,9 +448,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -472,9 +470,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -497,9 +493,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -527,9 +521,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -549,9 +541,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -574,9 +564,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -612,9 +600,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -672,9 +658,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -693,9 +677,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -748,9 +730,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await
@@ -786,9 +766,7 @@ mod test {
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: Url2::try_parse("https://bootstrap.holo.host").unwrap(),
-                signal_url: Url2::try_parse("wss://sbd.holo.host").unwrap(),
-                ice_urls: vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()],
+                network: RuntimeNetworkConfig::default(),
             },
         )
         .await

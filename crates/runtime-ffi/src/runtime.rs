@@ -1,7 +1,7 @@
 use crate::error::RuntimeResultFfi;
 use crate::multi_thread::MultiThreadRun;
 use android_logger::Config;
-use holochain_conductor_runtime::{ClientId, Runtime, RuntimeConfig};
+use holochain_conductor_runtime::{ClientId, Runtime, RuntimeConfig, RuntimeNetworkConfig};
 use holochain_conductor_runtime_types_ffi::*;
 use holochain_types::prelude::InstallAppPayload;
 use log::{debug, LevelFilter};
@@ -28,13 +28,16 @@ impl RuntimeFfi {
             passphrase_locked,
             RuntimeConfig {
                 data_root_path: runtime_config.data_root_path.into(),
-                bootstrap_url: Url2::try_parse(runtime_config.bootstrap_url)?,
-                signal_url: Url2::try_parse(runtime_config.signal_url)?,
-                ice_urls: runtime_config
-                    .ice_urls
-                    .into_iter()
-                    .flat_map(Url2::try_parse)
-                    .collect(),
+                network: RuntimeNetworkConfig {
+                    bootstrap_url: Url2::try_parse(runtime_config.network.bootstrap_url)?,
+                    signal_url: Url2::try_parse(runtime_config.network.signal_url)?,
+                    ice_urls: runtime_config
+                        .network
+                        .ice_urls
+                        .into_iter()
+                        .flat_map(Url2::try_parse)
+                        .collect(),
+                },
             },
         )
         .await?;
@@ -201,9 +204,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".to_string(),
-                signal_url: "wss://sbd.holo.host".to_string(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -221,9 +222,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -243,9 +242,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -273,9 +270,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -297,9 +292,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -322,9 +315,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -352,9 +343,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -374,9 +363,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -399,9 +386,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -444,9 +429,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -487,9 +470,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await
@@ -508,9 +489,7 @@ mod test {
             vec![0, 0, 0, 0],
             RuntimeConfigFfi {
                 data_root_path: tmp_dir_path,
-                bootstrap_url: "https://bootstrap.holo.host".into(),
-                signal_url: "wss://sbd.holo.host".into(),
-                ice_urls: vec!["stun:stun.l.google.com:19302".to_string()],
+                network: RuntimeNetworkConfigFfi::default(),
             },
         )
         .await

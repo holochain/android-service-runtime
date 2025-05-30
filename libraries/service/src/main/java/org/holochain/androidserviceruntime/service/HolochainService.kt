@@ -23,11 +23,14 @@ import org.holochain.androidserviceruntime.client.AppAuthFfiParcel
 import org.holochain.androidserviceruntime.client.AppBinderUnauthorizedException
 import org.holochain.androidserviceruntime.client.AppBinderUnauthorizedExceptionParcel
 import org.holochain.androidserviceruntime.client.AppInfoFfiParcel
+import org.holochain.androidserviceruntime.client.HolochainServiceIntentActions
 import org.holochain.androidserviceruntime.client.IHolochainServiceAdmin
 import org.holochain.androidserviceruntime.client.IHolochainServiceApp
 import org.holochain.androidserviceruntime.client.IHolochainServiceCallback
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfiParcel
 import org.holochain.androidserviceruntime.client.RuntimeConfigFfi
+import org.holochain.androidserviceruntime.client.RuntimeNetworkConfigFfi
+import org.holochain.androidserviceruntime.client.RuntimeNetworkConfigFfiParcel
 import org.holochain.androidserviceruntime.client.ZomeCallParamsFfiParcel
 import org.holochain.androidserviceruntime.client.ZomeCallParamsSignedFfiParcel
 import java.security.InvalidParameterException
@@ -52,18 +55,6 @@ class HolochainService : Service() {
 
         // Notification Channel Id for app authorization notifications
         const val NOTIFICATION_CHANNEL_ID_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.APP_AUTHORIZATION"
-
-        // Start the Service, and the Holochain conductor
-        const val ACTION_START = "org.holochain.androidserviceruntime.service.ACTION_START"
-
-        // Start the Service, and the Holochain conductor, if autostart on boot is enabled
-        const val ACTION_BOOT_COMPLETED = "org.holochain.androidserviceruntime.service.ACTION_BOOT_COMPLETED"
-
-        // Approve app authorization request
-        const val ACTION_APPROVE_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.APPROVE_APP_AUTHORIZATION"
-
-        // Deny app authorization request
-        const val ACTION_DENY_APP_AUTHORIZATION = "org.holochain.androidserviceruntime.service.DENY_APP_AUTHORIZATION"
     }
 
     /**
@@ -88,30 +79,35 @@ class HolochainService : Service() {
         Log.d(logTag, "onStartCommand")
 
         when (intent?.action) {
-            ACTION_START -> {
+            HolochainServiceIntentActions.ACTION_START -> {
                 Log.d(
                     logTag,
                     "onStartCommand ACTION_START",
                 )
 
-                // Enable conductor to autostart on system boot
-                getAutostartConfigManager().enable()
+                // Get config from intent
+                val config = intent.extras?.getParcelable<RuntimeNetworkConfigFfiParcel>("config")
+                if (config != null) {
+                    // Enable conductor to autostart on system boot
+                    getAutostartConfigManager().enable(config.inner)
 
-                // Start service
-                startForeground()
+                    // Start service
+                    startForeground(config.inner)
+                }
             }
-            ACTION_BOOT_COMPLETED -> {
+            HolochainServiceIntentActions.ACTION_BOOT_COMPLETED -> {
                 Log.d(
                     logTag,
                     "onStartCommand ACTION_BOOT_COMPLETED",
                 )
 
                 // If autostart is enabled, start service
-                if (getAutostartConfigManager().isEnabled()) {
-                    startForeground()
+                val config = getAutostartConfigManager().getEnabledConfig()
+                if (config != null) {
+                    startForeground(config)
                 }
             }
-            ACTION_APPROVE_APP_AUTHORIZATION -> {
+            HolochainServiceIntentActions.ACTION_APPROVE_APP_AUTHORIZATION -> {
                 Log.d(logTag, "onStartCommand ACTION_APPROVE_APP_AUTHORIZATION")
 
                 val requestId = intent.getStringExtra("requestId")
@@ -123,7 +119,7 @@ class HolochainService : Service() {
                     }
                 }
             }
-            ACTION_DENY_APP_AUTHORIZATION -> {
+            HolochainServiceIntentActions.ACTION_DENY_APP_AUTHORIZATION -> {
                 Log.d(logTag, "onStartCommand ACTION_DENY_APP_AUTHORIZATION, ignoring")
 
                 val requestId = intent.getStringExtra("requestId")
@@ -197,40 +193,35 @@ class HolochainService : Service() {
      * Creates a persistent notification indicating that the Holochain service is running,
      * and starts the Holochain conductor with a default configuration.
      */
-    private fun startForeground() {
-        try {
-            // Create the notification to display while the service is running
-            val notification =
-                NotificationCompat
-                    .Builder(this, NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE)
-                    .setContentTitle("Holochain Service")
-                    .setContentText("Holochain Service is running")
-                    .setSmallIcon(R.drawable.holochain_logo)
-                    .setOngoing(true)
-                    .build()
+    private fun startForeground(config: RuntimeNetworkConfigFfi) {
+        // Create the notification to display while the service is running
+        val notification =
+            NotificationCompat
+                .Builder(this, NOTIFICATION_CHANNEL_ID_FOREGROUND_SERVICE)
+                .setContentTitle("Holochain Service")
+                .setContentText("Holochain Service is running")
+                .setSmallIcon(R.drawable.holochain_logo)
+                .setOngoing(true)
+                .build()
 
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
-            } else {
-                this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-            }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification)
+        } else {
+            this.startForeground(NOTIFICATION_ID_FOREGROUND_SERVICE_RUNNING, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        }
 
-            // Start holochain conductor
-            val passphrase = byteArrayOf(0x48, 101, 108, 108, 111)
-            val config =
-                RuntimeConfigFfi(
-                    getFilesDir().toString(),
-                    "https://bootstrap-0.infra.holochain.org",
-                    "wss://sbd.holo.host",
-                    listOf("stun:stun.l.google.com:19302"),
+        // Passphrase is currently *hard-coded*
+        // See https://github.com/holochain/android-service-runtime/issues/11
+        val passphrase = byteArrayOf(0x48, 101, 108, 108, 111)
+
+        // Start holochain conductor
+        serviceScope.launch(Dispatchers.IO) {
+            runtime =
+                RuntimeFfi.start(
+                    passphrase,
+                    RuntimeConfigFfi(getFilesDir().toString(), config),
                 )
-
-            serviceScope.launch(Dispatchers.IO) {
-                runtime = RuntimeFfi.start(passphrase, config)
-                Log.d(logTag, "Holochain started successfully")
-            }
-        } catch (e: Exception) {
-            Log.e(logTag, "Holochain failed to start $e")
+            Log.d(logTag, "Holochain started successfully")
         }
     }
 
@@ -313,7 +304,7 @@ class HolochainService : Service() {
         // so we can retrieve it later
         val approveIntent =
             Intent(this, HolochainService::class.java).apply {
-                action = ACTION_APPROVE_APP_AUTHORIZATION
+                action = HolochainServiceIntentActions.ACTION_APPROVE_APP_AUTHORIZATION
                 putExtra("requestId", putResponse.uuid)
             }
         val approvePendingIntent =
@@ -326,7 +317,7 @@ class HolochainService : Service() {
 
         val denyIntent =
             Intent(this, HolochainService::class.java).apply {
-                action = ACTION_DENY_APP_AUTHORIZATION
+                action = HolochainServiceIntentActions.ACTION_DENY_APP_AUTHORIZATION
                 putExtra("requestId", putResponse.uuid)
             }
         val denyPendingIntent =

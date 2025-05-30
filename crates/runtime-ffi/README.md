@@ -1,17 +1,30 @@
 # holochain-conductor-runtime-ffi
 
-This crate is a wrapper around `holochain-conductor-runtime`, with minimal functionality necessary to expose basic holochain management functions, for generating FFI bindings for those functions.
+A simple wrapper around `holochain-conductor-runtime`, with the addition of using [`uniffi`](https://docs.rs/uniffi/latest/uniffi/) to generate FFI functions and Kotlin bindings to them.
+## Build
 
-It generates FFI bindings for Kotlin.
+This repo includes a script to build the crate as a library for android targets, generate kotlin bindings, and copy both the library and bindings into the kotlin library [`org.holochain.androidserviceruntime.service`](../../libraries/service/README.md).
 
-## Building
+Supported android targets are `aarch64-linux-android`, `x86_64-linux-android`, and `i686-linux-android`.
 
-- Run `./generate-bindings-release.sh`
-- Copy the out/**/*.so directories into jniLib directory of your android project
-- Copy the out/uniffi directory into java directory of your android project
+### For all supported android targets
 
-## Development
+To build for all supported android targets, run:
 
-### Gotchas!!!
+```bash
+./build.sh
+```
+
+### For a single target
+
+To build for a single android target, run:
+
+```bash
+./build-single-target.sh <TARGET-ARCH>
+```
+
+where `<TARGET_ARCH>` is the rust target triple, i.e. `aarch64-linux-android`.
+
+## Uniffi Gotchas
 - Enum variants cannot have the same name as other types (i.e. Error enum variants cannot match other error types)
 - Generated types may have different casing. For example kotlin types use TitleCase

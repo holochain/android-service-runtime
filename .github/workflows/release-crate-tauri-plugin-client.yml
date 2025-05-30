@@ -1,0 +1,42 @@
+name: "release-tauri-plugin-client"
+on:
+  push:
+    tags:
+      - 'tauri-plugin-client-v[0-9]+.[0-9]+.[0-9]+'
+      - 'tauri-plugin-client-v[0-9]+.[0-9]+.[0-9]+-[a-z]+'
+      - 'tauri-plugin-client-v[0-9]+.[0-9]+.[0-9]+-[a-z]+.[0-9]+'
+
+jobs:
+  release:
+    permissions: write-all
+    environment: Cargo Release
+    runs-on: 'ubuntu-22.04' 
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: false
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
+      # The `--no-verify` flag is used in `cargo publish` as a workaround because the tauri plugin builder
+      # writes files outside the OUT_DIR.
+      # 
+      # See https://github.com/tauri-apps/tauri/issues/11187
+      - name: Publish to crates.io
+        run: |
+          nix develop --no-update-lock-file --command bash -c "pnpm run publish:tauri-plugin-client"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

@@ -39,14 +39,17 @@
 
       "publish:client": "cd libraries/client && ./gradlew publishAndReleaseToMavenCentral",
       "publish:service": "cd libraries/service && ./gradlew publishAndReleaseToMavenCentral",
+      "publish:runtime-types-ffi": "cargo publish -p holochain-conductor-runtime-types-ffi",
+      "publish:tauri-plugin-client": "cargo publish -p tauri-plugin-holochain-service-client --no-verify",
+      "publish:tauri-plugin-service": "cargo publish -p tauri-plugin-holochain-service --no-verify",
       "publish": "pnpm run publish:client && pnpm run publish:service",
 
       "publish:local:client": "cd libraries/client && ./gradlew publishToMavenLocal",
       "publish:local:service": "cd libraries/service && ./gradlew publishToMavenLocal",
       "publish:local": "pnpm run publish:local:client && pnpm run publish:local:service",
 
-      "doc:md:client": "cd libraries/client && ./gradlew dokkaGfm",
-      "doc:md:service": "cd libraries/service && ./gradlew dokkaGfm",
+      "doc:md:client": "cd libraries/client && ./gradlew dokkaGenerate",
+      "doc:md:service": "cd libraries/service && ./gradlew dokkaGenerate",
       "doc:md": "pnpm run doc:md:client && pnpm run doc:md:service",
       "copy-doc:md:client": "cp -r libraries/client/build/dokka/html/client/* libraries/client/docs",
       "copy-doc:md:service": "cp -r libraries/service/build/dokka/html/service/* libraries/service/docs",

@@ -1,0 +1,38 @@
+name: "release-runtime-types-ffi"
+on:
+  push:
+    tags:
+      - 'runtime-types-ffi-v[0-9]+.[0-9]+.[0-9]+'
+      - 'runtime-types-ffi-v[0-9]+.[0-9]+.[0-9]+-[a-z]+'
+      - 'runtime-types-ffi-v[0-9]+.[0-9]+.[0-9]+-[a-z]+.[0-9]+'
+
+jobs:
+  release:
+    permissions: write-all
+    environment: Cargo Release
+    runs-on: 'ubuntu-22.04' 
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          android: false
+
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
+      - name: Publish to crates.io
+        run: |
+          nix develop --no-update-lock-file --command bash -c "pnpm run publish:runtime-types-ffi"
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

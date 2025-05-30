@@ -1,6 +1,17 @@
 # tauri-plugin-holochain-service-client
 
-Tauri Plugin to interact with the HolochainService as a client app -- i.e. without bundling the holochain conductor, but expecting another app to have already installed and run the foreground service.
+A Tauri plugin for holochain end-user apps.
+
+With this plugin, you can write an android app that relies on holochain,
+without bundling the holochain conductor.
+
+Instead, this plugin expects that you have *another* android app installed,
+with the tauri plugin `tauri-plugin-holochain-service`,
+and will use that app's holochain conductor.
+
+## Usage
+
+See the [example-client-app](../../apps/example-client-app/src-tauri/src/lib.rs) for a example of how to use this plugin in your Tauri app.
 
 ## Internationalization
 
