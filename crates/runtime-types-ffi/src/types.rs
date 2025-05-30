@@ -397,8 +397,8 @@ pub struct RuntimeNetworkConfigFfi {
 impl Default for RuntimeNetworkConfigFfi {
     fn default() -> Self {
         Self {
-            bootstrap_url: "https://bootstrap-0.infra.holochain.org".to_string(),
-            signal_url: "wss://sbd.holo.host".to_string(),
+            bootstrap_url: "https://dev-test-bootstrap2.holochain.org".to_string(),
+            signal_url: "wss://dev-test-bootstrap2.holochain.org".to_string(),
             ice_urls: vec![
                 "stun:stun.cloudflare.com:3478".to_string(),
                 "stun:stun.l.google.com:19302".to_string(),
