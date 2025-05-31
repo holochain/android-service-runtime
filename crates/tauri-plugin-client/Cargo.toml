@@ -11,7 +11,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi", version = "0.1.0" }
+holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi", version = "0.2.0" }
 tauri = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
