@@ -42,19 +42,18 @@ impl Default for RuntimeNetworkConfig {
 
 impl From<RuntimeNetworkConfig> for NetworkConfig {
     fn from(val: RuntimeNetworkConfig) -> NetworkConfig {
-        let mut network_config = NetworkConfig::default();
-
-        network_config.webrtc_config = Some(json!({
-            "iceServers": val.ice_urls
-                .clone()
-                .into_iter()
-                .map(|u| json!({"urls": [u]}))
-                .collect::<Vec<serde_json::Value>>()
-        }));
-        network_config.bootstrap_url = val.bootstrap_url;
-        network_config.signal_url = val.signal_url;
-
-        network_config
+        NetworkConfig {
+            bootstrap_url: val.bootstrap_url,
+            signal_url: val.signal_url,
+            webrtc_config: Some(json!({
+                "iceServers": val.ice_urls
+                    .clone()
+                    .into_iter()
+                    .map(|u| json!({"urls": [u]}))
+                    .collect::<Vec<serde_json::Value>>()
+            })),
+            ..NetworkConfig::default()
+        }
     }
 }
 
