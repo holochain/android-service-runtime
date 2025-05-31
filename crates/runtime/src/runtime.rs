@@ -36,7 +36,7 @@ impl Runtime {
         if res.is_err() {
             error!("Failed to set default crypto provider for tls: {:?}", res);
         }
-        
+
         let conductor = ConductorBuilder::default()
             .passphrase(Some(passphrase))
             .config(runtime_config.clone().into())
@@ -342,7 +342,7 @@ mod test {
         let bootstrap_url = Url2::try_parse("https://bootstrap.com").unwrap();
         let signal_url = Url2::try_parse("wss://signal.com").unwrap();
         let stun_url = Url2::try_parse("stun:stun.com:1234").unwrap();
-        let ice_urls = vec![stun_url];
+        let ice_urls = vec![stun_url.clone()];
 
         let runtime = Runtime::new(
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
