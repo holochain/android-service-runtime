@@ -158,7 +158,7 @@ impl Runtime {
             .map_err(|e| RuntimeError::ZomeCallParamsInvalid(e.to_string()))?;
         let signer_key: [u8; 32] = zome_call_params
             .provenance
-            .into_inner()
+            .get_raw_32()
             .try_into()
             .map_err(|_| RuntimeError::ZomeCallParamsInvalid("Invalid provenance".to_string()))?;
         let signature = self
