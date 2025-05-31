@@ -60,14 +60,6 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Rust toolchain
-        uses: mkroening/rust-toolchain-toml@main
-
-      - uses: Swatinem/rust-cache@v2
-        name: Enable Rust Caching
-        with:
-          cache-on-failure: true
-
       - name: Gradle cache
         uses: gradle/actions/setup-gradle@v3
         
@@ -80,40 +72,37 @@ jobs:
             ~/.android/adb*
           key: avd-${{ matrix.target.api-level }}-${{ matrix.target.arch-ndk }}
 
-      - name: Cargo cache
-        uses: actions/cache@v4
-        id: cargo-cache
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
         with:
-          path: |
-            ~/.cargo/*
-            ~/target/*
-          key: cargo-${{ matrix.target.arch-cargo }}
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
 
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           version: 10
 
-      - name: Install cargo-ndk
-        run: |
-          cargo install cargo-ndk
-
       - name: Build client and publish to mavenLocal
         run: |
-          pnpm run build:single-target:runtime-types-ffi ${{ matrix.target.arch-cargo }}
-          cp libraries/client/gradle.properties.ci libraries/client/gradle.properties
-          pnpm run build:client
-          pnpm run publish:local:client
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:single-target:runtime-types-ffi ${{ matrix.target.arch-cargo }} \
+            && cp libraries/client/gradle.properties.ci libraries/client/gradle.properties \
+            && pnpm run build:client \
+            && pnpm run publish:local:client"
 
       - name: Build service
         run: |
-          pnpm run build:single-target:runtime-ffi ${{ matrix.target.arch-cargo }}
-          cp libraries/service/gradle.properties.ci libraries/service/gradle.properties
-          pnpm run build:service
+          nix develop --no-update-lock-file --command bash -c "pnpm run build:single-target:runtime-ffi ${{ matrix.target.arch-cargo }} \
+            && cp libraries/service/gradle.properties.ci libraries/service/gradle.properties \
+            && pnpm run build:service"
 
       - name: Lint client, service, tauri-plugin-client, tauri-plugin-service
         run: |
-          pnpm run lint
+          nix develop --no-update-lock-file --command bash -c "pnpm run lint"
 
       - name: Run tests
         uses: ReactiveCircus/android-emulator-runner@v2
