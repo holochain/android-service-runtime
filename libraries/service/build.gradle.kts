@@ -9,7 +9,8 @@ plugins {
   id("org.jetbrains.dokka") version("2.0.0")
 }
 
-// The uniffi-generated kotlin bindings violate some linter rules
+// The auto-generated kotlin bindings violate some linter rules,
+// so we exclude them from lint tasks.
 tasks.withType<ConfigurableKtLintTask> {
     exclude("**/*_ffi.kt")
 }
