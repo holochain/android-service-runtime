@@ -27,6 +27,7 @@ holochain_types = "0.5.2"
 sodoken = "0.1.0"
 url2 = "0.0.6"
 lair_keystore_api = "0.6.1"
+rustls = "0.23.25"
 
 tauri = "2.5.1"
 tauri-plugin = "2.2.0"

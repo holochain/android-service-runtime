@@ -11,7 +11,7 @@ use holochain::{
 };
 use holochain_types::websocket::AllowedOrigins;
 use lair_keystore_api::types::SharedLockedArray;
-use log::debug;
+use log::{debug, error};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -32,6 +32,11 @@ impl Runtime {
         passphrase: SharedLockedArray,
         runtime_config: RuntimeConfig,
     ) -> RuntimeResult<Self> {
+        let res = rustls::crypto::aws_lc_rs::default_provider().install_default();
+        if res.is_err() {
+            error!("Failed to set default crypto provider for tls: {:?}", res);
+        }
+        
         let conductor = ConductorBuilder::default()
             .passphrase(Some(passphrase))
             .config(runtime_config.clone().into())

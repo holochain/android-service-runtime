@@ -2886,6 +2886,7 @@ dependencies = [
  "holochain_types",
  "lair_keystore_api",
  "log",
+ "rustls 0.23.25",
  "serde",
  "serde_json",
  "sodoken",
@@ -7892,6 +7893,7 @@ version = "0.1.1"
 dependencies = [
  "bytes",
  "holochain-conductor-runtime-types-ffi",
+ "log",
  "serde",
  "tauri",
  "tauri-plugin",
