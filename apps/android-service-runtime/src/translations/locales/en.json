@@ -19,7 +19,5 @@
   "cell_name": "Cell Name",
   "dna_modifiers": "DNA Modifiers",
   "network_seed": "Network Seed",
-  "origin_time": "Origin Time",
-  "properties": "Properties",
-  "quantum_time": "Quantum Time"
+  "properties": "Properties"
 }

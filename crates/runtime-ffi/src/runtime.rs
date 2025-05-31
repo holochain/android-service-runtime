@@ -1,12 +1,12 @@
 use crate::error::RuntimeResultFfi;
 use crate::multi_thread::MultiThreadRun;
 use android_logger::Config;
-use holochain_conductor_runtime::{
-    move_to_locked_mem, ClientId, Runtime, RuntimeConfig, RuntimeNetworkConfig,
-};
+use holochain_conductor_runtime::{ClientId, Runtime, RuntimeConfig, RuntimeNetworkConfig};
 use holochain_conductor_runtime_types_ffi::*;
 use holochain_types::prelude::InstallAppPayload;
 use log::{debug, LevelFilter};
+use sodoken::LockedArray;
+use std::sync::{Arc, Mutex};
 use url2::Url2;
 
 /// Slim wrapper around HolochainRuntime, with types compatible with Uniffi-generated FFI bindings.
@@ -23,8 +23,7 @@ impl RuntimeFfi {
         android_logger::init_once(Config::default().with_max_level(LevelFilter::Warn));
         debug!("RuntimeFfi::new");
 
-        let passphrase_locked =
-            move_to_locked_mem(passphrase).expect("Failed to move password to locked memory");
+        let passphrase_locked = Arc::new(Mutex::new(LockedArray::from(passphrase)));
         let runtime = Runtime::new(
             passphrase_locked,
             RuntimeConfig {
@@ -139,8 +138,8 @@ impl RuntimeFfi {
     /// Sign a zome call
     pub async fn sign_zome_call(
         &self,
-        zome_call_unsigned: ZomeCallUnsignedFfi,
-    ) -> RuntimeResultFfi<ZomeCallFfi> {
+        zome_call_unsigned: ZomeCallParamsFfi,
+    ) -> RuntimeResultFfi<ZomeCallParamsSignedFfi> {
         debug!("RuntimeFfi::sign_zome_call");
         Ok(self
             .0
@@ -401,7 +400,7 @@ mod test {
         };
 
         let res = runtime
-            .sign_zome_call(ZomeCallUnsignedFfi {
+            .sign_zome_call(ZomeCallParamsFfi {
                 provenance: cell_id.agent_pub_key.clone(),
                 cell_id: cell_id.clone(),
                 zome_name: "forum".into(),

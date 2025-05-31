@@ -2,7 +2,7 @@ use holochain::{
     conductor::{api::AdminResponse, error::ConductorError, interface::error::InterfaceError},
     prelude::{AppBundleError, CellId},
 };
-use kitsune_p2p_types::dependencies::lair_keystore_api::dependencies::one_err::OneErr;
+use lair_keystore_api::dependencies::one_err::OneErr;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -27,6 +27,9 @@ pub enum RuntimeError {
 
     #[error("Move to Locked Memory Error")]
     MoveToLockedMem(OneErr),
+
+    #[error("Failed to sign zome call {0}")]
+    ZomeCallParamsInvalid(String),
 
     #[error("Lair Error")]
     Lair(OneErr),

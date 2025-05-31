@@ -7,16 +7,9 @@ export interface CellId {
   dnaHash: Uint8Array;
 }
 
-export interface Duration {
-  secs: number;
-  nanos: number;
-}
-
 export interface DnaModifiers {
   networkSeed: string;
-  originTime: number;
   properties: Uint8Array;
-  quantumTime: Duration;
 }
 
 export interface CellInfoV1 {

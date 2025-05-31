@@ -1,6 +1,6 @@
 [package]
 name = "holochain-conductor-runtime-ffi"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 
@@ -19,6 +19,7 @@ uniffi = { workspace = true, features = ["tokio"] }
 thiserror = { workspace = true }
 url2 = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
+sodoken = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }

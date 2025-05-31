@@ -134,14 +134,14 @@ class HolochainServiceAppClient(
      * @return The signed zome call ready to be executed
      * @throws HolochainServiceNotConnectedException if not connected to the service
      */
-    suspend fun signZomeCall(args: ZomeCallUnsignedFfi): ZomeCallFfi {
+    suspend fun signZomeCall(args: ZomeCallParamsFfi): ZomeCallParamsSignedFfi {
         Log.d(logTag, "signZomeCall")
         if (this.mService == null) {
             throw HolochainServiceNotConnectedException()
         }
 
         var callbackDeferred = SignZomeCallCallbackDeferred()
-        this.mService!!.signZomeCall(callbackDeferred, ZomeCallUnsignedFfiParcel(args))
+        this.mService!!.signZomeCall(callbackDeferred, ZomeCallParamsFfiParcel(args))
 
         return callbackDeferred.await()
     }

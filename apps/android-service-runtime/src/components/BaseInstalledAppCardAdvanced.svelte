@@ -43,14 +43,8 @@
                 <BaseLabelled label={$_('network_seed')}>
                   {cellInfo.v1.dnaModifiers.networkSeed}
                 </BaseLabelled>
-                <BaseLabelled label={$_('origin_time')}>
-                  {cellInfo.v1.dnaModifiers.originTime}
-                </BaseLabelled>
                 <BaseLabelled label={$_('properties')}>
                   {decode(cellInfo.v1.dnaModifiers.properties)}
-                </BaseLabelled>
-                <BaseLabelled label={$_('quantum_time')}>
-                  {cellInfo.v1.dnaModifiers.quantumTime.secs} {$_('seconds_short')}, {cellInfo.v1.dnaModifiers.quantumTime.secs} {$_('nanoseconds_short')}
                 </BaseLabelled>
               </div>
             </BaseLabelled>

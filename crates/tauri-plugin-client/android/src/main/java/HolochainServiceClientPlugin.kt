@@ -89,7 +89,7 @@ class HolochainServiceClientPlugin(
     @Command
     fun signZomeCall(invoke: Invoke) {
         Log.d(logTag, "signZomeCall")
-        val args = invoke.parseArgs(ZomeCallUnsignedFfiInvokeArg::class.java)
+        val args = invoke.parseArgs(ZomeCallParamsFfiInvokeArg::class.java)
         serviceScope.launch(Dispatchers.IO) {
             try {
                 val res = serviceClient.signZomeCall(args.toFfi())

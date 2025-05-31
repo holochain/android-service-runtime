@@ -1,6 +1,6 @@
 [package]
 name = "holochain-conductor-runtime-types-ffi"
-version = "0.1.3"
+version = "0.2.0"
 edition = "2021"
 description = "Types used in holochain-conductor-runtime-ffi, used by both client and service."
 license = "MIT OR Apache-2.0"

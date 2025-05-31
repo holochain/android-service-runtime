@@ -3,6 +3,6 @@
 # signZomeCall
 
 [androidJvm]\
-open suspend override fun [signZomeCall](sign-zome-call.md)(zomeCallUnsigned: ZomeCallUnsignedFfi): ZomeCallFfi
+open suspend override fun [signZomeCall](sign-zome-call.md)(zomeCallUnsigned: ZomeCallParamsFfi): ZomeCallParamsSignedFfi
 
 Sign a zome call

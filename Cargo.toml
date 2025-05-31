@@ -21,16 +21,17 @@ keywords = ["holochain", "android", "tauri", "p2p"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-holochain = "0.4.2"
-holochain_conductor_api = "0.4.2"
-holochain_types = "0.4.2"
-kitsune_p2p_types = "0.4.2"
-sodoken = "0.0.11"
+holochain = "0.5.2"
+holochain_conductor_api = "0.5.2"
+holochain_types = "0.5.2"
+sodoken = "0.1.0"
 url2 = "0.0.6"
+lair_keystore_api = "0.6.1"
+rustls = "0.23.25"
 
-tauri = "2.4.1"
-tauri-plugin = "2.1.1"
-tauri-build = { version = "2.1.1", default-features = false }
+tauri = "2.5.1"
+tauri-plugin = "2.2.0"
+tauri-build = { version = "2.2.0", default-features = false }
 
 # Currently using fork of uniffi as a workaround
 # See https://github.com/holochain/android-service-runtime/issues/113

@@ -4,7 +4,7 @@ import app.tauri.annotation.InvokeArg
 import org.holochain.androidserviceruntime.client.CellIdFfi
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfi
 import org.holochain.androidserviceruntime.client.RoleSettingsFfi
-import org.holochain.androidserviceruntime.client.ZomeCallUnsignedFfi
+import org.holochain.androidserviceruntime.client.ZomeCallParamsFfi
 
 @InvokeArg
 class SetupAppConfigInvokeArg {
@@ -29,7 +29,7 @@ class AppIdInvokeArg {
 }
 
 @InvokeArg
-class ZomeCallUnsignedFfiInvokeArg {
+class ZomeCallParamsFfiInvokeArg {
     lateinit var provenance: ByteArray
     lateinit var cellIdDnaHash: ByteArray
     lateinit var cellIdAgentPubKey: ByteArray
@@ -41,8 +41,8 @@ class ZomeCallUnsignedFfiInvokeArg {
     var expiresAt: Long = 0L
 }
 
-fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi =
-    ZomeCallUnsignedFfi(
+fun ZomeCallParamsFfiInvokeArg.toFfi(): ZomeCallParamsFfi =
+    ZomeCallParamsFfi(
         this.provenance,
         CellIdFfi(
             dnaHash = this.cellIdDnaHash,

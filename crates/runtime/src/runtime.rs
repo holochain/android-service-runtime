@@ -1,17 +1,17 @@
 use crate::{AppAuth, RuntimeConfig, RuntimeError, RuntimeResult, DEVICE_SEED_LAIR_TAG};
 use crate::{AuthorizedAppClientsManager, ClientId};
-use holochain::conductor::api::AppAuthenticationTokenIssued;
 use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
+use holochain::conductor::api::{AppAuthenticationTokenIssued, ZomeCallParamsSigned};
 use holochain::{
     conductor::{
-        api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo, ZomeCall},
+        api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo},
         ConductorBuilder, ConductorHandle,
     },
-    prelude::{InstallAppPayload, InstalledAppId, ZomeCallUnsigned},
+    prelude::{InstallAppPayload, InstalledAppId, ZomeCallParams},
 };
 use holochain_types::websocket::AllowedOrigins;
-use kitsune_p2p_types::dependencies::lair_keystore_api::dependencies::sodoken::BufRead;
-use log::debug;
+use lair_keystore_api::types::SharedLockedArray;
+use log::{debug, error};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -28,7 +28,15 @@ pub struct Runtime {
 
 impl Runtime {
     /// Initialize and start a new Conductor
-    pub async fn new(passphrase: BufRead, runtime_config: RuntimeConfig) -> RuntimeResult<Self> {
+    pub async fn new(
+        passphrase: SharedLockedArray,
+        runtime_config: RuntimeConfig,
+    ) -> RuntimeResult<Self> {
+        let res = rustls::crypto::aws_lc_rs::default_provider().install_default();
+        if res.is_err() {
+            error!("Failed to set default crypto provider for tls: {:?}", res);
+        }
+
         let conductor = ConductorBuilder::default()
             .passphrase(Some(passphrase))
             .config(runtime_config.clone().into())
@@ -143,11 +151,28 @@ impl Runtime {
 
     pub async fn sign_zome_call(
         &self,
-        zome_call_unsigned: ZomeCallUnsigned,
-    ) -> RuntimeResult<ZomeCall> {
-        ZomeCall::try_from_unsigned_zome_call(self.conductor.keystore(), zome_call_unsigned)
+        zome_call_params: ZomeCallParams,
+    ) -> RuntimeResult<ZomeCallParamsSigned> {
+        let (bytes, hash) = zome_call_params
+            .serialize_and_hash()
+            .map_err(|e| RuntimeError::ZomeCallParamsInvalid(e.to_string()))?;
+        let signer_key: [u8; 32] = zome_call_params
+            .provenance
+            .get_raw_32()
+            .try_into()
+            .map_err(|_| RuntimeError::ZomeCallParamsInvalid("Invalid provenance".to_string()))?;
+        let signature = self
+            .conductor
+            .keystore()
+            .lair_client()
+            .sign_by_pub_key(signer_key.into(), None, hash.into())
             .await
-            .map_err(RuntimeError::Lair)
+            .map_err(RuntimeError::Lair)?;
+
+        Ok(ZomeCallParamsSigned {
+            bytes: bytes.into(),
+            signature: (*signature.0).into(),
+        })
     }
 
     pub async fn ensure_app_websocket(
@@ -287,8 +312,9 @@ mod test {
     use holochain_types::prelude::DisabledAppReason;
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
-    use kitsune_p2p_types::config::TransportConfig;
     use serde_json::json;
+    use sodoken::LockedArray;
+    use std::sync::Mutex;
     use tempfile::TempDir;
     use url2::Url2;
     use uuid::Uuid;
@@ -313,12 +339,13 @@ mod test {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_new_runtime() {
         let tmp_dir = TempDir::new().unwrap();
-        let bootstrap_url = Url2::try_parse("https://bootstrap.holo.host").unwrap();
-        let signal_url = Url2::try_parse("wss://sbd.holo.host").unwrap();
-        let ice_urls = vec![Url2::try_parse("stun:stun.l.google.com:19302").unwrap()];
+        let bootstrap_url = Url2::try_parse("https://bootstrap.com").unwrap();
+        let signal_url = Url2::try_parse("wss://signal.com").unwrap();
+        let stun_url = Url2::try_parse("stun:stun.com:1234").unwrap();
+        let ice_urls = vec![stun_url.clone()];
 
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir.path().into(),
                 network: RuntimeNetworkConfig {
@@ -346,30 +373,26 @@ mod test {
             KeystoreConfig::LairServerInProc { lair_root: None }
         );
         assert_eq!(
-            runtime
-                .conductor
-                .config
-                .network
-                .bootstrap_service
-                .clone()
-                .unwrap(),
+            runtime.conductor.config.network.bootstrap_url.clone(),
             bootstrap_url
+        );
+        assert_eq!(
+            runtime.conductor.config.network.signal_url.clone(),
+            signal_url
         );
         assert_eq!(
             runtime
                 .conductor
                 .config
                 .network
-                .transport_pool
-                .first()
-                .unwrap()
-                .clone(),
-            TransportConfig::WebRTC {
-                signal_url: signal_url.into(),
-                webrtc_config: Some(
-                    json!({"ice_servers": vec![json!({"urls": vec!["stun:stun.l.google.com:19302".to_string()]})]})
-                ),
-            }
+                .webrtc_config
+                .clone()
+                .unwrap(),
+            json!({
+                "iceServers": [
+                    { "urls": [stun_url.to_string()] },
+                ]
+            })
         );
 
         let res = AdminInterfaceApi::new(runtime.conductor)
@@ -383,7 +406,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -405,7 +428,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -436,7 +459,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -458,7 +481,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -481,7 +504,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -509,7 +532,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -529,7 +552,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -552,7 +575,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -569,7 +592,7 @@ mod test {
         };
 
         let res = runtime
-            .sign_zome_call(ZomeCallUnsigned {
+            .sign_zome_call(ZomeCallParams {
                 provenance: cell_id.agent_pubkey().clone(),
                 cell_id: cell_id.clone(),
                 zome_name: "forum".into(),
@@ -588,7 +611,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -646,7 +669,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -665,7 +688,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -718,7 +741,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),
@@ -754,7 +777,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let tmp_dir_path = tmp_dir.path().to_path_buf();
         let runtime = Runtime::new(
-            BufRead::from(vec![0, 0, 0, 0]),
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
             RuntimeConfig {
                 data_root_path: tmp_dir_path,
                 network: RuntimeNetworkConfig::default(),

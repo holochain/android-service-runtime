@@ -5,7 +5,6 @@ import org.holochain.androidserviceruntime.client.CellInfoFfi
 import org.holochain.androidserviceruntime.client.DisabledAppReasonFfi
 import org.holochain.androidserviceruntime.client.DnaModifiersFfi
 import org.holochain.androidserviceruntime.client.DnaModifiersOptFfi
-import org.holochain.androidserviceruntime.client.DurationFfi
 import org.holochain.androidserviceruntime.client.PausedAppReasonFfi
 import org.holochain.androidserviceruntime.client.ProvisionedCellFfi
 import org.holochain.androidserviceruntime.client.RoleSettingsFfi
@@ -78,8 +77,6 @@ class JsonTest {
                                 DnaModifiersFfi(
                                     networkSeed = "1234",
                                     properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                                    originTime = 1000L,
-                                    quantumTime = DurationFfi(100UL, 100U),
                                 ),
                             name = "cell-1",
                         ),
@@ -106,8 +103,6 @@ class JsonTest {
                             DnaModifiersOptFfi(
                                 networkSeed = "1234",
                                 properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                                originTime = 1000L,
-                                quantumTime = DurationFfi(100UL, 100U),
                             ),
                     ),
             )

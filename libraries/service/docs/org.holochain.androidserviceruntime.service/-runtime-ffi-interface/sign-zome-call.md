@@ -3,6 +3,6 @@
 # signZomeCall
 
 [androidJvm]\
-abstract suspend fun [signZomeCall](sign-zome-call.md)(zomeCallUnsigned: ZomeCallUnsignedFfi): ZomeCallFfi
+abstract suspend fun [signZomeCall](sign-zome-call.md)(zomeCallUnsigned: ZomeCallParamsFfi): ZomeCallParamsSignedFfi
 
 Sign a zome call

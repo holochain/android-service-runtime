@@ -3,4 +3,4 @@
 # signZomeCall
 
 [androidJvm]\
-open fun [signZomeCall](sign-zome-call.md)(response: [ZomeCallFfiParcel](../-zome-call-ffi-parcel/index.md))
+open fun [signZomeCall](sign-zome-call.md)(response: [ZomeCallParamsSignedFfiParcel](../-zome-call-params-signed-ffi-parcel/index.md))

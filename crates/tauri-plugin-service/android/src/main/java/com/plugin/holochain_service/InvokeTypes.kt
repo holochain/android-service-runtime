@@ -5,7 +5,7 @@ import org.holochain.androidserviceruntime.client.CellIdFfi
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfi
 import org.holochain.androidserviceruntime.client.RoleSettingsFfi
 import org.holochain.androidserviceruntime.client.RuntimeNetworkConfigFfi
-import org.holochain.androidserviceruntime.client.ZomeCallUnsignedFfi
+import org.holochain.androidserviceruntime.client.ZomeCallParamsFfi
 
 @InvokeArg
 class InstallAppPayloadFfiInvokeArg {
@@ -29,7 +29,7 @@ class AppIdInvokeArg {
 }
 
 @InvokeArg
-class ZomeCallUnsignedFfiInvokeArg {
+class ZomeCallParamsFfiInvokeArg {
     lateinit var provenance: ByteArray
     lateinit var cellId: CellIdFfi
     lateinit var zomeName: String
@@ -40,8 +40,8 @@ class ZomeCallUnsignedFfiInvokeArg {
     var expiresAt: Long = 0L
 }
 
-fun ZomeCallUnsignedFfiInvokeArg.toFfi(): ZomeCallUnsignedFfi =
-    ZomeCallUnsignedFfi(
+fun ZomeCallParamsFfiInvokeArg.toFfi(): ZomeCallParamsFfi =
+    ZomeCallParamsFfi(
         this.provenance,
         this.cellId,
         this.zomeName,

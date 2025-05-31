@@ -51,7 +51,7 @@ open class IHolochainServiceCallbackStubDeferred<T> : IHolochainServiceCallback.
 
     override fun ensureAppWebsocket(response: AppAuthFfiParcel) {}
 
-    override fun signZomeCall(response: ZomeCallFfiParcel) {}
+    override fun signZomeCall(response: ZomeCallParamsSignedFfiParcel) {}
 }
 
 /*
@@ -115,8 +115,8 @@ class EnsureAppWebsocketCallbackDeferred : IHolochainServiceCallbackStubDeferred
     }
 }
 
-class SignZomeCallCallbackDeferred : IHolochainServiceCallbackStubDeferred<ZomeCallFfi>() {
-    override fun signZomeCall(response: ZomeCallFfiParcel) {
+class SignZomeCallCallbackDeferred : IHolochainServiceCallbackStubDeferred<ZomeCallParamsSignedFfi>() {
+    override fun signZomeCall(response: ZomeCallParamsSignedFfiParcel) {
         Log.d(logTag, "signZomeCall")
         deferred.complete(response.inner)
     }

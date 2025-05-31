@@ -83,12 +83,6 @@ data class DnaModifiersOptFfiParcel(
 ) : Parcelable
 
 @Parcelize
-@TypeParceler<DurationFfi, DurationFfiParceler>
-data class DurationFfiParcel(
-    val inner: DurationFfi,
-) : Parcelable
-
-@Parcelize
 @TypeParceler<AppAuthenticationTokenIssuedFfi, AppAuthenticationTokenIssuedFfiParceler>
 data class AppAuthenticationTokenIssuedFfiParcel(
     val inner: AppAuthenticationTokenIssuedFfi,
@@ -101,15 +95,15 @@ data class AppAuthFfiParcel(
 ) : Parcelable
 
 @Parcelize
-@TypeParceler<ZomeCallUnsignedFfi, ZomeCallUnsignedFfiParceler>
-data class ZomeCallUnsignedFfiParcel(
-    val inner: ZomeCallUnsignedFfi,
+@TypeParceler<ZomeCallParamsFfi, ZomeCallParamsFfiParceler>
+data class ZomeCallParamsFfiParcel(
+    val inner: ZomeCallParamsFfi,
 ) : Parcelable
 
 @Parcelize
-@TypeParceler<ZomeCallFfi, ZomeCallFfiParceler>
-data class ZomeCallFfiParcel(
-    val inner: ZomeCallFfi,
+@TypeParceler<ZomeCallParamsSignedFfi, ZomeCallParamsSignedFfiParceler>
+data class ZomeCallParamsSignedFfiParcel(
+    val inner: ZomeCallParamsSignedFfi,
 ) : Parcelable
 
 @Parcelize
