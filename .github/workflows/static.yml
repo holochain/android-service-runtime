@@ -16,13 +16,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Rust toolchain
-        uses: mkroening/rust-toolchain-toml@main
-
-      - uses: Swatinem/rust-cache@v2
-        name: Enable Rust Caching
+      - name: Install nix
+        uses: cachix/install-nix-action@v27
         with:
-          cache-on-failure: true
-      
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_path: nixpkgs=channel:nixos-24.05
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: holochain-ci
+
       - name: Make Static
-        run: CHK_SQL_FMT=1 make static
+        run: |
+          nix develop --no-update-lock-file --command bash -c "CHK_SQL_FMT=1 make static"
