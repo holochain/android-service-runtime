@@ -2880,7 +2880,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "holochain",
  "holochain_types",
@@ -2900,7 +2900,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime-ffi"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "android_logger 0.14.1",
  "hc_uniffi",
@@ -7878,7 +7878,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-holochain-service"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "holochain-conductor-runtime-types-ffi",
  "serde",
@@ -7889,7 +7889,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-holochain-service-client"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "bytes",
  "holochain-conductor-runtime-types-ffi",
