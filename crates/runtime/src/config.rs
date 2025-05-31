@@ -44,13 +44,13 @@ impl From<RuntimeNetworkConfig> for NetworkConfig {
     fn from(val: RuntimeNetworkConfig) -> NetworkConfig {
         let mut network_config = NetworkConfig::default();
 
-        let ice_urls: Vec<serde_json::Value> = val
-            .ice_urls
-            .clone()
-            .into_iter()
-            .map(|u| json!({"urls": [u]}))
-            .collect();
-        network_config.webrtc_config = Some(json!({"ice_servers": {"urls": ice_urls}}));
+        network_config.webrtc_config = Some(json!({
+            "iceServers": val.ice_urls
+                .clone()
+                .into_iter()
+                .map(|u| json!({"urls": [u]}))
+                .collect::<Vec<serde_json::Value>>()
+        }));
         network_config.bootstrap_url = val.bootstrap_url;
         network_config.signal_url = val.signal_url;
 

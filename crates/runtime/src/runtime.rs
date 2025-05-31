@@ -388,7 +388,11 @@ mod test {
                 .webrtc_config
                 .clone()
                 .unwrap(),
-            json!({"ice_servers": vec![json!({"urls": vec![stun_url.to_string()]})]}),
+            json!({
+                "iceServers": [
+                    { "urls": [stun_url.to_string()] },
+                ]
+            })
         );
 
         let res = AdminInterfaceApi::new(runtime.conductor)
