@@ -7893,7 +7893,6 @@ version = "0.1.1"
 dependencies = [
  "bytes",
  "holochain-conductor-runtime-types-ffi",
- "log",
  "serde",
  "tauri",
  "tauri-plugin",
