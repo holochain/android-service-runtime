@@ -1,5 +1,5 @@
 <script lang="ts">
-import type {
+import {
   ActionHash,
   AgentPubKey,
   AppClient,
@@ -35,9 +35,9 @@ onMount(async () => {
   await fetchComments();
 
   client.on("signal", async signal => {
-    if (!(SignalType.App in signal)) return;
-    if (signal.App.zome_name !== "posts") return;
-    const payload = signal.App.payload as PostsSignal;
+    if (signal.type !== SignalType.App) return;
+    if (signal.value.zome_name !== "posts") return;
+    const payload = signal.value.payload as PostsSignal;
     if (!(payload.type === "EntryCreated" && payload.app_entry.type === "Comment")) return;
     await fetchComments();
   });
