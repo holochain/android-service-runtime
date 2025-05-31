@@ -22,6 +22,7 @@
           
           packages = [
             pkgs.cargo-ndk
+            pkgs.pnpm
           ];
         };
       };
