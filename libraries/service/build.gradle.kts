@@ -9,7 +9,8 @@ plugins {
   id("org.jetbrains.dokka") version("2.0.0")
 }
 
-// The uniffi-generated kotlin bindings violate some linter rules
+// The auto-generated kotlin bindings violate some linter rules,
+// so we exclude them from lint tasks.
 tasks.withType<ConfigurableKtLintTask> {
     exclude("**/*_ffi.kt")
 }
@@ -47,7 +48,7 @@ mavenPublishing {
       signAllPublications()
   }
 
-  coordinates("org.holochain.androidserviceruntime", "service", "0.0.15")
+  coordinates("org.holochain.androidserviceruntime", "service", "0.0.17")
 
   pom {
     name.set("Holochain Service")
@@ -78,7 +79,7 @@ mavenPublishing {
 
 dependencies {
   // Subprojects
-  implementation("org.holochain.androidserviceruntime:client:0.0.15")
+  implementation("org.holochain.androidserviceruntime:client:0.0.17")
   // Kotlin
   implementation("androidx.core:core-ktx:1.7.0")
   implementation("androidx.appcompat:appcompat:1.6.0")

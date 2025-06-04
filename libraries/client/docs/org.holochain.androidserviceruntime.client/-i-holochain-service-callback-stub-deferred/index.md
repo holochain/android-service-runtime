@@ -44,5 +44,5 @@ This is intended to be extended, with the success callback overridden, for each 
 | [isAppInstalled](is-app-installed.md) | [androidJvm]<br>open fun [isAppInstalled](is-app-installed.md)(response: [Boolean](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html)) |
 | [listApps](list-apps.md) | [androidJvm]<br>open fun [listApps](list-apps.md)(response: [List](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html)&lt;[AppInfoFfiParcel](../-app-info-ffi-parcel/index.md)&gt;) |
 | [setupApp](setup-app.md) | [androidJvm]<br>open fun [setupApp](setup-app.md)(response: [AppAuthFfiParcel](../-app-auth-ffi-parcel/index.md)) |
-| [signZomeCall](sign-zome-call.md) | [androidJvm]<br>open fun [signZomeCall](sign-zome-call.md)(response: [ZomeCallFfiParcel](../-zome-call-ffi-parcel/index.md)) |
+| [signZomeCall](sign-zome-call.md) | [androidJvm]<br>open fun [signZomeCall](sign-zome-call.md)(response: [ZomeCallParamsSignedFfiParcel](../-zome-call-params-signed-ffi-parcel/index.md)) |
 | [uninstallApp](uninstall-app.md) | [androidJvm]<br>open fun [uninstallApp](uninstall-app.md)() |

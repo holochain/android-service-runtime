@@ -21,8 +21,6 @@ import org.holochain.androidserviceruntime.client.DisabledAppReasonFfiParcel
 import org.holochain.androidserviceruntime.client.DnaModifiersFfi
 import org.holochain.androidserviceruntime.client.DnaModifiersFfiParcel
 import org.holochain.androidserviceruntime.client.DnaModifiersOptFfi
-import org.holochain.androidserviceruntime.client.DurationFfi
-import org.holochain.androidserviceruntime.client.DurationFfiParcel
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfi
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfiParcel
 import org.holochain.androidserviceruntime.client.PausedAppReasonFfi
@@ -34,10 +32,10 @@ import org.holochain.androidserviceruntime.client.RuntimeNetworkConfigFfi
 import org.holochain.androidserviceruntime.client.RuntimeNetworkConfigFfiParcel
 import org.holochain.androidserviceruntime.client.StemCellFfi
 import org.holochain.androidserviceruntime.client.StemCellFfiParcel
-import org.holochain.androidserviceruntime.client.ZomeCallFfi
-import org.holochain.androidserviceruntime.client.ZomeCallFfiParcel
-import org.holochain.androidserviceruntime.client.ZomeCallUnsignedFfi
-import org.holochain.androidserviceruntime.client.ZomeCallUnsignedFfiParcel
+import org.holochain.androidserviceruntime.client.ZomeCallParamsFfi
+import org.holochain.androidserviceruntime.client.ZomeCallParamsFfiParcel
+import org.holochain.androidserviceruntime.client.ZomeCallParamsSignedFfi
+import org.holochain.androidserviceruntime.client.ZomeCallParamsSignedFfiParcel
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -67,27 +65,12 @@ class ParcelablesTest {
     }
 
     @Test
-    fun testDurationFfiParcel() {
-        val value = DurationFfiParcel(DurationFfi(secs = 100UL, nanos = 500U))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcelableCreator<DurationFfiParcel>().createFromParcel(parcel)
-
-        assertEquals(value.inner.secs, readValue.inner.secs)
-        assertEquals(value.inner.nanos, readValue.inner.nanos)
-    }
-
-    @Test
     fun testDnaModifiersFfiParcel() {
         val value =
             DnaModifiersFfiParcel(
                 DnaModifiersFfi(
                     networkSeed = "1234",
                     properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                    originTime = 1000L,
-                    quantumTime = DurationFfi(100UL, 100U),
                 ),
             )
 
@@ -98,9 +81,6 @@ class ParcelablesTest {
 
         assertEquals(value.inner.networkSeed, readValue.inner.networkSeed)
         assertArrayEquals(value.inner.properties, readValue.inner.properties)
-        assertEquals(value.inner.originTime, readValue.inner.originTime)
-        assertEquals(value.inner.quantumTime.secs, readValue.inner.quantumTime.secs)
-        assertEquals(value.inner.quantumTime.nanos, readValue.inner.quantumTime.nanos)
     }
 
     @Test
@@ -118,8 +98,6 @@ class ParcelablesTest {
                             DnaModifiersFfi(
                                 networkSeed = "1234",
                                 properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                                originTime = 1000L,
-                                quantumTime = DurationFfi(100UL, 100U),
                             ),
                         name = "cell-1",
                     ),
@@ -143,15 +121,6 @@ class ParcelablesTest {
         assertArrayEquals(
             value.inner.v1.dnaModifiers.properties,
             readValue.inner.v1.dnaModifiers.properties,
-        )
-        assertEquals(value.inner.v1.dnaModifiers.originTime, readValue.inner.v1.dnaModifiers.originTime)
-        assertEquals(
-            value.inner.v1.dnaModifiers.quantumTime.secs,
-            readValue.inner.v1.dnaModifiers.quantumTime.secs,
-        )
-        assertEquals(
-            value.inner.v1.dnaModifiers.quantumTime.nanos,
-            readValue.inner.v1.dnaModifiers.quantumTime.nanos,
         )
         assertEquals(value.inner.v1.name, readValue.inner.v1.name)
     }
@@ -180,8 +149,6 @@ class ParcelablesTest {
                                                     networkSeed = "1234",
                                                     properties =
                                                         ByteArray(300) { Random.nextInt(256).toByte() },
-                                                    originTime = 1000L,
-                                                    quantumTime = DurationFfi(100UL, 100U),
                                                 ),
                                             name = "cell-1",
                                         ),
@@ -233,37 +200,6 @@ class ParcelablesTest {
                 .dnaModifiers
                 .properties,
         )
-        assertEquals(
-            (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned).v1.dnaModifiers.originTime,
-            (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
-                .v1
-                .dnaModifiers
-                .originTime,
-        )
-        assertEquals(
-            (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
-                .v1
-                .dnaModifiers
-                .quantumTime
-                .secs,
-            (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
-                .v1
-                .dnaModifiers
-                .quantumTime
-                .secs,
-        )
-        assertEquals(
-            (value.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
-                .v1
-                .dnaModifiers
-                .quantumTime
-                .nanos,
-            (readValue.inner.cellInfo["cell-1"]!![0] as CellInfoFfi.Provisioned)
-                .v1
-                .dnaModifiers
-                .quantumTime
-                .nanos,
-        )
         assert(
             (readValue.inner.status as AppInfoStatusFfi.Disabled).reason
                 is DisabledAppReasonFfi.NeverStarted,
@@ -289,8 +225,6 @@ class ParcelablesTest {
                                             networkSeed = "1234",
                                             properties =
                                                 ByteArray(300) { Random.nextInt(256).toByte() },
-                                            originTime = 1000L,
-                                            quantumTime = DurationFfi(100UL, 100U),
                                         ),
                                 ),
                         ),
@@ -339,34 +273,6 @@ class ParcelablesTest {
             (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
                 .modifiers!!
                 .properties,
-        )
-        assertEquals(
-            (value.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
-                .modifiers!!
-                .originTime,
-            (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
-                .modifiers!!
-                .originTime,
-        )
-        assertEquals(
-            (value.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
-                .modifiers!!
-                .quantumTime!!
-                .nanos,
-            (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
-                .modifiers!!
-                .quantumTime!!
-                .nanos,
-        )
-        assertEquals(
-            (value.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
-                .modifiers!!
-                .quantumTime!!
-                .secs,
-            (readValue.inner.rolesSettings!!.get("cell-1")!! as RoleSettingsFfi.Provisioned)
-                .modifiers!!
-                .quantumTime!!
-                .secs,
         )
     }
 
@@ -565,10 +471,10 @@ class ParcelablesTest {
     }
 
     @Test
-    fun testZomeCallUnsignedFfiParcel() {
+    fun testZomeCallParamsFfiParcel() {
         val value =
-            ZomeCallUnsignedFfiParcel(
-                ZomeCallUnsignedFfi(
+            ZomeCallParamsFfiParcel(
+                ZomeCallParamsFfi(
                     provenance = ByteArray(32) { Random.nextInt(256).toByte() },
                     cellId =
                         CellIdFfi(
@@ -587,7 +493,7 @@ class ParcelablesTest {
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
-        val readValue = parcelableCreator<ZomeCallUnsignedFfiParcel>().createFromParcel(parcel)
+        val readValue = parcelableCreator<ZomeCallParamsFfiParcel>().createFromParcel(parcel)
 
         assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
         assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
@@ -601,10 +507,10 @@ class ParcelablesTest {
     }
 
     @Test
-    fun testZomeCallUnsignedFfiParcelNulls() {
+    fun testZomeCallParamsFfiParcelNulls() {
         val value =
-            ZomeCallUnsignedFfiParcel(
-                ZomeCallUnsignedFfi(
+            ZomeCallParamsFfiParcel(
+                ZomeCallParamsFfi(
                     provenance = ByteArray(32) { Random.nextInt(256).toByte() },
                     cellId =
                         CellIdFfi(
@@ -623,7 +529,7 @@ class ParcelablesTest {
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
-        val readValue = parcelableCreator<ZomeCallUnsignedFfiParcel>().createFromParcel(parcel)
+        val readValue = parcelableCreator<ZomeCallParamsFfiParcel>().createFromParcel(parcel)
 
         assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
         assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
@@ -637,22 +543,11 @@ class ParcelablesTest {
     }
 
     @Test
-    fun testZomeCallFfiParcel() {
+    fun testZomeCallParamsSignedFfiParcel() {
         val value =
-            ZomeCallFfiParcel(
-                ZomeCallFfi(
-                    provenance = ByteArray(32) { Random.nextInt(256).toByte() },
-                    cellId =
-                        CellIdFfi(
-                            dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
-                            agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
-                        ),
-                    zomeName = "my_zome",
-                    fnName = "my_function",
-                    capSecret = ByteArray(50) { Random.nextInt(256).toByte() },
-                    payload = ByteArray(50) { Random.nextInt(256).toByte() },
-                    nonce = ByteArray(50) { Random.nextInt(256).toByte() },
-                    expiresAt = 10000000L,
+            ZomeCallParamsSignedFfiParcel(
+                ZomeCallParamsSignedFfi(
+                    bytes = ByteArray(32) { Random.nextInt(256).toByte() },
                     signature = ByteArray(50) { Random.nextInt(256).toByte() },
                 ),
             )
@@ -660,37 +555,18 @@ class ParcelablesTest {
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
-        val readValue = parcelableCreator<ZomeCallFfiParcel>().createFromParcel(parcel)
+        val readValue = parcelableCreator<ZomeCallParamsSignedFfiParcel>().createFromParcel(parcel)
 
-        assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
-        assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
-        assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
-        assertEquals(value.inner.zomeName, readValue.inner.zomeName)
-        assertEquals(value.inner.fnName, readValue.inner.fnName)
-        assertArrayEquals(value.inner.capSecret, readValue.inner.capSecret)
-        assertArrayEquals(value.inner.payload, readValue.inner.payload)
-        assertArrayEquals(value.inner.nonce, readValue.inner.nonce)
-        assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
+        assertArrayEquals(value.inner.bytes, readValue.inner.bytes)
         assertArrayEquals(value.inner.signature, readValue.inner.signature)
     }
 
     @Test
-    fun testZomeCallFfiParcelNulls() {
+    fun testZomeCallParamsSignedFfiParcelNulls() {
         val value =
-            ZomeCallFfiParcel(
-                ZomeCallFfi(
-                    provenance = ByteArray(32) { Random.nextInt(256).toByte() },
-                    cellId =
-                        CellIdFfi(
-                            dnaHash = ByteArray(32) { Random.nextInt(256).toByte() },
-                            agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
-                        ),
-                    zomeName = "my_zome",
-                    fnName = "my_function",
-                    capSecret = null,
-                    payload = ByteArray(50) { Random.nextInt(256).toByte() },
-                    nonce = ByteArray(50) { Random.nextInt(256).toByte() },
-                    expiresAt = 10000000L,
+            ZomeCallParamsSignedFfiParcel(
+                ZomeCallParamsSignedFfi(
+                    bytes = ByteArray(32) { Random.nextInt(256).toByte() },
                     signature = ByteArray(50) { Random.nextInt(256).toByte() },
                 ),
             )
@@ -698,17 +574,9 @@ class ParcelablesTest {
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
-        val readValue = parcelableCreator<ZomeCallFfiParcel>().createFromParcel(parcel)
+        val readValue = parcelableCreator<ZomeCallParamsSignedFfiParcel>().createFromParcel(parcel)
 
-        assertArrayEquals(value.inner.provenance, readValue.inner.provenance)
-        assertArrayEquals(value.inner.cellId.dnaHash, readValue.inner.cellId.dnaHash)
-        assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
-        assertEquals(value.inner.zomeName, readValue.inner.zomeName)
-        assertEquals(value.inner.fnName, readValue.inner.fnName)
-        assertEquals(value.inner.capSecret, readValue.inner.capSecret)
-        assertArrayEquals(value.inner.payload, readValue.inner.payload)
-        assertArrayEquals(value.inner.nonce, readValue.inner.nonce)
-        assertEquals(value.inner.expiresAt, readValue.inner.expiresAt)
+        assertArrayEquals(value.inner.bytes, readValue.inner.bytes)
         assertArrayEquals(value.inner.signature, readValue.inner.signature)
     }
 
@@ -726,8 +594,6 @@ class ParcelablesTest {
                         DnaModifiersFfi(
                             networkSeed = "1234",
                             properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                            originTime = 1000L,
-                            quantumTime = DurationFfi(100UL, 100U),
                         ),
                     name = "cell-1",
                 ),
@@ -742,15 +608,6 @@ class ParcelablesTest {
         assertArrayEquals(value.inner.cellId.agentPubKey, readValue.inner.cellId.agentPubKey)
         assertEquals(value.inner.dnaModifiers.networkSeed, readValue.inner.dnaModifiers.networkSeed)
         assertArrayEquals(value.inner.dnaModifiers.properties, readValue.inner.dnaModifiers.properties)
-        assertEquals(value.inner.dnaModifiers.originTime, readValue.inner.dnaModifiers.originTime)
-        assertEquals(
-            value.inner.dnaModifiers.quantumTime.secs,
-            readValue.inner.dnaModifiers.quantumTime.secs,
-        )
-        assertEquals(
-            value.inner.dnaModifiers.quantumTime.nanos,
-            readValue.inner.dnaModifiers.quantumTime.nanos,
-        )
         assertEquals(value.inner.name, readValue.inner.name)
     }
 
@@ -770,8 +627,6 @@ class ParcelablesTest {
                         DnaModifiersFfi(
                             networkSeed = "1234",
                             properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                            originTime = 1000L,
-                            quantumTime = DurationFfi(100UL, 100U),
                         ),
                     name = "cell-1",
                     enabled = true,
@@ -789,15 +644,6 @@ class ParcelablesTest {
         assertArrayEquals(value.inner.originalDnaHash, readValue.inner.originalDnaHash)
         assertEquals(value.inner.dnaModifiers.networkSeed, readValue.inner.dnaModifiers.networkSeed)
         assertArrayEquals(value.inner.dnaModifiers.properties, readValue.inner.dnaModifiers.properties)
-        assertEquals(value.inner.dnaModifiers.originTime, readValue.inner.dnaModifiers.originTime)
-        assertEquals(
-            value.inner.dnaModifiers.quantumTime.secs,
-            readValue.inner.dnaModifiers.quantumTime.secs,
-        )
-        assertEquals(
-            value.inner.dnaModifiers.quantumTime.nanos,
-            readValue.inner.dnaModifiers.quantumTime.nanos,
-        )
         assertEquals(value.inner.name, readValue.inner.name)
         assertEquals(value.inner.enabled, readValue.inner.enabled)
     }
@@ -812,8 +658,6 @@ class ParcelablesTest {
                         DnaModifiersFfi(
                             networkSeed = "1234",
                             properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                            originTime = 1000L,
-                            quantumTime = DurationFfi(100UL, 100U),
                         ),
                     name = "cell-1",
                 ),
@@ -827,15 +671,6 @@ class ParcelablesTest {
         assertArrayEquals(value.inner.originalDnaHash, readValue.inner.originalDnaHash)
         assertEquals(value.inner.dnaModifiers.networkSeed, readValue.inner.dnaModifiers.networkSeed)
         assertArrayEquals(value.inner.dnaModifiers.properties, readValue.inner.dnaModifiers.properties)
-        assertEquals(value.inner.dnaModifiers.originTime, readValue.inner.dnaModifiers.originTime)
-        assertEquals(
-            value.inner.dnaModifiers.quantumTime.secs,
-            readValue.inner.dnaModifiers.quantumTime.secs,
-        )
-        assertEquals(
-            value.inner.dnaModifiers.quantumTime.nanos,
-            readValue.inner.dnaModifiers.quantumTime.nanos,
-        )
         assertEquals(value.inner.name, readValue.inner.name)
     }
 
@@ -849,8 +684,6 @@ class ParcelablesTest {
                         DnaModifiersFfi(
                             networkSeed = "1234",
                             properties = ByteArray(300) { Random.nextInt(256).toByte() },
-                            originTime = 1000L,
-                            quantumTime = DurationFfi(100UL, 100U),
                         ),
                     name = null,
                 ),
@@ -864,15 +697,6 @@ class ParcelablesTest {
         assertArrayEquals(value.inner.originalDnaHash, readValue.inner.originalDnaHash)
         assertEquals(value.inner.dnaModifiers.networkSeed, readValue.inner.dnaModifiers.networkSeed)
         assertArrayEquals(value.inner.dnaModifiers.properties, readValue.inner.dnaModifiers.properties)
-        assertEquals(value.inner.dnaModifiers.originTime, readValue.inner.dnaModifiers.originTime)
-        assertEquals(
-            value.inner.dnaModifiers.quantumTime.secs,
-            readValue.inner.dnaModifiers.quantumTime.secs,
-        )
-        assertEquals(
-            value.inner.dnaModifiers.quantumTime.nanos,
-            readValue.inner.dnaModifiers.quantumTime.nanos,
-        )
         assertEquals(value.inner.name, readValue.inner.name)
     }
 

@@ -28,9 +28,9 @@ onMount(async () => {
   client = await appClientContext.getClient();
   await fetchPosts();
   client.on("signal", signal => {
-    if (!(SignalType.App in signal)) return;
-    if (signal.App.zome_name !== "posts") return;
-    const payload = signal.App.payload as PostsSignal;
+    if (signal.type !== SignalType.App) return;
+    if (signal.value.zome_name !== "posts") return;
+    const payload = signal.value.payload as PostsSignal;
     if (payload.type !== "EntryCreated") return;
     if (payload.app_entry.type !== "Post") return;
     hashes = [...hashes, payload.action.hashed.hash];

@@ -4,7 +4,7 @@
       "build:runtime-ffi": "cd crates/runtime-ffi && ./scripts/build.sh",
       "build:runtime-types-ffi": "cd crates/runtime-types-ffi && ./scripts/build.sh",
       "build:client": "cd libraries/client && ./gradlew build",
-      "build:service": "cd libraries/service && ./gradlew build",
+      "build:service": "cd libraries/service && ./scripts/build.sh",
       "build:tauri-plugin-client": "pnpm run --dir crates/tauri-plugin-client build:single-target-arch:x86_64",
       "build:tauri-plugin-service": "pnpm run --dir crates/tauri-plugin-service build:single-target-arch:x86_64",
       

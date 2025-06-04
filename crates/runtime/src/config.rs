@@ -1,5 +1,4 @@
-use holochain::conductor::config::{ConductorConfig, KeystoreConfig};
-use kitsune_p2p_types::config::{KitsuneP2pConfig, TransportConfig};
+use holochain::conductor::config::{ConductorConfig, KeystoreConfig, NetworkConfig};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::path::PathBuf;
@@ -31,8 +30,8 @@ pub struct RuntimeNetworkConfig {
 impl Default for RuntimeNetworkConfig {
     fn default() -> Self {
         Self {
-            bootstrap_url: Url2::parse("https://bootstrap-0.infra.holochain.org"),
-            signal_url: Url2::parse("wss://sbd.holo.host"),
+            bootstrap_url: Url2::parse("https://dev-test-bootstrap2.holochain.org"),
+            signal_url: Url2::parse("wss://dev-test-bootstrap2.holochain.org"),
             ice_urls: vec![
                 Url2::parse("stun:stun.cloudflare.com:3478"),
                 Url2::parse("stun:stun.l.google.com:19302"),
@@ -41,23 +40,20 @@ impl Default for RuntimeNetworkConfig {
     }
 }
 
-impl From<RuntimeNetworkConfig> for KitsuneP2pConfig {
-    fn from(val: RuntimeNetworkConfig) -> KitsuneP2pConfig {
-        let mut res = KitsuneP2pConfig::default();
-
-        let ice_urls: Vec<serde_json::Value> = val
-            .ice_urls
-            .clone()
-            .into_iter()
-            .map(|u| json!({"urls": [u]}))
-            .collect();
-        res.transport_pool.push(TransportConfig::WebRTC {
-            signal_url: val.signal_url.clone().into(),
-            webrtc_config: Some(json!({"ice_servers": ice_urls})),
-        });
-        res.bootstrap_service = Some(val.bootstrap_url.clone());
-
-        res
+impl From<RuntimeNetworkConfig> for NetworkConfig {
+    fn from(val: RuntimeNetworkConfig) -> NetworkConfig {
+        NetworkConfig {
+            bootstrap_url: val.bootstrap_url,
+            signal_url: val.signal_url,
+            webrtc_config: Some(json!({
+                "iceServers": val.ice_urls
+                    .clone()
+                    .into_iter()
+                    .map(|u| json!({"urls": [u]}))
+                    .collect::<Vec<serde_json::Value>>()
+            })),
+            ..NetworkConfig::default()
+        }
     }
 }
 

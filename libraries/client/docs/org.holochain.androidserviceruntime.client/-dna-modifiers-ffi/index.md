@@ -3,13 +3,13 @@
 # DnaModifiersFfi
 
 [androidJvm]\
-data class [DnaModifiersFfi](index.md)(var networkSeed: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), var properties: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html), var originTime: [Long](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html), var quantumTime: [DurationFfi](../-duration-ffi/index.md))
+data class [DnaModifiersFfi](index.md)(var networkSeed: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), var properties: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html))
 
 ## Constructors
 
 | | |
 |---|---|
-| [DnaModifiersFfi](-dna-modifiers-ffi.md) | [androidJvm]<br>constructor(networkSeed: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), properties: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html), originTime: [Long](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html), quantumTime: [DurationFfi](../-duration-ffi/index.md)) |
+| [DnaModifiersFfi](-dna-modifiers-ffi.md) | [androidJvm]<br>constructor(networkSeed: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html), properties: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html)) |
 
 ## Types
 
@@ -22,9 +22,7 @@ data class [DnaModifiersFfi](index.md)(var networkSeed: [String](https://kotlinl
 | Name | Summary |
 |---|---|
 | [networkSeed](network-seed.md) | [androidJvm]<br>var [networkSeed](network-seed.md): [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html) |
-| [originTime](origin-time.md) | [androidJvm]<br>var [originTime](origin-time.md): [Long](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html) |
 | [properties](properties.md) | [androidJvm]<br>var [properties](properties.md): [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html) |
-| [quantumTime](quantum-time.md) | [androidJvm]<br>var [quantumTime](quantum-time.md): [DurationFfi](../-duration-ffi/index.md) |
 
 ## Functions
 

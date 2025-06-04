@@ -2,7 +2,7 @@ package org.holochain.androidserviceruntime.client;
 
 import org.holochain.androidserviceruntime.client.AppInfoFfiParcel;
 import org.holochain.androidserviceruntime.client.AppAuthFfiParcel;
-import org.holochain.androidserviceruntime.client.ZomeCallFfiParcel;
+import org.holochain.androidserviceruntime.client.ZomeCallParamsSignedFfiParcel;
 import org.holochain.androidserviceruntime.client.AdminBinderUnauthorizedExceptionParcel;
 import org.holochain.androidserviceruntime.client.AppBinderUnauthorizedExceptionParcel;
 
@@ -16,7 +16,7 @@ interface IHolochainServiceCallback {
     void disableApp();
     void isAppInstalled(boolean response);
     void ensureAppWebsocket(in AppAuthFfiParcel response);
-    void signZomeCall(in ZomeCallFfiParcel response);
+    void signZomeCall(in ZomeCallParamsSignedFfiParcel response);
 
     // Error responses
     void adminBinderUnauthorizedException(in AdminBinderUnauthorizedExceptionParcel response);

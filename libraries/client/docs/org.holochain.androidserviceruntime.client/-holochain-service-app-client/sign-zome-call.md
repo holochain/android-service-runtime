@@ -3,7 +3,7 @@
 # signZomeCall
 
 [androidJvm]\
-suspend fun [signZomeCall](sign-zome-call.md)(args: [ZomeCallUnsignedFfi](../-zome-call-unsigned-ffi/index.md)): [ZomeCallFfi](../-zome-call-ffi/index.md)
+suspend fun [signZomeCall](sign-zome-call.md)(args: [ZomeCallParamsFfi](../-zome-call-params-ffi/index.md)): [ZomeCallParamsSignedFfi](../-zome-call-params-signed-ffi/index.md)
 
 Signs a zome call with the agent's private key.
 

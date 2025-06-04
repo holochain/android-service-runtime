@@ -3,4 +3,4 @@
 # DnaModifiersOptFfi
 
 [androidJvm]\
-constructor(networkSeed: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html)?, properties: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html)?, originTime: [Long](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html)?, quantumTime: [DurationFfi](../-duration-ffi/index.md)?)
+constructor(networkSeed: [String](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html)?, properties: [ByteArray](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html)?)
