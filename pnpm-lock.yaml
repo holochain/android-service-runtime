@@ -15,7 +15,7 @@ importers:
   apps/android-service-runtime:
     dependencies:
       '@holochain/client':
-        specifier: 0.19.0
+        specifier: ^0.19.0
         version: 0.19.0(bufferutil@4.0.8)
       '@msgpack/msgpack':
         specifier: 2.8.0
