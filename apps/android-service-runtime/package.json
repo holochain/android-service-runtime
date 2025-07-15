@@ -1,7 +1,7 @@
 {
 	"name": "android-service-runtime",
 	"private": true,
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
@@ -14,7 +14,7 @@
 		"build:android": "tauri android build"
 	},
 	"dependencies": {
-		"@holochain/client": "^0.19.0",
+		"@holochain/client": "^0.19.1",
 		"@msgpack/msgpack": "2.8.0",
 		"@tauri-apps/api": "^2.5.0",
 		"async-retry": "^1.3.3",
