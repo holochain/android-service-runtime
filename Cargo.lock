@@ -2887,7 +2887,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "holochain",
  "holochain_types",
@@ -2907,7 +2907,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime-ffi"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "android_logger 0.14.1",
  "hc_uniffi",
@@ -9371,8 +9371,7 @@ dependencies = [
 [[package]]
 name = "wasmer-types"
 version = "6.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b8424d15f5c19a8df972fc9367d75ba3b87af63b279208d50a32e9a298d944b"
+source = "git+https://github.com/guillemcordoba/wasmer?branch=fix-x86#4231daf3abd3ddc36d7de97a76433fb92d94a9b5"
 dependencies = [
  "bytecheck 0.6.12",
  "enum-iterator",
@@ -9391,8 +9390,7 @@ dependencies = [
 [[package]]
 name = "wasmer-vm"
 version = "6.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "faabfffefc6fc350bb5b07301f05ba604a18c3d2d97c6354183f15792577056d"
+source = "git+https://github.com/guillemcordoba/wasmer?branch=fix-x86#4231daf3abd3ddc36d7de97a76433fb92d94a9b5"
 dependencies = [
  "backtrace",
  "cc",

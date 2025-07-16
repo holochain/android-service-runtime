@@ -54,3 +54,7 @@ uuid = "1.15.1"
 # holochain_conductor_api = { path = "../holochain/crates/holochain_conductor_api" }
 # holochain_types = { path = "../holochain/crates/holochain_types" }
 # kitsune_p2p_types = { path = "../holochain/crates/kitsune_p2p/types" }
+
+[patch.crates-io]
+wasmer-vm = { git = "https://github.com/guillemcordoba/wasmer", branch = "fix-x86" }
+wasmer-types = { git = "https://github.com/guillemcordoba/wasmer", branch = "fix-x86" }
