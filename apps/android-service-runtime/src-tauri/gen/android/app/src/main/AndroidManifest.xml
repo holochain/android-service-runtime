@@ -32,6 +32,9 @@
                 <!-- AndroidTV support -->
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
+             <meta-data
+                android:name="com.android.settings.category"
+                android:value="com.android.settings.category.ia.system" />
         </activity>
         <!-- Include in App Grid or System Settings. AUTO-GENERATED. DO NOT REMOVE. -->
     </application>
