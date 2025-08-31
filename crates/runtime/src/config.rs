@@ -32,9 +32,7 @@ impl Default for RuntimeNetworkConfig {
         Self {
             bootstrap_url: Url2::parse("wss://relay.volla.tech"),
             signal_url: Url2::parse("wss://relay.volla.tech"),
-            ice_urls: vec![
-                Url2::parse("stun://stun.nextcloud.com:443"),
-            ],
+            ice_urls: vec![Url2::parse("stun://stun.nextcloud.com:443")],
         }
     }
 }
