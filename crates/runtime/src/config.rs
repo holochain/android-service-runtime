@@ -30,9 +30,9 @@ pub struct RuntimeNetworkConfig {
 impl Default for RuntimeNetworkConfig {
     fn default() -> Self {
         Self {
-            bootstrap_url: Url2::parse("wss://relay.volla.tech"),
+            bootstrap_url: Url2::parse("https://relay.volla.tech"),
             signal_url: Url2::parse("wss://relay.volla.tech"),
-            ice_urls: vec![Url2::parse("stun://stun.nextcloud.com:443")],
+            ice_urls: vec![Url2::parse("stun:stun.nextcloud.com:443")],
         }
     }
 }
