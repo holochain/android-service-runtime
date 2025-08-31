@@ -15,7 +15,7 @@ r#"<activity
         <action android:name="com.android.settings.action.IA_SETTINGS" />
     </intent-filter>
     <meta-data android:name="com.android.settings.category"
-            android:value="com.android.settings.category.ia.homepage" />
+            android:value="com.android.settings.category.ia.system" />
     <meta-data android:name="com.android.settings.summary"
             android:resource="@string/main_activity_title" />
 </activity>"#.to_string(),
