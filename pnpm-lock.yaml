@@ -15,11 +15,11 @@ importers:
   apps/android-service-runtime:
     dependencies:
       '@holochain/client':
-        specifier: ^0.19.1
-        version: 0.19.1(bufferutil@4.0.8)
+        specifier: ^0.19.2
+        version: 0.19.2(bufferutil@4.0.8)
       '@msgpack/msgpack':
-        specifier: 2.8.0
-        version: 2.8.0
+        specifier: ^3.1.2
+        version: 3.1.2
       '@tauri-apps/api':
         specifier: ^2.5.0
         version: 2.5.0
@@ -100,11 +100,11 @@ importers:
   apps/example-client-app/ui:
     dependencies:
       '@holochain/client':
-        specifier: ^0.19.1
-        version: 0.19.1(bufferutil@4.0.8)
+        specifier: ^0.19.2
+        version: 0.19.2(bufferutil@4.0.8)
       '@msgpack/msgpack':
-        specifier: ^2.8.0
-        version: 2.8.0
+        specifier: ^3.1.2
+        version: 3.1.2
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -137,11 +137,11 @@ importers:
   crates/tauri-plugin-client:
     dependencies:
       '@holochain/client':
-        specifier: ^0.19.1
-        version: 0.19.1(bufferutil@4.0.8)
+        specifier: ^0.19.2
+        version: 0.19.2(bufferutil@4.0.8)
       '@msgpack/msgpack':
-        specifier: ^3.1.1
-        version: 3.1.1
+        specifier: ^3.1.2
+        version: 3.1.2
       '@tauri-apps/api':
         specifier: ^2.5.0
         version: 2.5.0
@@ -165,11 +165,11 @@ importers:
   crates/tauri-plugin-service:
     dependencies:
       '@holochain/client':
-        specifier: ^0.19.1
-        version: 0.19.1(bufferutil@4.0.8)
+        specifier: ^0.19.2
+        version: 0.19.2(bufferutil@4.0.8)
       '@msgpack/msgpack':
-        specifier: ^3.1.1
-        version: 3.1.1
+        specifier: ^3.1.2
+        version: 3.1.2
       '@tauri-apps/api':
         specifier: ^2.5.0
         version: 2.5.0
@@ -565,8 +565,8 @@ packages:
     resolution: {integrity: sha512-LAiuQwyAQlLJp5Y0uT7EKuWy2AoCxMLdTECCLOs8ALADZzhNykFi2rmeC9hzskPXMR441bOhHPBWynqzQH95Ew==}
     engines: {node: '>=18.0.0 || >=20.0.0'}
 
-  '@holochain/client@0.19.1':
-    resolution: {integrity: sha512-/TLkP2rMesNU/e71UFvOFPJ6Hi1bgePLTMM8Rfk8WEnIYMquBG4h4tklZN1VdtivctNRn6K6QV2ID05JjdOgyQ==}
+  '@holochain/client@0.19.2':
+    resolution: {integrity: sha512-73l/YziQwnNXsO9bxuzstc6eQh/T7ljY2d5CEBJtoRXsvJwl8T+54et2XM+BOdrcUG3lj+hZeIdcD3kbnP3asA==}
     engines: {node: '>=18.0.0 || >=20.0.0 || >=22.0.0'}
 
   '@holochain/hc-spin-rust-utils-darwin-arm64@0.500.0':
@@ -650,8 +650,8 @@ packages:
     resolution: {integrity: sha512-h9u4u/jiIRKbq25PM+zymTyW6bhTzELvOoUd+AvYriWOAKpLGnIamaET3pnHYoI5iYphAHBI4ayx0MehR+VVPQ==}
     engines: {node: '>= 10'}
 
-  '@msgpack/msgpack@3.1.1':
-    resolution: {integrity: sha512-DnBpqkMOUGayNVKyTLlkM6ILmU/m/+VUxGkuQlPQVAcvreLz5jn1OlQnWd8uHKL/ZSiljpM12rjRhr51VtvJUQ==}
+  '@msgpack/msgpack@3.1.2':
+    resolution: {integrity: sha512-JEW4DEtBzfe8HvUYecLU9e6+XJnKDlUAIve8FvPzF3Kzs6Xo/KuZkZJsDH0wJXl/qEZbeeE7edxDNY3kMs39hQ==}
     engines: {node: '>= 18'}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -2944,7 +2944,7 @@ snapshots:
   '@holochain/client@0.19.0(bufferutil@4.0.8)':
     dependencies:
       '@bitgo/blake2b': 3.2.4
-      '@msgpack/msgpack': 3.1.1
+      '@msgpack/msgpack': 3.1.2
       emittery: 1.1.0
       isomorphic-ws: 5.0.0(ws@8.18.1(bufferutil@4.0.8))
       js-base64: 3.7.7
@@ -2956,10 +2956,10 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@holochain/client@0.19.1(bufferutil@4.0.8)':
+  '@holochain/client@0.19.2(bufferutil@4.0.8)':
     dependencies:
       '@bitgo/blake2b': 3.2.4
-      '@msgpack/msgpack': 3.1.1
+      '@msgpack/msgpack': 3.1.2
       emittery: 1.1.0
       isomorphic-ws: 5.0.0(ws@8.18.1(bufferutil@4.0.8))
       js-base64: 3.7.7
@@ -3055,7 +3055,7 @@ snapshots:
 
   '@msgpack/msgpack@2.8.0': {}
 
-  '@msgpack/msgpack@3.1.1': {}
+  '@msgpack/msgpack@3.1.2': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
