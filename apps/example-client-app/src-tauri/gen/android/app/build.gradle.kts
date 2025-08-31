@@ -19,6 +19,7 @@ val keystoreProperties = Properties()
 keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
+    buildToolsVersion = "34.0.0"
     compileSdk = 34
     namespace = "org.holochain.androidserviceruntime.example_client_app"
     defaultConfig {
@@ -57,6 +58,7 @@ android {
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
                     .toList().toTypedArray()
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     kotlinOptions {
