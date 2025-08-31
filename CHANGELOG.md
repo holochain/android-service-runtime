@@ -1,5 +1,10 @@
 # Unreleased
 
+# 0.2.1
+- bump to holochain 0.5.4
+- fix infrastructure urls
+
+
 # 0.2.0
 - CI to publish kotlin libraries to Maven Central, triggered by a release tag.
 - Specify ICE Servers in `RuntimeConfigFfi`

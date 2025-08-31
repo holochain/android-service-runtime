@@ -21,12 +21,13 @@ keywords = ["holochain", "android", "tauri", "p2p"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-holochain = "0.5.2"
-holochain_conductor_api = "0.5.2"
-holochain_types = "0.5.2"
+holochain = "0.5.4"
+holochain_conductor_api = "0.5.4"
+holochain_types = "0.5.4"
+holochain_serialized_bytes = "0.0.56"
 sodoken = "0.1.0"
 url2 = "0.0.6"
-lair_keystore_api = "0.6.1"
+lair_keystore_api = "0.6.2"
 rustls = "0.23.25"
 
 tauri = "2.5.1"
@@ -53,3 +54,7 @@ uuid = "1.15.1"
 # holochain_conductor_api = { path = "../holochain/crates/holochain_conductor_api" }
 # holochain_types = { path = "../holochain/crates/holochain_types" }
 # kitsune_p2p_types = { path = "../holochain/crates/kitsune_p2p/types" }
+
+[patch.crates-io]
+wasmer-vm = { git = "https://github.com/guillemcordoba/wasmer", branch = "fix-x86" }
+wasmer-types = { git = "https://github.com/guillemcordoba/wasmer", branch = "fix-x86" }
