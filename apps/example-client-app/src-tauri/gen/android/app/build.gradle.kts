@@ -23,7 +23,7 @@ android {
     compileSdk = 34
     namespace = "org.holochain.androidserviceruntime.example_client_app"
     defaultConfig {
-        manifestPlaceholders["usesCleartextTraffic"] = "false"
+        manifestPlaceholders["usesCleartextTraffic"] = "true"
         applicationId = "org.holochain.androidserviceruntime.example_client_app"
         minSdk = 27
         targetSdk = 34
@@ -40,7 +40,6 @@ android {
     }
     buildTypes {
         getByName("debug") {
-            manifestPlaceholders["usesCleartextTraffic"] = "true"
             isDebuggable = true
             isJniDebuggable = true
             isMinifyEnabled = false
