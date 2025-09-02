@@ -79,7 +79,7 @@ mavenPublishing {
 
 dependencies {
   // Subprojects
-  implementation("org.holochain.androidserviceruntime:client:0.0.18")
+  implementation("org.holochain.androidserviceruntime:client:0.0.19")
   // Kotlin
   implementation("androidx.core:core-ktx:1.7.0")
   implementation("androidx.appcompat:appcompat:1.6.0")
