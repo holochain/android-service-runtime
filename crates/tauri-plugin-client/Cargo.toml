@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin-holochain-service-client"
-version = "0.2.1"
+version = "0.2.2"
 exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
 links = "tauri-plugin-holochain-service-client"
 description = "Tauri plugin enabling an Android app to run as a client of the tauri-plugin-holochain-service"
@@ -11,7 +11,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi", version = "0.2.1" }
+holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi", version = "0.2.2" }
 tauri = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
