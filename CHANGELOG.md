@@ -1,9 +1,14 @@
 # Unreleased
 
+# 0.2.2
+- bump to holochain 0.5.6
+- fix example client app connection bug
+- fix invalid bootstrap url
+- move settings link from homepage to system settings
+
 # 0.2.1
 - bump to holochain 0.5.4
 - fix infrastructure urls
-
 
 # 0.2.0
 - CI to publish kotlin libraries to Maven Central, triggered by a release tag.
