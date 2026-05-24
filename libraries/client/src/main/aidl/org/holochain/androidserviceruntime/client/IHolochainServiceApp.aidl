@@ -5,8 +5,10 @@ import org.holochain.androidserviceruntime.client.InstallAppPayloadFfiParcel;
 import org.holochain.androidserviceruntime.client.ZomeCallParamsFfiParcel;
 
 interface IHolochainServiceApp {
+    boolean isReady();
     void setupApp(IHolochainServiceCallback callback, in InstallAppPayloadFfiParcel request, boolean enableAfterInstall);
     void enableApp(IHolochainServiceCallback callback);
     void ensureAppWebsocket(IHolochainServiceCallback callback);
     void signZomeCall(IHolochainServiceCallback callback, in ZomeCallParamsFfiParcel request);
+    void importKeySeed(IHolochainServiceCallback callback, in byte[] seed);
 }

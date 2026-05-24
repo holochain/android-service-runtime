@@ -12,6 +12,7 @@ class SetupAppConfigInvokeArg {
     lateinit var happBundleBytes: ByteArray
     lateinit var networkSeed: String
     lateinit var rolesSettings: Map<String, RoleSettingsFfi>
+    var agentKey: ByteArray? = null
     var enableAfterInstall: Boolean = true
 }
 
@@ -21,6 +22,7 @@ fun SetupAppConfigInvokeArg.toInstallAppPayloadFfi(): InstallAppPayloadFfi =
         installedAppId = this.appId,
         networkSeed = this.networkSeed,
         rolesSettings = this.rolesSettings,
+        agentKey = this.agentKey,
     )
 
 @InvokeArg

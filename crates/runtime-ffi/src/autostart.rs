@@ -17,6 +17,7 @@ impl AutostartConfigManagerFfi {
         Ok(self.0.enable(RuntimeNetworkConfig {
             bootstrap_url: Url2::try_parse(config.bootstrap_url)?,
             signal_url: Url2::try_parse(config.signal_url)?,
+            relay_url: Url2::try_parse(config.relay_url)?,
             ice_urls: config
                 .ice_urls
                 .into_iter()
@@ -36,6 +37,7 @@ impl AutostartConfigManagerFfi {
             .map(|c| RuntimeNetworkConfigFfi {
                 bootstrap_url: c.bootstrap_url.into(),
                 signal_url: c.signal_url.into(),
+                relay_url: c.relay_url.into(),
                 ice_urls: c.ice_urls.into_iter().map(|u| u.into()).collect(),
             }))
     }

@@ -7,7 +7,7 @@ use holochain::{
         api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo},
         ConductorBuilder, ConductorHandle,
     },
-    prelude::{InstallAppPayload, InstalledAppId, ZomeCallParams},
+    prelude::{AgentPubKey, InstallAppPayload, InstalledAppId, ZomeCallParams},
 };
 use holochain_types::websocket::AllowedOrigins;
 use lair_keystore_api::types::SharedLockedArray;
@@ -108,12 +108,8 @@ impl Runtime {
             .req_admin_api(AdminRequest::EnableApp { installed_app_id })
             .await?;
         match response {
-            AdminResponse::AppEnabled { app, errors } => {
-                if errors.is_empty() {
-                    Ok(app)
-                } else {
-                    Err(RuntimeError::AdminApiAppEnabled(errors))
-                }
+            AdminResponse::AppEnabled(app) => {
+                Ok(app)
             }
             fail => Err(RuntimeError::AdminApiBadResponse(fail)),
         }
@@ -147,6 +143,50 @@ impl Runtime {
             .await?
             .into_iter()
             .any(|app_info| app_info.installed_app_id == installed_app_id))
+    }
+
+    pub async fn import_key_seed(&self, seed: [u8; 32]) -> RuntimeResult<AgentPubKey> {
+        let client = self.conductor.keystore().lair_client();
+
+        // Generate a temporary local x25519 keypair for the sender side.
+        // This keypair never enters Lair — it is only used to box-encrypt the seed.
+        let mut sender_pk = [0u8; sodoken::crypto_box::XSALSA_PUBLICKEYBYTES];
+        let mut sender_sk = sodoken::SizedLockedArray::new().map_err(|e| RuntimeError::Lair(e.into()))?;
+        sodoken::crypto_box::xsalsa_keypair(&mut sender_pk, &mut sender_sk.lock())
+            .map_err(|e| RuntimeError::Lair(e.into()))?;
+
+        // Generate a second temporary local x25519 keypair for the recipient side.
+        // Lair's `import_seed` decrypts with the private key of the recipient entry,
+        // so we first need to create a Lair seed entry to act as the recipient.
+        let recipient_info = client
+            .new_seed(uuid::Uuid::new_v4().to_string().into(), None, false)
+            .await
+            .map_err(RuntimeError::Lair)?;
+        let recipient_pk = recipient_info.x25519_pub_key;
+
+        // Box-encrypt the seed bytes for the recipient.
+        let mut nonce = [0u8; sodoken::crypto_box::XSALSA_NONCEBYTES];
+        sodoken::random::randombytes_buf(&mut nonce).map_err(|e| RuntimeError::Lair(e.into()))?;
+        let mut cipher = vec![0u8; 32 + sodoken::crypto_box::XSALSA_MACBYTES];
+        sodoken::crypto_box::xsalsa_easy(&mut cipher, &seed, &nonce, &recipient_pk, &sender_sk.lock())
+            .map_err(|e| RuntimeError::Lair(e.into()))?;
+
+        // Import the encrypted seed into Lair under a fresh tag.
+        // Lair uses the recipient entry's private key to decrypt and store the seed.
+        let seed_info = client
+            .import_seed(
+                sender_pk.into(),
+                recipient_pk,
+                None,
+                nonce,
+                cipher.into(),
+                uuid::Uuid::new_v4().to_string().into(),
+                false,
+            )
+            .await
+            .map_err(RuntimeError::Lair)?;
+
+        Ok(AgentPubKey::from_raw_32(seed_info.ed25519_pub_key.0.to_vec()))
     }
 
     pub async fn sign_zome_call(
@@ -290,6 +330,7 @@ impl Runtime {
                 port,
                 allowed_origins,
                 installed_app_id,
+                danger_bind_addr: None,
             })
             .await?;
         match response {
@@ -304,7 +345,6 @@ mod test {
     use crate::RuntimeNetworkConfig;
 
     use super::*;
-    use holochain::conductor::api::AppInfoStatus;
     use holochain::conductor::api::CellInfo::Provisioned;
     use holochain::conductor::api::ProvisionedCell;
     use holochain::conductor::config::KeystoreConfig;
@@ -312,6 +352,8 @@ mod test {
     use holochain_types::prelude::DisabledAppReason;
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
+    use holochain_types::prelude::AppStatus;
+
     use serde_json::json;
     use sodoken::LockedArray;
     use std::sync::Mutex;
@@ -324,13 +366,12 @@ mod test {
     async fn install_happ_fixture(runtime: Runtime, app_id: &str) -> AppInfo {
         runtime
             .install_app(InstallAppPayload {
-                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                 agent_key: None,
                 installed_app_id: Some(app_id.into()),
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
-                allow_throwaway_random_agent_key: false,
             })
             .await
             .unwrap()
@@ -341,6 +382,7 @@ mod test {
         let tmp_dir = TempDir::new().unwrap();
         let bootstrap_url = Url2::try_parse("https://bootstrap.com").unwrap();
         let signal_url = Url2::try_parse("wss://signal.com").unwrap();
+        let relay_url = Url2::try_parse("https://relay.com").unwrap();
         let stun_url = Url2::try_parse("stun:stun.com:1234").unwrap();
         let ice_urls = vec![stun_url.clone()];
 
@@ -351,6 +393,7 @@ mod test {
                 network: RuntimeNetworkConfig {
                     bootstrap_url: bootstrap_url.clone(),
                     signal_url: signal_url.clone(),
+                    relay_url: relay_url.clone(),
                     ice_urls: ice_urls.clone(),
                 },
             },
@@ -439,13 +482,12 @@ mod test {
 
         let res = runtime
             .install_app(InstallAppPayload {
-                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                 agent_key: None,
                 installed_app_id: Some("my-app-1".into()),
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
-                allow_throwaway_random_agent_key: false,
             })
             .await;
         assert!(res.is_ok());
@@ -496,7 +538,7 @@ mod test {
 
         let apps = runtime.list_apps().await.unwrap();
         assert_eq!(apps.len(), 1);
-        assert_eq!(apps.first().unwrap().status, AppInfoStatus::Running);
+        assert_eq!(apps.first().unwrap().status, AppStatus::Enabled);
     }
 
     #[tokio::test(flavor = "multi_thread")]
@@ -521,9 +563,9 @@ mod test {
         assert_eq!(apps.len(), 1);
         assert!(matches!(
             apps.first().unwrap().status,
-            AppInfoStatus::Disabled {
-                reason: DisabledAppReason::User
-            }
+            AppStatus::Disabled (
+                DisabledAppReason::User
+            )
         ));
     }
 
@@ -700,13 +742,12 @@ mod test {
         let res = runtime
             .setup_app(
                 InstallAppPayload {
-                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                     agent_key: None,
                     installed_app_id: Some("my-app-1".into()),
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
-                    allow_throwaway_random_agent_key: false,
                 },
                 false,
             )
@@ -719,13 +760,12 @@ mod test {
         let res = runtime
             .setup_app(
                 InstallAppPayload {
-                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                     agent_key: None,
                     installed_app_id: Some("my-app-2".into()),
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
-                    allow_throwaway_random_agent_key: false,
                 },
                 false,
             )
@@ -753,13 +793,12 @@ mod test {
         let res = runtime
             .setup_app(
                 InstallAppPayload {
-                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                     agent_key: None,
                     installed_app_id: Some("my-app-1".into()),
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
-                    allow_throwaway_random_agent_key: false,
                 },
                 false,
             )
@@ -768,7 +807,7 @@ mod test {
         let apps = runtime.list_apps().await.unwrap();
         assert!(matches!(
             apps.first().unwrap().status,
-            AppInfoStatus::Disabled { .. }
+            AppStatus::Disabled { .. }
         ));
     }
 
@@ -789,13 +828,12 @@ mod test {
         let res = runtime
             .setup_app(
                 InstallAppPayload {
-                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec()),
+                    source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
                     agent_key: None,
                     installed_app_id: Some("my-app-1".into()),
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
-                    allow_throwaway_random_agent_key: false,
                 },
                 true,
             )
@@ -805,7 +843,7 @@ mod test {
         let apps = runtime.list_apps().await.unwrap();
         assert!(matches!(
             apps.first().unwrap().status,
-            AppInfoStatus::Running
+            AppStatus::Enabled
         ));
     }
 }

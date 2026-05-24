@@ -17,6 +17,8 @@ interface IHolochainServiceCallback {
     void isAppInstalled(boolean response);
     void ensureAppWebsocket(in AppAuthFfiParcel response);
     void signZomeCall(in ZomeCallParamsSignedFfiParcel response);
+    void importKeySeed(in byte[] response);
+    void onFailure(String message);
 
     // Error responses
     void adminBinderUnauthorizedException(in AdminBinderUnauthorizedExceptionParcel response);

@@ -7,7 +7,7 @@
   # composed here from nixpkgs, so the repo has no dependency on any external
   # Tauri/Holochain dev-shell flake.
   inputs = {
-    holonix.url = "github:holochain/holonix/main-0.5";
+    holonix.url = "github:holochain/holonix/main-0.6";
 
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
@@ -66,7 +66,6 @@
               holochain
               hc
               hc-scaffold
-              hc-launch
               lair-keystore
               bootstrap-srv
             ]) ++ [

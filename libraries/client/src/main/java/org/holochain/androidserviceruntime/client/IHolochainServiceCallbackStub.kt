@@ -30,6 +30,11 @@ open class IHolochainServiceCallbackStubDeferred<T> : IHolochainServiceCallback.
         this.deferred.completeExceptionally(response.inner)
     }
 
+    override fun onFailure(message: String) {
+        Log.d(logTag, "onFailure: $message")
+        this.deferred.completeExceptionally(Exception(message))
+    }
+
     /*
         Success response placeholders.
 
@@ -52,6 +57,8 @@ open class IHolochainServiceCallbackStubDeferred<T> : IHolochainServiceCallback.
     override fun ensureAppWebsocket(response: AppAuthFfiParcel) {}
 
     override fun signZomeCall(response: ZomeCallParamsSignedFfiParcel) {}
+
+    override fun importKeySeed(response: ByteArray) {}
 }
 
 /*
@@ -119,5 +126,12 @@ class SignZomeCallCallbackDeferred : IHolochainServiceCallbackStubDeferred<ZomeC
     override fun signZomeCall(response: ZomeCallParamsSignedFfiParcel) {
         Log.d(logTag, "signZomeCall")
         deferred.complete(response.inner)
+    }
+}
+
+class ImportKeySeedCallbackDeferred : IHolochainServiceCallbackStubDeferred<ByteArray>() {
+    override fun importKeySeed(response: ByteArray) {
+        Log.d(logTag, "importKeySeed")
+        deferred.complete(response)
     }
 }

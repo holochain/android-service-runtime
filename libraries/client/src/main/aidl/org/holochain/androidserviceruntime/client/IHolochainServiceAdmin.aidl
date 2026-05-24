@@ -16,4 +16,5 @@ interface IHolochainServiceAdmin {
     void isAppInstalled(IHolochainServiceCallback callback, String installedAppId);
     void ensureAppWebsocket(IHolochainServiceCallback callback, String installedAppId);
     void signZomeCall(IHolochainServiceCallback callback, in ZomeCallParamsFfiParcel request);
+    void importKeySeed(IHolochainServiceCallback callback, in byte[] seed);
 }

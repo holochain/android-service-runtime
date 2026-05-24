@@ -45,6 +45,9 @@ pub enum RuntimeError {
 
     #[error("Failed to write persisted data to file: {0}")]
     PersistedFileWriteError(String),
+
+    #[error("Invalid Arguments: {0}")]
+    InvalidArguments(String),
 }
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;

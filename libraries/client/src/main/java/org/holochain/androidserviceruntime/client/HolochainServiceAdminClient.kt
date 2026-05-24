@@ -1,6 +1,5 @@
 package org.holochain.androidserviceruntime.client
 
-import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -10,7 +9,7 @@ import android.util.Log
 import kotlinx.coroutines.delay
 
 class HolochainServiceAdminClient(
-    private val activity: Activity,
+    private val context: Context,
     private val serviceComponentName: ComponentName,
 ) {
     private var mService: IHolochainServiceAdmin? = null
@@ -43,7 +42,7 @@ class HolochainServiceAdminClient(
         intent.component = this.serviceComponentName
         intent.putExtra("config", RuntimeNetworkConfigFfiParcel(config))
 
-        this.activity.startForegroundService(intent)
+        this.context.startForegroundService(intent)
     }
 
     /**
@@ -56,12 +55,12 @@ class HolochainServiceAdminClient(
 
         // Giving the intent a unique action ensures the HolochainService `onBind()` callback is
         // triggered.
-        val packageName: String = this.activity.getPackageName()
+        val packageName: String = this.context.packageName
         val intent = Intent(packageName)
 
         intent.putExtra("api", "admin")
         intent.setComponent(this.serviceComponentName)
-        this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
+        this.context.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
     }
 
     /**
@@ -250,6 +249,25 @@ class HolochainServiceAdminClient(
 
         val callbackDeferred = ListAppsCallbackDeferred()
         this.mService!!.listApps(callbackDeferred)
+
+        return callbackDeferred.await()
+    }
+
+    /**
+     * Imports a private key seed into the Lair keystore.
+     *
+     * @param seed 32-byte private key seed
+     * @return AgentPubKey (raw bytes) of the imported key
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
+    suspend fun importKeySeed(seed: ByteArray): ByteArray {
+        Log.d(logTag, "importKeySeed")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
+        }
+
+        val callbackDeferred = ImportKeySeedCallbackDeferred()
+        this.mService!!.importKeySeed(callbackDeferred, seed)
 
         return callbackDeferred.await()
     }

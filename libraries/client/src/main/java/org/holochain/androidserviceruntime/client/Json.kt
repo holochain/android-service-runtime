@@ -88,10 +88,9 @@ object Json {
                 jsValue
             }
             // Is this a known sealed class (i.e. converted from a Rust enum)?
-            is AppInfoStatusFfi,
+            is AppStatusFfi,
             is CellInfoFfi,
             is DisabledAppReasonFfi,
-            is PausedAppReasonFfi,
             is RoleSettingsFfi,
             -> {
                 val jsValue =
