@@ -177,6 +177,37 @@ New `crates/tauri-plugin-holochain` runs the conductor in-process and exposes th
 same JS/Tauri surface as `client` + `service` combined, with zero
 UniFFI/Kotlin/AIDL — existing two plugins remain fully supported.
 
+### Consumer apps & compatibility target (audited 2026-05-24)
+
+The intended downstream consumers are `../kando` and `../emergence` (Weave/Moss
+apps, `@theweave/api` + `@holochain/client` 0.20.x). **Both already embed an
+in-process conductor via darksoil-studio's `tauri-plugin-holochain`** (git branch
+`main-0.6.1`, holochain 0.6.1-rc.0, lair 0.6.3). So our unified plugin is in effect
+a **Holochain-team-owned, FFI-free replacement for darksoil's plugin** that these
+apps can adopt by swapping one git dependency.
+
+To be a (near) drop-in, `crates/tauri-plugin-holochain` should mirror the darksoil
+API surface both apps call identically:
+
+- Init: `async_init(passphrase: LockedArray, HolochainPluginConfig::new(holochain_dir, NetworkConfig))`,
+  plus the `vec_to_locked(Vec<u8>)` passphrase helper and a re-exported `NetworkConfig`
+  (holochain's, with `bootstrap_url`/`relay_url` and `::default()`).
+- Lifecycle events emitted on the app handle: `holochain://setup-completed` and
+  `holochain://setup-failed`.
+- `HolochainExt` trait → `handle.holochain()?` giving:
+  `admin_websocket().await`, `app_websocket(..)`, `install_app(app_id, AppBundle, roles, network_seed, gamma).await`,
+  `update_app_if_necessary(app_id, AppBundle).await`, and
+  `main_window_builder(label, .., Some(app_id), ..).await` (which injects the
+  holochain client env so `@holochain/client` in the webview can connect).
+- `Error::ConductorApiError(..)`.
+
+This maps cleanly onto `crates/runtime` (install/enable/`ensure_app_websocket`/
+`authorize_app_client`/`setup_app`), but the method names/signatures differ from
+both darksoil's plugin and our Kotlin plugins — so the plugin is an **adapter**
+exposing the darksoil-compatible surface on top of `crates/runtime`. Validate by
+actually pointing a local checkout of kando (then emergence) at our plugin and
+booting to a working main window + zome call.
+
 16. **Decouple shared, non-FFI pieces** (avoid duplication):
     - Extract the reusable Rust window-builder + holochain-env injection from
       `crates/tauri-plugin-client/src/mobile.rs` into a shared module/crate.
@@ -187,9 +218,11 @@ UniFFI/Kotlin/AIDL — existing two plugins remain fully supported.
       the uniffi-decorated `runtime-types-ffi` structs.
 17. **Create `crates/tauri-plugin-holochain`** depending directly on `crates/runtime`:
     - Hold `Arc<Runtime>` in Tauri managed state (not a `PluginHandle`).
-    - Implement `setConfig`/start, `connectSetupApp`, `signZomeCall`, `listApps`,
-      install/enable/disable/uninstall, `ensureAppWebsocket` as Rust Tauri commands
-      calling `crates/runtime` directly.
+    - Expose the **darksoil-compatible surface** above (`async_init` /
+      `HolochainPluginConfig` / `HolochainExt` / setup events), implemented as an
+      adapter over `crates/runtime` (install/enable/`ensure_app_websocket`/
+      `authorize_app_client`/`setup_app`), so kando/emergence adopt it by swapping
+      one git dependency.
     - Drop `#![cfg(mobile)]` so it builds for desktop and Android.
 18. **Own the lifecycle Kotlin handled today** (the substantive new work): conductor
     data dir + Lair keystore/passphrase setup; process model = in-process conductor

@@ -424,6 +424,10 @@ mod test {
             signal_url
         );
         assert_eq!(
+            runtime.conductor.config.network.relay_url.clone(),
+            relay_url
+        );
+        assert_eq!(
             runtime
                 .conductor
                 .config
@@ -494,6 +498,72 @@ mod test {
 
         let apps = runtime.list_apps().await.unwrap();
         assert_eq!(apps.len(), 1);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_import_key_seed() {
+        async fn make_runtime() -> (Runtime, TempDir) {
+            let tmp_dir = TempDir::new().unwrap();
+            let runtime = Runtime::new(
+                Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
+                RuntimeConfig {
+                    data_root_path: tmp_dir.path().into(),
+                    network: RuntimeNetworkConfig::default(),
+                },
+            )
+            .await
+            .unwrap();
+            (runtime, tmp_dir)
+        }
+
+        let seed = [7u8; 32];
+
+        // Importing a seed returns a 32-byte agent key.
+        let (rt1, _d1) = make_runtime().await;
+        let agent_a = rt1.import_key_seed(seed).await.unwrap();
+        assert_eq!(agent_a.get_raw_32().len(), 32);
+
+        // Recovery property: importing the same seed into a *fresh* keystore
+        // reproduces the same agent key — this is what makes seed-based identity
+        // recovery work across devices/reinstalls.
+        let (rt2, _d2) = make_runtime().await;
+        let agent_b = rt2.import_key_seed(seed).await.unwrap();
+        assert_eq!(agent_a, agent_b);
+
+        // A different seed yields a different agent key.
+        let agent_c = rt2.import_key_seed([9u8; 32]).await.unwrap();
+        assert_ne!(agent_a, agent_c);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_install_app_with_agent_key() {
+        let tmp_dir = TempDir::new().unwrap();
+        let runtime = Runtime::new(
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
+            RuntimeConfig {
+                data_root_path: tmp_dir.path().into(),
+                network: RuntimeNetworkConfig::default(),
+            },
+        )
+        .await
+        .unwrap();
+
+        // Import a seed, then install the app under that explicit agent key.
+        let agent_key = runtime.import_key_seed([3u8; 32]).await.unwrap();
+        let app_info = runtime
+            .install_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
+                agent_key: Some(agent_key.clone()),
+                installed_app_id: Some("my-app-1".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+            })
+            .await
+            .unwrap();
+
+        // The installed app uses the imported agent key rather than a fresh one.
+        assert_eq!(app_info.agent_pub_key, agent_key);
     }
 
     #[tokio::test(flavor = "multi_thread")]
