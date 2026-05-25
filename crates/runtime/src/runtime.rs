@@ -4,7 +4,10 @@ use holochain::conductor::api::IssueAppAuthenticationTokenPayload;
 use holochain::conductor::api::{AppAuthenticationTokenIssued, ZomeCallParamsSigned};
 use holochain::{
     conductor::{
-        api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo},
+        api::{
+            AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo, AppInterfaceApi, AppRequest,
+            AppResponse,
+        },
         config::{ConductorConfig, KeystoreConfig, NetworkConfig},
         ConductorBuilder, ConductorHandle,
     },
@@ -334,6 +337,30 @@ impl Runtime {
             .is_authorized(client_uid, installed_app_id)
     }
 
+    /// Dispatch an [`AppRequest`] for `installed_app_id` against the in-process
+    /// conductor and return the [`AppResponse`].
+    ///
+    /// This is the in-process equivalent of what the conductor's app websocket
+    /// interface does for each connected client: it routes the full App API
+    /// (`AppInfo`, `CallZome`, `CreateCloneCell`, `DumpNetwork*`, ...) without a
+    /// loopback websocket. It is the App-API twin of the private
+    /// [`Self::req_admin_api`] and lets a Tauri command serve `@holochain/client`
+    /// calls directly.
+    ///
+    /// The caller is responsible for scoping `installed_app_id` to what the
+    /// requester is allowed to access — the app websocket path uses a per-app
+    /// auth token for this; the in-process path must bind it some other way
+    /// (e.g. the calling window).
+    pub async fn handle_app_request(
+        &self,
+        installed_app_id: InstalledAppId,
+        request: AppRequest,
+    ) -> RuntimeResult<AppResponse> {
+        Ok(AppInterfaceApi::new(self.conductor.clone())
+            .handle_request(installed_app_id, Ok(request))
+            .await?)
+    }
+
     async fn req_admin_api(&self, request: AdminRequest) -> RuntimeResult<AdminResponse> {
         Ok(AdminInterfaceApi::new(self.conductor.clone())
             .handle_request(Ok(request))
@@ -384,6 +411,8 @@ mod test {
     use holochain::conductor::config::KeystoreConfig;
     use holochain_types::prelude::AppBundleSource;
     use holochain_types::prelude::DisabledAppReason;
+    use holochain_types::prelude::ExternIO;
+    use holochain_types::prelude::Link;
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
     use holochain_types::prelude::AppStatus;
@@ -750,6 +779,88 @@ mod test {
             })
             .await;
         assert!(res.is_ok())
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_handle_app_request_app_info() {
+        let tmp_dir = TempDir::new().unwrap();
+        let runtime = Runtime::new(
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
+            RuntimeConfig {
+                data_root_path: tmp_dir.path().into(),
+                network: RuntimeNetworkConfig::default(),
+            },
+        )
+        .await
+        .unwrap();
+        install_happ_fixture(runtime.clone(), "my-app-1").await;
+        runtime.enable_app("my-app-1".into()).await.unwrap();
+
+        // Dispatching AppRequest::AppInfo in-process returns the same AppInfo the
+        // app websocket interface would serve, with no loopback socket involved.
+        let resp = runtime
+            .handle_app_request("my-app-1".into(), AppRequest::AppInfo)
+            .await
+            .unwrap();
+        let AppResponse::AppInfo(Some(app_info)) = resp else {
+            panic!("expected AppResponse::AppInfo(Some(_)), got {resp:?}");
+        };
+        assert_eq!(app_info.installed_app_id, "my-app-1");
+        assert_eq!(app_info.status, AppStatus::Enabled);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_handle_app_request_call_zome() {
+        let tmp_dir = TempDir::new().unwrap();
+        let runtime = Runtime::new(
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
+            RuntimeConfig {
+                data_root_path: tmp_dir.path().into(),
+                network: RuntimeNetworkConfig::default(),
+            },
+        )
+        .await
+        .unwrap();
+        let app_info = install_happ_fixture(runtime.clone(), "my-app-1").await;
+        runtime.enable_app("my-app-1".into()).await.unwrap();
+
+        // Role name is "forum"; the coordinator zome inside it is "posts" (see
+        // dnas/forum/workdir/dna.yaml and the example UI's AllPosts.svelte).
+        let Provisioned(ProvisionedCell { cell_id, .. }) =
+            app_info.cell_info.get("forum").unwrap().first().unwrap()
+        else {
+            panic!("App Info has no CellId")
+        };
+
+        // Sign a real zome call the same way the webview signer does, then
+        // dispatch it through the in-process app API (AppRequest::CallZome)
+        // rather than the websocket. get_all_posts takes no arguments, so the
+        // payload is an encoded unit; an empty byte vec would fail to decode.
+        let signed = runtime
+            .sign_zome_call(ZomeCallParams {
+                provenance: cell_id.agent_pubkey().clone(),
+                cell_id: cell_id.clone(),
+                zome_name: "posts".into(),
+                fn_name: "get_all_posts".into(),
+                cap_secret: None,
+                payload: ExternIO::encode(()).unwrap(),
+                nonce: Nonce256Bits::from([0; 32]),
+                expires_at: Timestamp(Timestamp::now().as_micros() + 60_000_000),
+            })
+            .await
+            .unwrap();
+
+        let resp = runtime
+            .handle_app_request("my-app-1".into(), AppRequest::CallZome(Box::new(signed)))
+            .await
+            .unwrap();
+
+        // A fresh forum app has no posts: the call round-trips to an empty list.
+        let AppResponse::ZomeCalled(io) = resp else {
+            panic!("expected AppResponse::ZomeCalled, got {resp:?}");
+        };
+        let posts: Vec<Link> = io.decode().unwrap();
+        assert!(posts.is_empty());
     }
 
     #[tokio::test(flavor = "multi_thread")]
