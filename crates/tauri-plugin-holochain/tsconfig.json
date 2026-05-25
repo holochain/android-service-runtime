@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es2021",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true
+  },
+  "include": ["guest-js/**/*.ts"],
+  "exclude": ["dist-js", "dist-js-tmp", "node_modules"]
+}

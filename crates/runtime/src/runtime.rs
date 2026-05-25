@@ -5,6 +5,7 @@ use holochain::conductor::api::{AppAuthenticationTokenIssued, ZomeCallParamsSign
 use holochain::{
     conductor::{
         api::{AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo},
+        config::{ConductorConfig, KeystoreConfig, NetworkConfig},
         ConductorBuilder, ConductorHandle,
     },
     prelude::{AgentPubKey, InstallAppPayload, InstalledAppId, ZomeCallParams},
@@ -13,6 +14,7 @@ use holochain_types::websocket::AllowedOrigins;
 use lair_keystore_api::types::SharedLockedArray;
 use log::{debug, error};
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
 /// Map of app ids to their associated app websocket & authentication
@@ -27,10 +29,42 @@ pub struct Runtime {
 }
 
 impl Runtime {
-    /// Initialize and start a new Conductor
+    /// Initialize and start a new Conductor from a [`RuntimeConfig`].
+    ///
+    /// This is the entry point used by the FFI layer (its network config is the
+    /// serializable [`crate::RuntimeNetworkConfig`]).
     pub async fn new(
         passphrase: SharedLockedArray,
         runtime_config: RuntimeConfig,
+    ) -> RuntimeResult<Self> {
+        let data_root_path = runtime_config.data_root_path.clone();
+        Self::new_with_conductor_config(passphrase, data_root_path, runtime_config.into()).await
+    }
+
+    /// Initialize and start a new Conductor from a native holochain [`NetworkConfig`].
+    ///
+    /// This is the entry point for the in-process Tauri plugin, which works with
+    /// holochain's native config types directly rather than the FFI wrappers.
+    pub async fn new_with_network_config(
+        passphrase: SharedLockedArray,
+        data_root_path: PathBuf,
+        network: NetworkConfig,
+    ) -> RuntimeResult<Self> {
+        let config = ConductorConfig {
+            data_root_path: Some(data_root_path.clone().into()),
+            keystore: KeystoreConfig::LairServerInProc { lair_root: None },
+            network,
+            ..Default::default()
+        };
+        Self::new_with_conductor_config(passphrase, data_root_path, config).await
+    }
+
+    /// Shared constructor: build the conductor from a fully-formed [`ConductorConfig`],
+    /// ensure the device seed exists, and set up the runtime's bookkeeping.
+    async fn new_with_conductor_config(
+        passphrase: SharedLockedArray,
+        data_root_path: PathBuf,
+        config: ConductorConfig,
     ) -> RuntimeResult<Self> {
         let res = rustls::crypto::aws_lc_rs::default_provider().install_default();
         if res.is_err() {
@@ -39,7 +73,7 @@ impl Runtime {
 
         let conductor = ConductorBuilder::default()
             .passphrase(Some(passphrase))
-            .config(runtime_config.clone().into())
+            .config(config)
             .build()
             .await?;
 
@@ -62,7 +96,7 @@ impl Runtime {
             conductor,
             app_auths: Arc::new(RwLock::new(HashMap::new())),
             authorized_app_clients: Arc::new(AuthorizedAppClientsManager::new(
-                runtime_config.data_root_path,
+                data_root_path,
             )?),
         })
     }

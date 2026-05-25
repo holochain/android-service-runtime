@@ -5,8 +5,10 @@ members = [
     "crates/runtime-types-ffi",
     "crates/tauri-plugin-service",
     "crates/tauri-plugin-client",
+    "crates/tauri-plugin-holochain",
     "crates/uniffi-bindgen-cli",
-    "apps/android-service-runtime/src-tauri"
+    "apps/android-service-runtime/src-tauri",
+    "apps/holochain-runtime-example/src-tauri"
 ]
 exclude = [
     "apps/example-client-app/**"

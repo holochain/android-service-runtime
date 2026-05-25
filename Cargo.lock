@@ -3238,6 +3238,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "holochain-runtime-example"
+version = "0.1.0"
+dependencies = [
+ "holochain",
+ "log",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-holochain",
+ "tauri-plugin-log",
+]
+
+[[package]]
 name = "holochain_cascade"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9010,6 +9022,26 @@ dependencies = [
  "tauri-utils",
  "toml 0.8.20",
  "walkdir",
+]
+
+[[package]]
+name = "tauri-plugin-holochain"
+version = "0.2.2"
+dependencies = [
+ "holochain",
+ "holochain-conductor-runtime",
+ "holochain-conductor-runtime-types-ffi",
+ "holochain_types",
+ "lair_keystore_api",
+ "log",
+ "serde",
+ "sodoken",
+ "tauri",
+ "tauri-plugin",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]
