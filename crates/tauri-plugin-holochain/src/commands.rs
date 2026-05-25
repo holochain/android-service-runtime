@@ -1,7 +1,7 @@
 use crate::{HolochainExt, Result};
 use holochain_conductor_runtime_types_ffi::{CellIdFfi, ZomeCallParamsFfi};
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Runtime};
+use tauri::{AppHandle, Runtime, WebviewWindow};
 
 /// Unsigned zome-call params as sent by the webview zome-call signer
 /// (`__HC_ZOME_CALL_SIGNER__`). This is the flat, camelCase shape `@holochain/client`
@@ -61,4 +61,21 @@ pub(crate) async fn sign_zome_call<R: Runtime>(
         bytes: signed.bytes.into(),
         signature: signed.signature.0.into(),
     })
+}
+
+/// Serve an App API request for the calling window directly from the in-process
+/// conductor — the Tauri-IPC replacement for the app websocket.
+///
+/// `request` is the msgpack-encoded tagged App API request produced by
+/// `@holochain/client`'s Tauri transport; the reply is the msgpack-encoded App
+/// API response. The target app is resolved from the calling window's label
+/// (bound by [`crate::HolochainPlugin::main_window_builder`]), never from the
+/// request itself, so a window can only reach the app it was opened for.
+#[tauri::command]
+pub(crate) async fn app_request<R: Runtime>(
+    webview: WebviewWindow<R>,
+    request: Vec<u8>,
+) -> Result<Vec<u8>> {
+    let label = webview.label().to_string();
+    webview.holochain()?.app_request_bytes(&label, request).await
 }

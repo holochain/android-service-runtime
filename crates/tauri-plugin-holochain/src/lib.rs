@@ -21,6 +21,9 @@ pub use holochain::conductor::config::NetworkConfig;
 pub use holochain_conductor_runtime::Runtime;
 pub use lair_keystore_api::types::SharedLockedArray;
 
+use holochain::conductor::api::AppRequest;
+use holochain::prelude::{decode, encode, InstalledAppId};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -69,6 +72,11 @@ pub struct WindowOptions {
 pub struct HolochainPlugin<R: TauriRuntime> {
     runtime: Runtime,
     app_handle: AppHandle<R>,
+    /// Maps a webview window label to the app it is bound to. Populated by
+    /// [`HolochainPlugin::main_window_builder`] / [`HolochainPlugin::bind_window`].
+    /// The `app_request` command uses this to scope each request to the app the
+    /// calling window was opened for — replacing the per-app websocket token.
+    window_apps: Arc<Mutex<HashMap<String, InstalledAppId>>>,
 }
 
 impl<R: TauriRuntime> HolochainPlugin<R> {
@@ -78,6 +86,46 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     /// thin Tauri adapter, not a re-implementation.
     pub fn runtime(&self) -> &Runtime {
         &self.runtime
+    }
+
+    /// Bind a webview window (by its label) to an installed app, so that
+    /// `app_request` IPC calls from that window are scoped to that app. This is
+    /// the in-process replacement for the per-app websocket auth token: a window
+    /// can only reach the app it was opened for.
+    pub fn bind_window(&self, label: impl Into<String>, app_id: InstalledAppId) {
+        self.window_apps
+            .lock()
+            .unwrap()
+            .insert(label.into(), app_id);
+    }
+
+    fn app_id_for_window(&self, label: &str) -> Result<InstalledAppId> {
+        self.window_apps
+            .lock()
+            .unwrap()
+            .get(label)
+            .cloned()
+            .ok_or(Error::WindowNotBound)
+    }
+
+    /// Core of the `app_request` command: decode a msgpack-encoded App API
+    /// request, dispatch it to the conductor scoped to the app bound to
+    /// `window_label`, and return the msgpack-encoded App API response.
+    ///
+    /// The bytes are the same `{ type, value }` payloads the app websocket
+    /// carries (holochain's `SerializedBytes` codec), so this is wire-compatible
+    /// with `@holochain/client`'s Tauri transport. App-level failures come back
+    /// as an encoded `AppResponse::Error`, matching the websocket interface.
+    pub async fn app_request_bytes(
+        &self,
+        window_label: &str,
+        request: Vec<u8>,
+    ) -> Result<Vec<u8>> {
+        let app_id = self.app_id_for_window(window_label)?;
+        let app_request: AppRequest =
+            decode(&request).map_err(|e| Error::Serialization(e.to_string()))?;
+        let response = self.runtime.handle_app_request(app_id, app_request).await?;
+        encode(&response).map_err(|e| Error::Serialization(e.to_string()))
     }
 
     /// Ensure an app websocket exists for `app_id`, then build a webview window
@@ -150,7 +198,10 @@ pub fn init<R: TauriRuntime>(
     config: HolochainPluginConfig,
 ) -> TauriPlugin<R> {
     Builder::new("holochain")
-        .invoke_handler(tauri::generate_handler![commands::sign_zome_call])
+        .invoke_handler(tauri::generate_handler![
+            commands::sign_zome_call,
+            commands::app_request
+        ])
         .setup(move |app, _api| {
             let app_handle = app.clone();
             tauri::async_runtime::spawn(async move {
@@ -161,6 +212,7 @@ pub fn init<R: TauriRuntime>(
                         app_handle.manage(HolochainPlugin {
                             runtime,
                             app_handle: app_handle.clone(),
+                            window_apps: Arc::new(Mutex::new(HashMap::new())),
                         });
                         if let Err(e) = app_handle.emit(EVENT_READY, ()) {
                             log::error!("Failed to emit {EVENT_READY}: {e:?}");

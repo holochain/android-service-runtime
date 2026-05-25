@@ -14,6 +14,15 @@ pub enum Error {
 
     #[error(transparent)]
     Tauri(#[from] tauri::Error),
+
+    /// An `app_request` arrived from a window that is not bound to any app.
+    /// Windows are bound by [`crate::HolochainPlugin::main_window_builder`].
+    #[error("no holochain app is bound to this window")]
+    WindowNotBound,
+
+    /// Failed to (de)serialize an App API request or response.
+    #[error("serialization error: {0}")]
+    Serialization(String),
 }
 
 impl Serialize for Error {
