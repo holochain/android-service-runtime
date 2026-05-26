@@ -115,11 +115,15 @@
               export ANDROID_NDK_HOME="${ndkHome}"
               export NDK_HOME="${ndkHome}"
 
-              # GTK/webkit runtime so `tauri dev` renders instead of aborting on EGL
-              # (forces the non-GL render path; see the webkitnixpkgs input comment).
+              # GTK/webkit runtime so `tauri dev` renders (see the webkitnixpkgs input).
               export GIO_MODULE_DIR=${webkitPkgs.glib-networking}/lib/gio/modules/
               export GIO_EXTRA_MODULES=${webkitPkgs.glib-networking}/lib/gio/modules
-              export WEBKIT_DISABLE_COMPOSITING_MODE=1
+              # Force software compositing by default so the webview renders on finicky
+              # GPUs/drivers. Set ENABLE_WEBKIT_COMPOSITING=1 before `nix develop` to
+              # keep hardware-accelerated compositing instead.
+              if [ -z "$ENABLE_WEBKIT_COMPOSITING" ]; then
+                export WEBKIT_DISABLE_COMPOSITING_MODE=1
+              fi
               export XDG_DATA_DIRS=${webkitPkgs.shared-mime-info}/share:${webkitPkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${webkitPkgs.gsettings-desktop-schemas.name}:${webkitPkgs.gtk3}/share/gsettings-schemas/${webkitPkgs.gtk3.name}:$XDG_DATA_DIRS
 
               # Visual cue that you are inside the dev shell.
