@@ -26,6 +26,7 @@ use holochain::prelude::{decode, encode, InstalledAppId};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
+use tokio::sync::broadcast;
 
 use sodoken::LockedArray;
 use tauri::{
@@ -39,6 +40,10 @@ pub const EVENT_READY: &str = "holochain://ready";
 /// Emitted on the app handle if the conductor fails to start. The payload is the
 /// error string.
 pub const EVENT_SETUP_FAILED: &str = "holochain://setup-failed";
+/// Emitted to a direct-mode webview window with the msgpack-encoded conductor
+/// [`holochain_types::signal::Signal`] for the app the window is bound to. The
+/// injected env bridges this to `@holochain/client`'s Tauri transport.
+pub const EVENT_SIGNAL: &str = "holochain://signal";
 
 /// Configuration for the in-process Holochain conductor.
 pub struct HolochainPluginConfig {
@@ -66,6 +71,10 @@ pub struct WindowOptions {
     pub url: Option<WebviewUrl>,
     /// Window title (desktop).
     pub title: Option<String>,
+    /// Use the legacy app-websocket wiring (attach an app interface and inject
+    /// `__HC_LAUNCHER_ENV__`) instead of direct Tauri IPC. Defaults to `false`
+    /// (direct), which needs no loopback websocket.
+    pub use_app_websocket: bool,
 }
 
 /// Access to the running in-process Holochain conductor from the Tauri app.
@@ -128,11 +137,14 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
         encode(&response).map_err(|e| Error::Serialization(e.to_string()))
     }
 
-    /// Ensure an app websocket exists for `app_id`, then build a webview window
-    /// wired to it: it injects the standard `__HC_LAUNCHER_ENV__`
-    /// (`INSTALLED_APP_ID` / `APP_INTERFACE_PORT` / `APP_INTERFACE_TOKEN`) plus a
-    /// zome-call signer, so `@holochain/client` in the webview connects to the
-    /// in-process conductor and can make authenticated zome calls.
+    /// Build a webview window wired to the in-process conductor for `app_id`.
+    ///
+    /// By default this uses **direct Tauri IPC**: the window is bound to the app
+    /// (so `app_request` calls are scoped to it), the app's signals are
+    /// forwarded to it as [`EVENT_SIGNAL`], and `__HC_TAURI_HOLOCHAIN__` is
+    /// injected so `@holochain/client` routes the App API through IPC with no
+    /// loopback websocket. Set [`WindowOptions::use_app_websocket`] to fall back
+    /// to the legacy `__HC_LAUNCHER_ENV__` websocket wiring instead.
     ///
     /// Call `.build()` on the returned builder to actually open the window.
     pub async fn main_window_builder(
@@ -141,31 +153,66 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
         app_id: String,
         options: WindowOptions,
     ) -> Result<WebviewWindowBuilder<'_, R, AppHandle<R>>> {
-        let app_auth = self.runtime.ensure_app_websocket(app_id.clone()).await?;
+        let label: String = label.into();
+        let url = options
+            .url
+            .unwrap_or_else(|| WebviewUrl::App("index.html".into()));
 
-        let mut window_builder = WebviewWindowBuilder::new(
-            &self.app_handle,
-            label,
-            options
-                .url
-                .unwrap_or_else(|| WebviewUrl::App("index.html".into())),
-        )
-        .initialization_script(include_str!("../dist-js/holochain-env/index.min.js"))
-        .initialization_script(
+        let env_script = if options.use_app_websocket {
+            // Legacy: attach an app websocket and point @holochain/client at it.
+            let app_auth = self.runtime.ensure_app_websocket(app_id.clone()).await?;
             format!(
                 r#"window.injectHolochainClientEnv("{}", {}, {:?});"#,
-                app_id,
-                app_auth.port,
-                app_auth.authentication.token,
+                app_id, app_auth.port, app_auth.authentication.token,
             )
-            .as_str(),
-        );
+        } else {
+            // Direct: bind this window to the app, forward its signals, and
+            // inject the env that routes the App API over Tauri IPC.
+            self.bind_window(label.clone(), app_id.clone());
+            self.spawn_signal_forwarder(label.clone(), app_id.clone())
+                .await?;
+            format!(r#"window.injectHolochainTauriEnv({app_id:?}, "holochain");"#)
+        };
+
+        let mut window_builder =
+            WebviewWindowBuilder::new(&self.app_handle, label, url)
+                .initialization_script(include_str!("../dist-js/holochain-env/index.min.js"))
+                .initialization_script(env_script.as_str());
 
         if let Some(title) = options.title {
             window_builder = window_builder.title(title);
         }
 
         Ok(window_builder)
+    }
+
+    /// Subscribe to `app_id`'s signals and forward each to the `label` window as
+    /// an [`EVENT_SIGNAL`] event carrying the msgpack-encoded conductor signal.
+    /// The injected env's `subscribeSignals` bridge delivers these to
+    /// `@holochain/client`. The task runs until the conductor's signal channel
+    /// closes.
+    async fn spawn_signal_forwarder(&self, label: String, app_id: InstalledAppId) -> Result<()> {
+        let mut signals = self.runtime.subscribe_to_app_signals(app_id).await?;
+        let app_handle = self.app_handle.clone();
+        tauri::async_runtime::spawn(async move {
+            loop {
+                match signals.recv().await {
+                    Ok(signal) => match encode(&signal) {
+                        Ok(bytes) => {
+                            if let Err(e) = app_handle.emit_to(label.as_str(), EVENT_SIGNAL, bytes) {
+                                log::error!("Failed to forward signal to window {label}: {e:?}");
+                            }
+                        }
+                        Err(e) => log::error!("Failed to encode signal: {e}"),
+                    },
+                    Err(broadcast::error::RecvError::Lagged(n)) => {
+                        log::warn!("Signal forwarder for window {label} lagged; dropped {n}");
+                    }
+                    Err(broadcast::error::RecvError::Closed) => break,
+                }
+            }
+        });
+        Ok(())
     }
 }
 
