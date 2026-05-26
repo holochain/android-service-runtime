@@ -6,19 +6,21 @@ use holochain::{
     conductor::{
         api::{
             AdminInterfaceApi, AdminRequest, AdminResponse, AppInfo, AppInterfaceApi, AppRequest,
-            AppResponse,
+            AppResponse, CellInfo,
         },
         config::{ConductorConfig, KeystoreConfig, NetworkConfig},
         ConductorBuilder, ConductorHandle,
     },
-    prelude::{AgentPubKey, InstallAppPayload, InstalledAppId, ZomeCallParams},
+    prelude::{AgentPubKey, CellId, InstallAppPayload, InstalledAppId, ZomeCallParams},
 };
+use holochain_types::signal::Signal;
 use holochain_types::websocket::AllowedOrigins;
 use lair_keystore_api::types::SharedLockedArray;
 use log::{debug, error};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
+use tokio::sync::broadcast;
 
 /// Map of app ids to their associated app websocket & authentication
 pub type AppAuths = Arc<RwLock<HashMap<InstalledAppId, AppAuth>>>;
@@ -361,6 +363,51 @@ impl Runtime {
             .await?)
     }
 
+    /// Subscribe to the signal stream for `installed_app_id`. Each [`Signal`]
+    /// the app's cells emit (e.g. from a zome's `post_commit`) is delivered to
+    /// the returned receiver.
+    ///
+    /// This is what lets a Tauri plugin forward signals to a webview without an
+    /// app websocket. The conductor's broadcast is keyed by app, but its only
+    /// public accessor is keyed by cell, so this resolves one of the app's
+    /// provisioned cells first.
+    pub async fn subscribe_to_app_signals(
+        &self,
+        installed_app_id: InstalledAppId,
+    ) -> RuntimeResult<broadcast::Receiver<Signal>> {
+        let cell_id = self.first_provisioned_cell_id(&installed_app_id).await?;
+        let sender = self.conductor.get_signal_tx(&cell_id).await?;
+        Ok(sender.subscribe())
+    }
+
+    /// Find a provisioned cell of `installed_app_id`, used to locate the app's
+    /// signal broadcast channel.
+    async fn first_provisioned_cell_id(
+        &self,
+        installed_app_id: &InstalledAppId,
+    ) -> RuntimeResult<CellId> {
+        let app = self
+            .list_apps()
+            .await?
+            .into_iter()
+            .find(|app| &app.installed_app_id == installed_app_id)
+            .ok_or_else(|| {
+                RuntimeError::InvalidArguments(format!("app not installed: {installed_app_id}"))
+            })?;
+        app.cell_info
+            .values()
+            .flatten()
+            .find_map(|cell_info| match cell_info {
+                CellInfo::Provisioned(cell) => Some(cell.cell_id.clone()),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                RuntimeError::InvalidArguments(format!(
+                    "app has no provisioned cell: {installed_app_id}"
+                ))
+            })
+    }
+
     async fn req_admin_api(&self, request: AdminRequest) -> RuntimeResult<AdminResponse> {
         Ok(AdminInterfaceApi::new(self.conductor.clone())
             .handle_request(Ok(request))
@@ -420,6 +467,7 @@ mod test {
     use serde_json::json;
     use sodoken::LockedArray;
     use std::sync::Mutex;
+    use std::time::Duration;
     use tempfile::TempDir;
     use url2::Url2;
     use uuid::Uuid;
@@ -861,6 +909,71 @@ mod test {
         };
         let posts: Vec<Link> = io.decode().unwrap();
         assert!(posts.is_empty());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_subscribe_to_app_signals() {
+        let tmp_dir = TempDir::new().unwrap();
+        let runtime = Runtime::new(
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
+            RuntimeConfig {
+                data_root_path: tmp_dir.path().into(),
+                network: RuntimeNetworkConfig::default(),
+            },
+        )
+        .await
+        .unwrap();
+        let app_info = install_happ_fixture(runtime.clone(), "my-app-1").await;
+        runtime.enable_app("my-app-1".into()).await.unwrap();
+
+        let Provisioned(ProvisionedCell { cell_id, .. }) =
+            app_info.cell_info.get("forum").unwrap().first().unwrap()
+        else {
+            panic!("App Info has no CellId")
+        };
+
+        // Subscribe before triggering any commit so we don't miss the signal.
+        let mut signals = runtime
+            .subscribe_to_app_signals("my-app-1".into())
+            .await
+            .unwrap();
+
+        // create_post commits an entry (and a link); the posts zome's
+        // post_commit hook emits a Signal::App for each, which must reach the
+        // subscriber.
+        #[derive(serde::Serialize, Debug)]
+        struct Post {
+            title: String,
+            content: String,
+        }
+        let signed = runtime
+            .sign_zome_call(ZomeCallParams {
+                provenance: cell_id.agent_pubkey().clone(),
+                cell_id: cell_id.clone(),
+                zome_name: "posts".into(),
+                fn_name: "create_post".into(),
+                cap_secret: None,
+                payload: ExternIO::encode(Post {
+                    title: "hello".into(),
+                    content: "world".into(),
+                })
+                .unwrap(),
+                nonce: Nonce256Bits::from([1; 32]),
+                expires_at: Timestamp(Timestamp::now().as_micros() + 60_000_000),
+            })
+            .await
+            .unwrap();
+        let resp = runtime
+            .handle_app_request("my-app-1".into(), AppRequest::CallZome(Box::new(signed)))
+            .await
+            .unwrap();
+        assert!(matches!(resp, AppResponse::ZomeCalled(_)));
+
+        let signal = tokio::time::timeout(Duration::from_secs(30), signals.recv())
+            .await
+            .expect("timed out waiting for a signal")
+            .expect("signal channel closed");
+        assert!(matches!(signal, Signal::App { .. }));
     }
 
     #[tokio::test(flavor = "multi_thread")]
