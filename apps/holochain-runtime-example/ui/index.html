@@ -14,7 +14,7 @@
   <body>
     <h1>tauri-plugin-holochain (in-process / FFI-free) — desktop example</h1>
 
-    <h2>1. Injected launcher env</h2>
+    <h2>1. Injected holochain env</h2>
     <pre id="env">reading…</pre>
 
     <h2>2. @holochain/client connection</h2>
@@ -22,6 +22,12 @@
 
     <h2>3. Zome call (posts: get_all_posts)</h2>
     <pre id="zome">waiting…</pre>
+
+    <h2>4. Zome call (posts: create_post)</h2>
+    <pre id="create">waiting…</pre>
+
+    <h2>5. Signal (emitted by create_post)</h2>
+    <pre id="signal">waiting…</pre>
 
     <script type="module" src="/src/main.js"></script>
   </body>
