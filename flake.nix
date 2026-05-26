@@ -9,6 +9,14 @@
   inputs = {
     holonix.url = "github:holochain/holonix/main-0.6";
 
+    # webkitgtk pin for the desktop dev shell. holonix's nixpkgs ships webkitgtk
+    # 2.52.x, which aborts with "Could not create default EGL display:
+    # EGL_BAD_PARAMETER" and renders a blank Tauri webview on non-NixOS GPUs during
+    # `tauri dev`. This nixpkgs rev provides webkitgtk 2.42.5, which renders
+    # correctly. Dev-shell only: production bundles link the system/CI webkit, not
+    # this.
+    webkitnixpkgs.url = "github:nixos/nixpkgs/ed4db9c6c75079ff3570a9e3eb6806c8f692dc26";
+
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
     rust-overlay.follows = "holonix/rust-overlay";
@@ -49,15 +57,24 @@
           androidHome = "${androidSdk}/libexec/android-sdk";
           ndkHome = "${androidHome}/ndk/${ndkVersion}";
 
+          # GTK/webkit stack from the pinned (older, working) nixpkgs — see the
+          # `webkitnixpkgs` input comment. Sourced here rather than from `pkgs` so
+          # `tauri dev` renders instead of aborting on EGL.
+          webkitPkgs = inputs.webkitnixpkgs.legacyPackages.${system};
+
           # System libraries to build/run a Tauri v2 desktop app on Linux. Needed
           # for the desktop-first unified plugin work; harmless for Android builds.
-          tauriDeps = with pkgs; [
-            gtk3
+          # The GTK/webkit libs come from webkitPkgs (2.42.5); openssl from pkgs.
+          tauriDeps = (with webkitPkgs; [
             webkitgtk_4_1
-            libsoup_3
+            gtk3
+            gdk-pixbuf
+            glib
+            glib-networking
             librsvg
-            openssl
-          ];
+            libsoup_3
+            dbus
+          ]) ++ (with pkgs; [ openssl ]);
         in
         {
           devShells.default = pkgs.mkShell {
@@ -78,7 +95,14 @@
               jdk17 # Gradle
               pkg-config
               binaryen # wasm-opt, for building hApp/zome wasm
+            ]) ++ (with webkitPkgs; [
+              shared-mime-info
+              gsettings-desktop-schemas
             ]);
+
+            # GTK app wrapper hook: wires GSETTINGS / GIO / GDK-pixbuf / XDG paths at
+            # shell entry so the webview finds its resources.
+            nativeBuildInputs = [ webkitPkgs.wrapGAppsHook ];
 
             # Libraries to compile/link against (exposed via pkg-config).
             buildInputs = tauriDeps;
@@ -90,6 +114,13 @@
               export ANDROID_NDK_ROOT="${ndkHome}"
               export ANDROID_NDK_HOME="${ndkHome}"
               export NDK_HOME="${ndkHome}"
+
+              # GTK/webkit runtime so `tauri dev` renders instead of aborting on EGL
+              # (forces the non-GL render path; see the webkitnixpkgs input comment).
+              export GIO_MODULE_DIR=${webkitPkgs.glib-networking}/lib/gio/modules/
+              export GIO_EXTRA_MODULES=${webkitPkgs.glib-networking}/lib/gio/modules
+              export WEBKIT_DISABLE_COMPOSITING_MODE=1
+              export XDG_DATA_DIRS=${webkitPkgs.shared-mime-info}/share:${webkitPkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${webkitPkgs.gsettings-desktop-schemas.name}:${webkitPkgs.gtk3}/share/gsettings-schemas/${webkitPkgs.gtk3.name}:$XDG_DATA_DIRS
 
               # Visual cue that you are inside the dev shell.
               export PS1='\[\033[1;35m\][asr-dev:\w]\$\[\033[0m\] '
