@@ -3192,6 +3192,7 @@ version = "0.2.2"
 dependencies = [
  "holochain",
  "holochain_types",
+ "kitsune2_api",
  "lair_keystore_api",
  "log",
  "rustls",

@@ -15,6 +15,7 @@ use holochain::{
 };
 use holochain_types::signal::Signal;
 use holochain_types::websocket::AllowedOrigins;
+use kitsune2_api::ApiTransportStats;
 use lair_keystore_api::types::SharedLockedArray;
 use log::{debug, error};
 use std::collections::HashMap;
@@ -172,6 +173,19 @@ impl Runtime {
             .await?;
         match response {
             AdminResponse::AppsListed(apps) => Ok(apps),
+            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+        }
+    }
+
+    /// Dump the conductor's networking stats.
+    ///
+    /// Returns the typed [`ApiTransportStats`] (not a stringified dump) so callers
+    /// can read fields like `transport_stats.backend` directly. This is the
+    /// in-process equivalent of an admin `DumpNetworkStats` request.
+    pub async fn dump_network_stats(&self) -> RuntimeResult<ApiTransportStats> {
+        let response = self.req_admin_api(AdminRequest::DumpNetworkStats).await?;
+        match response {
+            AdminResponse::NetworkStatsDumped(stats) => Ok(stats),
             fail => Err(RuntimeError::AdminApiBadResponse(fail)),
         }
     }
@@ -579,6 +593,25 @@ mod test {
             .handle_request(Ok(AdminRequest::DumpConductorState))
             .await;
         assert!(res.is_err());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_dump_network_stats() {
+        let tmp_dir = TempDir::new().unwrap();
+        let runtime = Runtime::new(
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
+            RuntimeConfig {
+                data_root_path: tmp_dir.path().to_path_buf(),
+                network: RuntimeNetworkConfig::default(),
+            },
+        )
+        .await
+        .unwrap();
+
+        // Returns the typed stats struct, so `transport_stats.backend` is readable
+        // directly (the field unyt's About dialog reads).
+        let stats = runtime.dump_network_stats().await.unwrap();
+        assert!(!stats.transport_stats.backend.is_empty());
     }
 
     #[tokio::test(flavor = "multi_thread")]

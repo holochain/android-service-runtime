@@ -12,6 +12,7 @@ name = "holochain_conductor_runtime"
 [dependencies]
 holochain = { workspace = true }
 holochain_types = { workspace = true }
+kitsune2_api = { workspace = true }
 lair_keystore_api = { workspace = true }
 sodoken = { workspace = true }
 url2 = { workspace = true }
