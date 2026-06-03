@@ -34,6 +34,12 @@ pub enum RuntimeError {
     #[error("Lair Error")]
     Lair(OneErr),
 
+    #[error("hc-auth error: {0}")]
+    HcAuth(String),
+
+    #[error("agent seed error: {0}")]
+    AgentSeed(String),
+
     #[error("App Bundle Error")]
     AppBundle(#[from] AppBundleError),
 

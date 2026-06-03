@@ -12,8 +12,13 @@ name = "holochain_conductor_runtime"
 [dependencies]
 holochain = { workspace = true }
 holochain_types = { workspace = true }
+holochain_keystore = "0.6.1"
 kitsune2_api = { workspace = true }
 lair_keystore_api = { workspace = true }
+# hc-auth: HTTP challenge/authenticate against the auth server + base64 material.
+# rustls-tls to match the workspace's rustls/aws-lc crypto stack (no native-tls).
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+base64 = "0.22"
 sodoken = { workspace = true }
 url2 = { workspace = true }
 thiserror = { workspace = true }

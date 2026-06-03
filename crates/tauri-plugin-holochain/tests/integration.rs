@@ -84,7 +84,7 @@ fn plugin_boots_conductor_in_tauri_app() {
         wait_for_ready(&app).await;
         let runtime = app.holochain().unwrap().runtime();
 
-        install_and_enable_forum(runtime).await;
+        install_and_enable_forum(&runtime).await;
 
         // Attach an app interface — this is the websocket the legacy injection
         // wires a webview to. A real bound port proves the endpoint exists.
@@ -119,7 +119,7 @@ fn app_request_serves_app_api_in_process() {
         let plugin = app.holochain().unwrap();
         let runtime = plugin.runtime();
 
-        let app_info = install_and_enable_forum(runtime).await;
+        let app_info = install_and_enable_forum(&runtime).await;
 
         // main_window_builder does this in real use; bind a label directly here.
         plugin.bind_window("main", APP_ID.into());

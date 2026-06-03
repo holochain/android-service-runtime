@@ -9,6 +9,11 @@ pub enum Error {
     #[error("the holochain conductor is not ready yet")]
     NotReady,
 
+    /// [`crate::HolochainPlugin::start`] was called while the conductor is
+    /// already running.
+    #[error("the holochain conductor is already started")]
+    AlreadyStarted,
+
     #[error(transparent)]
     Runtime(#[from] holochain_conductor_runtime::RuntimeError),
 

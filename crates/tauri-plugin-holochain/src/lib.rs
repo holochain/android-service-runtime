@@ -19,13 +19,18 @@ pub use error::{Error, Result};
 // Re-export the native config type consumers build, and the runtime itself.
 pub use holochain::conductor::config::NetworkConfig;
 pub use holochain_conductor_runtime::Runtime;
+// hc-auth: re-export the module and its config/status types so consumers can
+// build a `HcAuthConfig` and read `HcAuthStatus` without depending on the
+// runtime crate directly.
+pub use holochain_conductor_runtime::hc_auth;
+pub use holochain_conductor_runtime::{HcAuthConfig, HcAuthStatus};
 pub use lair_keystore_api::types::SharedLockedArray;
 
 use holochain::conductor::api::AppRequest;
 use holochain::prelude::{decode, encode, InstalledAppId};
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use tokio::sync::broadcast;
 
 use sodoken::LockedArray;
@@ -37,6 +42,10 @@ use tauri::{
 /// Emitted on the app handle once the conductor is up and [`HolochainExt::holochain`]
 /// is ready to use.
 pub const EVENT_READY: &str = "holochain://ready";
+/// Emitted on the app handle once the lair keystore is unlocked and the device
+/// key is available, before the conductor has finished coming up. Consumers can
+/// drive UX (e.g. an hc-auth verification screen) during the conductor-up phase.
+pub const EVENT_LAIR_READY: &str = "holochain://lair-ready";
 /// Emitted on the app handle if the conductor fails to start. The payload is the
 /// error string.
 pub const EVENT_SETUP_FAILED: &str = "holochain://setup-failed";
@@ -46,16 +55,42 @@ pub const EVENT_SETUP_FAILED: &str = "holochain://setup-failed";
 pub const EVENT_SIGNAL: &str = "holochain://signal";
 
 /// Configuration for the in-process Holochain conductor.
+#[derive(Clone)]
 pub struct HolochainPluginConfig {
     /// Directory where conductor + keystore data is stored.
     pub data_dir: PathBuf,
     /// Native holochain network config (bootstrap / signal / relay / ...).
     pub network: NetworkConfig,
+    /// If set, run the hc-auth flow at boot and inject the material into the
+    /// network config (authenticated mode). See [`HolochainPluginConfig::with_hc_auth`].
+    pub hc_auth: Option<HcAuthConfig>,
+    /// If set (32 bytes), import as the device seed before boot (agent-key
+    /// restore). See [`HolochainPluginConfig::with_pending_import_seed`].
+    pub pending_import_seed: Option<Vec<u8>>,
 }
 
 impl HolochainPluginConfig {
     pub fn new(data_dir: PathBuf, network: NetworkConfig) -> Self {
-        Self { data_dir, network }
+        Self {
+            data_dir,
+            network,
+            hc_auth: None,
+            pending_import_seed: None,
+        }
+    }
+
+    /// Enable authenticated mode: the hc-auth flow runs at boot and its material
+    /// is injected into the network config.
+    pub fn with_hc_auth(mut self, hc_auth: HcAuthConfig) -> Self {
+        self.hc_auth = Some(hc_auth);
+        self
+    }
+
+    /// Import `seed` (32 bytes) as the device seed before boot, so the first
+    /// install derives this identity (agent-key restore).
+    pub fn with_pending_import_seed(mut self, seed: Vec<u8>) -> Self {
+        self.pending_import_seed = Some(seed);
+        self
     }
 }
 
@@ -78,8 +113,22 @@ pub struct WindowOptions {
 }
 
 /// Access to the running in-process Holochain conductor from the Tauri app.
+///
+/// The plugin may be registered before the conductor boots ([`init_deferred`]),
+/// so the runtime is populated late by [`HolochainPlugin::start`]. Until then
+/// [`HolochainPlugin::runtime`] panics and the internal accessors return
+/// [`Error::NotReady`].
 pub struct HolochainPlugin<R: TauriRuntime> {
-    runtime: Runtime,
+    /// The conductor runtime, populated once [`HolochainPlugin::start`] succeeds.
+    /// Behind an `RwLock` so a hot restart can swap in a new runtime on the same
+    /// lair without re-registering the plugin (see `swap_runtime`).
+    runtime: RwLock<Option<Runtime>>,
+    /// Boot config, consumed by [`HolochainPlugin::start`]. Kept (not taken) so a
+    /// failed unlock can be retried with a different passphrase.
+    pending_config: Mutex<Option<HolochainPluginConfig>>,
+    /// Serializes [`HolochainPlugin::start`] so two concurrent unlock attempts
+    /// can't both build a runtime.
+    start_lock: tokio::sync::Mutex<()>,
     app_handle: AppHandle<R>,
     /// Maps a webview window label to the app it is bound to. Populated by
     /// [`HolochainPlugin::main_window_builder`] / [`HolochainPlugin::bind_window`].
@@ -93,8 +142,115 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     /// (`install_app`, `enable_app`, `setup_app`, `ensure_app_websocket`,
     /// `sign_zome_call`, `import_key_seed`, ...) lives here — this plugin is a
     /// thin Tauri adapter, not a re-implementation.
-    pub fn runtime(&self) -> &Runtime {
-        &self.runtime
+    ///
+    /// Returns a cheap clone of the runtime handle (it is internally `Arc`-backed).
+    /// Panics if called before the conductor has started; gate on [`EVENT_READY`]
+    /// (or use [`HolochainExt::holochain`] only after it fires).
+    pub fn runtime(&self) -> Runtime {
+        self.try_runtime()
+            .expect("holochain runtime not started yet; wait for EVENT_READY before calling runtime()")
+    }
+
+    /// Like [`HolochainPlugin::runtime`] but returns [`Error::NotReady`] instead
+    /// of panicking when the conductor has not started.
+    pub fn try_runtime(&self) -> Result<Runtime> {
+        self.runtime
+            .read()
+            .unwrap()
+            .clone()
+            .ok_or(Error::NotReady)
+    }
+
+    /// Boot the conductor with `passphrase` using the config supplied at
+    /// registration ([`init`] / [`init_deferred`]).
+    ///
+    /// This is the deferred-boot entry point: [`init_deferred`] registers the
+    /// plugin without booting, and the host app calls `start(passphrase)` from a
+    /// command once it has collected the (possibly late) passphrase — e.g. a
+    /// user-typed lair password. See [`HolochainPlugin::start_with_config`] for
+    /// the variant that boots against a freshly-built config (the host needs
+    /// this when the config depends on per-unlock state, e.g. hc-auth or an
+    /// imported seed).
+    pub async fn start(&self, passphrase: SharedLockedArray) -> Result<()> {
+        let config = self
+            .pending_config
+            .lock()
+            .unwrap()
+            .clone()
+            .ok_or(Error::NotReady)?;
+        self.start_with_config(passphrase, config).await
+    }
+
+    /// Boot the conductor with `passphrase` against `config`, unlocking (or
+    /// creating) the lair keystore and bringing the conductor up. Emits
+    /// [`EVENT_LAIR_READY`] once the keystore is available and [`EVENT_READY`]
+    /// once the conductor is up.
+    ///
+    /// Retryable: a failed unlock leaves the plugin un-started so a subsequent
+    /// call with a corrected passphrase/config can succeed. Returns
+    /// [`Error::AlreadyStarted`] if the conductor is already running.
+    pub async fn start_with_config(
+        &self,
+        passphrase: SharedLockedArray,
+        config: HolochainPluginConfig,
+    ) -> Result<()> {
+        // Serialize concurrent unlock attempts and re-check under the lock.
+        let _guard = self.start_lock.lock().await;
+        if self.runtime.read().unwrap().is_some() {
+            return Err(Error::AlreadyStarted);
+        }
+
+        // Spawn lair, (optionally) run the hc-auth flow, then bring the conductor
+        // up against that lair — see `Runtime::new_with_boot_config`. The
+        // controllable boot collapses to a single conductor start; the keystore
+        // is unlocked and the device key exists before `EVENT_LAIR_READY`.
+        let runtime = Runtime::new_with_boot_config(
+            passphrase,
+            holochain_conductor_runtime::RuntimeBootConfig {
+                data_root_path: config.data_dir,
+                network: config.network,
+                hc_auth: config.hc_auth,
+                pending_import_seed: config.pending_import_seed,
+            },
+        )
+        .await?;
+
+        if let Err(e) = self.app_handle.emit(EVENT_LAIR_READY, ()) {
+            log::error!("Failed to emit {EVENT_LAIR_READY}: {e:?}");
+        }
+
+        *self.runtime.write().unwrap() = Some(runtime);
+
+        if let Err(e) = self.app_handle.emit(EVENT_READY, ()) {
+            log::error!("Failed to emit {EVENT_READY}: {e:?}");
+        }
+        Ok(())
+    }
+
+    /// Swap in a new conductor runtime (e.g. after an hc-auth hot restart) and
+    /// re-bind existing webview windows to it.
+    ///
+    /// The window→app map is preserved (the apps persist on the same lair), so we
+    /// only need to re-spawn each bound window's signal forwarder against the new
+    /// runtime — signal subscriptions are per-runtime and the old conductor's
+    /// channels are gone after the restart.
+    pub async fn swap_runtime(&self, new: Runtime) -> Result<()> {
+        *self.runtime.write().unwrap() = Some(new);
+
+        let bindings: Vec<(String, InstalledAppId)> = self
+            .window_apps
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|(label, app_id)| (label.clone(), app_id.clone()))
+            .collect();
+
+        for (label, app_id) in bindings {
+            if let Err(e) = self.spawn_signal_forwarder(label.clone(), app_id).await {
+                log::error!("Failed to re-spawn signal forwarder for window {label}: {e:?}");
+            }
+        }
+        Ok(())
     }
 
     /// Bind a webview window (by its label) to an installed app, so that
@@ -133,7 +289,10 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
         let app_id = self.app_id_for_window(window_label)?;
         let app_request: AppRequest =
             decode(&request).map_err(|e| Error::Serialization(e.to_string()))?;
-        let response = self.runtime.handle_app_request(app_id, app_request).await?;
+        let response = self
+            .try_runtime()?
+            .handle_app_request(app_id, app_request)
+            .await?;
         encode(&response).map_err(|e| Error::Serialization(e.to_string()))
     }
 
@@ -160,7 +319,7 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
 
         let env_script = if options.use_app_websocket {
             // Legacy: attach an app websocket and point @holochain/client at it.
-            let app_auth = self.runtime.ensure_app_websocket(app_id.clone()).await?;
+            let app_auth = self.try_runtime()?.ensure_app_websocket(app_id.clone()).await?;
             format!(
                 r#"window.injectHolochainClientEnv("{}", {}, {:?});"#,
                 app_id, app_auth.port, app_auth.authentication.token,
@@ -192,7 +351,7 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     /// `@holochain/client`. The task runs until the conductor's signal channel
     /// closes.
     async fn spawn_signal_forwarder(&self, label: String, app_id: InstalledAppId) -> Result<()> {
-        let mut signals = self.runtime.subscribe_to_app_signals(app_id).await?;
+        let mut signals = self.try_runtime()?.subscribe_to_app_signals(app_id).await?;
         let app_handle = self.app_handle.clone();
         tauri::async_runtime::spawn(async move {
             loop {
@@ -234,15 +393,13 @@ impl<R: TauriRuntime, T: Manager<R>> HolochainExt<R> for T {
     }
 }
 
-/// Initialize the plugin.
-///
-/// The conductor is booted asynchronously so the Tauri app can show a
-/// splashscreen while it starts. [`EVENT_READY`] is emitted once
-/// [`HolochainExt::holochain`] is usable; [`EVENT_SETUP_FAILED`] is emitted on
-/// failure.
-pub fn init<R: TauriRuntime>(
-    passphrase: SharedLockedArray,
+/// Register the plugin and manage a [`HolochainPlugin`] without booting the
+/// conductor. Shared by [`init`] (which then boots immediately) and
+/// [`init_deferred`] (which waits for the host to call
+/// [`HolochainPlugin::start`]).
+fn plugin_builder<R: TauriRuntime>(
     config: HolochainPluginConfig,
+    on_setup: impl Fn(&AppHandle<R>) + Send + Sync + 'static,
 ) -> TauriPlugin<R> {
     Builder::new("holochain")
         .invoke_handler(tauri::generate_handler![
@@ -250,28 +407,55 @@ pub fn init<R: TauriRuntime>(
             commands::app_request
         ])
         .setup(move |app, _api| {
-            let app_handle = app.clone();
-            tauri::async_runtime::spawn(async move {
-                match Runtime::new_with_network_config(passphrase, config.data_dir, config.network)
-                    .await
-                {
-                    Ok(runtime) => {
-                        app_handle.manage(HolochainPlugin {
-                            runtime,
-                            app_handle: app_handle.clone(),
-                            window_apps: Arc::new(Mutex::new(HashMap::new())),
-                        });
-                        if let Err(e) = app_handle.emit(EVENT_READY, ()) {
-                            log::error!("Failed to emit {EVENT_READY}: {e:?}");
-                        }
-                    }
-                    Err(e) => {
-                        log::error!("Holochain conductor setup failed: {e:?}");
-                        let _ = app_handle.emit(EVENT_SETUP_FAILED, e.to_string());
-                    }
-                }
+            app.manage(HolochainPlugin {
+                runtime: RwLock::new(None),
+                pending_config: Mutex::new(Some(config.clone())),
+                start_lock: tokio::sync::Mutex::new(()),
+                app_handle: app.clone(),
+                window_apps: Arc::new(Mutex::new(HashMap::new())),
             });
+            on_setup(app);
             Ok(())
         })
         .build()
+}
+
+/// Initialize the plugin and boot the conductor immediately with `passphrase`.
+///
+/// The conductor is booted asynchronously so the Tauri app can show a
+/// splashscreen while it starts. [`EVENT_READY`] is emitted once
+/// [`HolochainExt::holochain`] is usable; [`EVENT_SETUP_FAILED`] is emitted on
+/// failure. Use [`init_deferred`] instead if the passphrase isn't known at
+/// registration time (e.g. a user-typed lair password).
+pub fn init<R: TauriRuntime>(
+    passphrase: SharedLockedArray,
+    config: HolochainPluginConfig,
+) -> TauriPlugin<R> {
+    plugin_builder(config, move |app| {
+        let app_handle = app.clone();
+        let passphrase = passphrase.clone();
+        tauri::async_runtime::spawn(async move {
+            // `holochain()` borrows manager-lifetime state, so the reference is
+            // valid across the await (app_handle outlives the task).
+            let result = match app_handle.holochain() {
+                Ok(plugin) => plugin.start(passphrase).await,
+                Err(e) => Err(e),
+            };
+            if let Err(e) = result {
+                log::error!("Holochain conductor setup failed: {e:?}");
+                let _ = app_handle.emit(EVENT_SETUP_FAILED, e.to_string());
+            }
+        });
+    })
+}
+
+/// Initialize the plugin **without** booting the conductor.
+///
+/// The plugin is registered and [`HolochainExt::holochain`] becomes available
+/// immediately, but no conductor runs until the host calls
+/// [`HolochainPlugin::start`] with a passphrase (typically from a Tauri command
+/// after collecting a user-typed lair password). No [`EVENT_READY`] is emitted
+/// until that boot succeeds.
+pub fn init_deferred<R: TauriRuntime>(config: HolochainPluginConfig) -> TauriPlugin<R> {
+    plugin_builder(config, |_app| {})
 }
