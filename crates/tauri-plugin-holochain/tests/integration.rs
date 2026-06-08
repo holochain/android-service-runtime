@@ -37,12 +37,17 @@ fn build_app(tmp: &TempDir) -> tauri::App<tauri::test::MockRuntime> {
         .expect("failed to build mock tauri app")
 }
 
-/// Wait until the plugin has finished booting the conductor (it manages its
-/// state and emits `holochain://ready` at that point).
+/// Wait until the plugin has finished booting the conductor.
+///
+/// The plugin state is `manage()`d at setup (so `holochain()` resolves
+/// immediately, which the deferred-boot flow relies on); the conductor is then
+/// booted asynchronously. Readiness is therefore signalled by `try_runtime()`
+/// succeeding — the same point at which `holochain://ready` is emitted — not by
+/// `holochain()` alone.
 async fn wait_for_ready<R: tauri::Runtime>(app: &tauri::App<R>) {
     let mut waited = Duration::ZERO;
     let step = Duration::from_millis(200);
-    while app.holochain().is_err() {
+    while app.holochain().and_then(|h| h.try_runtime()).is_err() {
         assert!(
             waited < Duration::from_secs(60),
             "conductor did not become ready within 60s"

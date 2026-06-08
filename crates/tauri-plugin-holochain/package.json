@@ -12,7 +12,7 @@
     "build": "npm run build:js"
   },
   "dependencies": {
-    "@holochain/client": "^0.20.5",
+    "@holochain/client": "file:../../../holochain-client-js",
     "@msgpack/msgpack": "^3.1.2",
     "@tauri-apps/api": "^2.5.0"
   },

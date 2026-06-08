@@ -17,7 +17,7 @@ use holochain::{
 use holochain_keystore::MetaLairClient;
 use holochain_types::signal::Signal;
 use holochain_types::websocket::AllowedOrigins;
-use kitsune2_api::ApiTransportStats;
+use holochain_types::network::HolochainTransportStats;
 use lair_keystore_api::types::SharedLockedArray;
 use log::{debug, error};
 use std::collections::HashMap;
@@ -316,6 +316,7 @@ impl Runtime {
     /// This is *NOT* fully implemented by holochain: kitsune tasks will continue to run.
     pub async fn stop(&self) -> RuntimeResult<()> {
         self.conductor
+            .clone()
             .shutdown()
             .await
             .map_err(|e| RuntimeError::ConductorShutdown(e.to_string()))?
@@ -383,10 +384,10 @@ impl Runtime {
 
     /// Dump the conductor's networking stats.
     ///
-    /// Returns the typed [`ApiTransportStats`] (not a stringified dump) so callers
+    /// Returns the typed [`HolochainTransportStats`] (not a stringified dump) so callers
     /// can read fields like `transport_stats.backend` directly. This is the
     /// in-process equivalent of an admin `DumpNetworkStats` request.
-    pub async fn dump_network_stats(&self) -> RuntimeResult<ApiTransportStats> {
+    pub async fn dump_network_stats(&self) -> RuntimeResult<HolochainTransportStats> {
         let response = self.req_admin_api(AdminRequest::DumpNetworkStats).await?;
         match response {
             AdminResponse::NetworkStatsDumped(stats) => Ok(stats),

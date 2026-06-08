@@ -11,7 +11,7 @@
     "test": "pnpm run build:zomes && hc app pack workdir --recursive && pnpm run test --workspace tests",
     "package": "pnpm run build:happ && pnpm run package --workspace ui && hc web-app pack workdir --recursive",
     "build:happ": "pnpm run build:zomes && hc app pack workdir --recursive",
-    "build:zomes": "cargo build --release --target wasm32-unknown-unknown --workspace --exclude forum-tauri",
+    "build:zomes": "RUSTFLAGS='--cfg getrandom_backend=\"custom\"' cargo build --release --target wasm32-unknown-unknown --workspace --exclude forum-tauri",
     "tauri": "tauri"
   },
   "devDependencies": {
