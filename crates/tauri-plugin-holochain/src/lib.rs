@@ -441,10 +441,12 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
 /// Extension trait giving Tauri's `App`/`AppHandle`/`Window` access to the
 /// in-process Holochain conductor.
 pub trait HolochainExt<R: TauriRuntime> {
-    /// Access the running Holochain plugin.
-    ///
-    /// Returns [`Error::NotReady`] until the conductor has finished starting;
-    /// listen for [`EVENT_READY`] before calling this.
+    /// Access the Holochain plugin handle. Available as soon as the plugin is
+    /// registered — including before the conductor boots, so `init_deferred`
+    /// consumers can call [`HolochainPlugin::start`]. The handle being available
+    /// does **not** mean the runtime is: gate conductor use on [`EVENT_READY`]
+    /// (or [`HolochainPlugin::try_runtime`]). Returns [`Error::NotReady`] only
+    /// when the plugin isn't registered.
     fn holochain(&self) -> Result<&HolochainPlugin<R>>;
 }
 

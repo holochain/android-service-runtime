@@ -37,12 +37,15 @@ fn build_app(tmp: &TempDir) -> tauri::App<tauri::test::MockRuntime> {
         .expect("failed to build mock tauri app")
 }
 
-/// Wait until the plugin has finished booting the conductor (it manages its
-/// state and emits `holochain://ready` at that point).
+/// Wait until the conductor has booted — i.e. the plugin's runtime is populated
+/// (it emits `holochain://ready` at that point). Gating on `holochain()` alone
+/// is not enough: the plugin handle is managed before the conductor boots (so
+/// `init_deferred` consumers can call `start`), so the readiness signal is the
+/// runtime, not the handle.
 async fn wait_for_ready<R: tauri::Runtime>(app: &tauri::App<R>) {
     let mut waited = Duration::ZERO;
     let step = Duration::from_millis(200);
-    while app.holochain().is_err() {
+    while app.holochain().and_then(|p| p.try_runtime()).is_err() {
         assert!(
             waited < Duration::from_secs(60),
             "conductor did not become ready within 60s"
@@ -173,6 +176,81 @@ fn app_request_serves_app_api_in_process() {
         // the app it was opened for.
         let unbound = plugin
             .app_request_bytes("not-bound", encode(&AppRequest::AppInfo).unwrap())
+            .await;
+        assert!(matches!(unbound, Err(Error::WindowNotBound)));
+    });
+}
+
+/// `rebind_window` re-routes a window's `app_request` to a different app — and
+/// unbinds it — in place, so a consumer can move one persistent window between
+/// apps (and to/from an app-less dashboard) without recreating it.
+#[test]
+fn rebind_window_reroutes_app_request_in_place() {
+    let tmp = TempDir::new().unwrap();
+    let app = build_app(&tmp);
+
+    tauri::async_runtime::block_on(async move {
+        wait_for_ready(&app).await;
+        let plugin = app.holochain().unwrap();
+        let runtime = plugin.runtime();
+
+        // Two enabled apps to rebind between.
+        install_and_enable_forum(&runtime).await;
+        const APP_ID_2: &str = "forum-2";
+        runtime
+            .install_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
+                agent_key: None,
+                installed_app_id: Some(APP_ID_2.into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+            })
+            .await
+            .expect("install forum-2 failed");
+        runtime
+            .enable_app(APP_ID_2.into())
+            .await
+            .expect("enable forum-2 failed");
+
+        // Bind to the first app, then rebind to the second — the route follows
+        // the binding, with no recreate.
+        plugin
+            .rebind_window("main", Some(APP_ID.into()))
+            .await
+            .unwrap();
+        let resp: AppResponse = decode(
+            &plugin
+                .app_request_bytes("main", encode(&AppRequest::AppInfo).unwrap())
+                .await
+                .expect("app_request AppInfo failed"),
+        )
+        .unwrap();
+        assert!(
+            matches!(&resp, AppResponse::AppInfo(Some(i)) if i.installed_app_id == APP_ID),
+            "expected AppInfo for {APP_ID}, got {resp:?}"
+        );
+
+        plugin
+            .rebind_window("main", Some(APP_ID_2.into()))
+            .await
+            .unwrap();
+        let resp: AppResponse = decode(
+            &plugin
+                .app_request_bytes("main", encode(&AppRequest::AppInfo).unwrap())
+                .await
+                .expect("app_request AppInfo failed"),
+        )
+        .unwrap();
+        assert!(
+            matches!(&resp, AppResponse::AppInfo(Some(i)) if i.installed_app_id == APP_ID_2),
+            "expected AppInfo for {APP_ID_2}, got {resp:?}"
+        );
+
+        // Unbind — the window can no longer reach any app.
+        plugin.rebind_window("main", None).await.unwrap();
+        let unbound = plugin
+            .app_request_bytes("main", encode(&AppRequest::AppInfo).unwrap())
             .await;
         assert!(matches!(unbound, Err(Error::WindowNotBound)));
     });
