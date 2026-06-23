@@ -54,6 +54,13 @@ pub const EVENT_SETUP_FAILED: &str = "holochain://setup-failed";
 /// injected env bridges this to `@holochain/client`'s Tauri transport.
 pub const EVENT_SIGNAL: &str = "holochain://signal";
 
+/// Emitted to a window when [`HolochainPlugin::rebind_window`] changes the app it
+/// is bound to — **without recreating the OS window**. The payload is the new
+/// `InstalledAppId`, or `null` when the window is unbound (app-less / dashboard).
+/// The injected env updates `__HC_TAURI_HOLOCHAIN__.INSTALLED_APP_ID` and the SPA
+/// re-connects the App API to the new app.
+pub const EVENT_REBOUND: &str = "holochain://rebound";
+
 /// Configuration for the in-process Holochain conductor.
 #[derive(Clone)]
 pub struct HolochainPluginConfig {
@@ -135,6 +142,10 @@ pub struct HolochainPlugin<R: TauriRuntime> {
     /// The `app_request` command uses this to scope each request to the app the
     /// calling window was opened for — replacing the per-app websocket token.
     window_apps: Arc<Mutex<HashMap<String, InstalledAppId>>>,
+    /// Per-window signal-forwarder task handles, so a rebind (or the re-bind done
+    /// by [`swap_runtime`]) can abort the previous forwarder before starting the
+    /// new one — otherwise the old app's signals would keep arriving at the window.
+    window_forwarders: Arc<Mutex<HashMap<String, tauri::async_runtime::JoinHandle<()>>>>,
 }
 
 impl<R: TauriRuntime> HolochainPlugin<R> {
@@ -264,6 +275,43 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
             .insert(label.into(), app_id);
     }
 
+    /// Rebind an existing webview window to a different installed app — or unbind
+    /// it — **without recreating the OS window**. Updates the `app_request`
+    /// routing, swaps the window's signal forwarder, and emits [`EVENT_REBOUND`]
+    /// to the window so the injected env can update
+    /// `__HC_TAURI_HOLOCHAIN__.INSTALLED_APP_ID` and the SPA can re-connect the App
+    /// API to the new app.
+    ///
+    /// `app_id = Some(..)` (re)binds to that app; `None` unbinds the window
+    /// (app-less / dashboard). This is the in-process, no-flicker alternative to
+    /// destroying and rebuilding the window to switch which app it talks to — the
+    /// WebDriver session and window state survive, and there is no boot flash.
+    pub async fn rebind_window(
+        &self,
+        label: impl Into<String>,
+        app_id: Option<InstalledAppId>,
+    ) -> Result<()> {
+        let label: String = label.into();
+        match app_id {
+            Some(app_id) => {
+                self.bind_window(label.clone(), app_id.clone());
+                self.spawn_signal_forwarder(label.clone(), app_id.clone())
+                    .await?;
+                self.app_handle
+                    .emit_to(label.as_str(), EVENT_REBOUND, Some(app_id))?;
+            }
+            None => {
+                self.window_apps.lock().unwrap().remove(&label);
+                if let Some(prev) = self.window_forwarders.lock().unwrap().remove(&label) {
+                    prev.abort();
+                }
+                self.app_handle
+                    .emit_to(label.as_str(), EVENT_REBOUND, None::<InstalledAppId>)?;
+            }
+        }
+        Ok(())
+    }
+
     fn app_id_for_window(&self, label: &str) -> Result<InstalledAppId> {
         self.window_apps
             .lock()
@@ -309,7 +357,7 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     pub async fn main_window_builder(
         &self,
         label: impl Into<String>,
-        app_id: String,
+        app_id: Option<String>,
         options: WindowOptions,
     ) -> Result<WebviewWindowBuilder<'_, R, AppHandle<R>>> {
         let label: String = label.into();
@@ -319,18 +367,25 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
 
         let env_script = if options.use_app_websocket {
             // Legacy: attach an app websocket and point @holochain/client at it.
+            // This path requires a bound app.
+            let app_id = app_id.ok_or(Error::WindowNotBound)?;
             let app_auth = self.try_runtime()?.ensure_app_websocket(app_id.clone()).await?;
             format!(
                 r#"window.injectHolochainClientEnv("{}", {}, {:?});"#,
                 app_id, app_auth.port, app_auth.authentication.token,
             )
         } else {
-            // Direct: bind this window to the app, forward its signals, and
-            // inject the env that routes the App API over Tauri IPC.
-            self.bind_window(label.clone(), app_id.clone());
-            self.spawn_signal_forwarder(label.clone(), app_id.clone())
-                .await?;
-            format!(r#"window.injectHolochainTauriEnv({app_id:?}, "holochain");"#)
+            // Direct: inject the IPC env (+ the rebound listener). If an app is
+            // given, bind the window and forward its signals; `None` opens an
+            // app-less window (dashboard) that `rebind_window` can bind later
+            // without recreating the OS window.
+            if let Some(app_id) = &app_id {
+                self.bind_window(label.clone(), app_id.clone());
+                self.spawn_signal_forwarder(label.clone(), app_id.clone())
+                    .await?;
+            }
+            let injected = app_id.unwrap_or_default();
+            format!(r#"window.injectHolochainTauriEnv({injected:?}, "holochain");"#)
         };
 
         let mut window_builder =
@@ -353,24 +408,32 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     async fn spawn_signal_forwarder(&self, label: String, app_id: InstalledAppId) -> Result<()> {
         let mut signals = self.try_runtime()?.subscribe_to_app_signals(app_id).await?;
         let app_handle = self.app_handle.clone();
-        tauri::async_runtime::spawn(async move {
+        let task_label = label.clone();
+        let handle = tauri::async_runtime::spawn(async move {
             loop {
                 match signals.recv().await {
                     Ok(signal) => match encode(&signal) {
                         Ok(bytes) => {
-                            if let Err(e) = app_handle.emit_to(label.as_str(), EVENT_SIGNAL, bytes) {
-                                log::error!("Failed to forward signal to window {label}: {e:?}");
+                            if let Err(e) =
+                                app_handle.emit_to(task_label.as_str(), EVENT_SIGNAL, bytes)
+                            {
+                                log::error!("Failed to forward signal to window {task_label}: {e:?}");
                             }
                         }
                         Err(e) => log::error!("Failed to encode signal: {e}"),
                     },
                     Err(broadcast::error::RecvError::Lagged(n)) => {
-                        log::warn!("Signal forwarder for window {label} lagged; dropped {n}");
+                        log::warn!("Signal forwarder for window {task_label} lagged; dropped {n}");
                     }
                     Err(broadcast::error::RecvError::Closed) => break,
                 }
             }
         });
+        // Replace (and abort) any prior forwarder for this window — a rebind or a
+        // swap_runtime re-bind must not leave the old app's forwarder running.
+        if let Some(prev) = self.window_forwarders.lock().unwrap().insert(label, handle) {
+            prev.abort();
+        }
         Ok(())
     }
 }
@@ -413,6 +476,7 @@ fn plugin_builder<R: TauriRuntime>(
                 start_lock: tokio::sync::Mutex::new(()),
                 app_handle: app.clone(),
                 window_apps: Arc::new(Mutex::new(HashMap::new())),
+                window_forwarders: Arc::new(Mutex::new(HashMap::new())),
             });
             on_setup(app);
             Ok(())
