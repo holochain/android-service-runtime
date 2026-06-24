@@ -1184,6 +1184,44 @@ mod test {
         assert_eq!(app_info.agent_pub_key, agent_key);
     }
 
+    /// Installing under an agent key that lives in a *different* lair (so the
+    /// local keystore can't sign for it) fails genesis with
+    /// `GenesisFailed / "Query returned no rows"` — the conductor can't sign the
+    /// genesis records, so the source-chain read comes back empty. This is the
+    /// exact failure a stale persisted agent key produces in a consumer app.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_install_with_foreign_key_fails_genesis() {
+        let tmp1 = TempDir::new().unwrap();
+        let rt1 = boot_runtime(&tmp1, None).await;
+
+        // A key from a second, independent keystore — not signable in rt1.
+        let tmp2 = TempDir::new().unwrap();
+        let rt2 = boot_runtime(&tmp2, None).await;
+        let foreign_key = rt2.device_agent_key();
+        assert_ne!(foreign_key, rt1.device_agent_key());
+
+        let result = rt1
+            .install_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
+                agent_key: Some(foreign_key),
+                installed_app_id: Some("forum-foreign".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+            })
+            .await;
+
+        let msg = format!(
+            "{:?}",
+            result.expect_err("install under a non-local agent key must fail")
+        );
+        assert!(msg.contains("GenesisFailed"), "expected GenesisFailed, got: {msg}");
+        assert!(
+            msg.contains("Query returned no rows"),
+            "expected the empty source-chain genesis error, got: {msg}"
+        );
+    }
+
     #[tokio::test(flavor = "multi_thread")]
     async fn test_uninstall_app() {
         let tmp_dir = TempDir::new().unwrap();
