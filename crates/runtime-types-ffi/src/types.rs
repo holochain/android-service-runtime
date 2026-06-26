@@ -316,8 +316,7 @@ impl From<RoleSettingsFfi> for RoleSettings {
                 membrane_proof: membrane_proof
                     .map(|p| std::sync::Arc::new(SerializedBytes::from(UnsafeBytes::from(p)))),
                 modifiers: modifiers.map(|m| m.into()),
-                // HC-795 (holochain 0.6.2-rc.0): RoleSettings::Provisioned gained
-                // init_properties; the FFI surface doesn't carry it yet, so None.
+                // The FFI surface does not carry migration init_properties.
                 init_properties: None,
             },
         }
