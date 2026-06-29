@@ -313,3 +313,17 @@ fn unbind_drops_window_routing() {
         "dropping a window must clear its routing"
     );
 }
+
+/// The shipped JS bundle is built from `guest-js/` and injected verbatim by
+/// `main_window_builder` (`include_str!` of this same file). No runtime test
+/// exercises the injected JS, so a stale bundle silently ships the old rebound
+/// listener — which read the whole event payload as the app id, with no seq
+/// gate. Guard against that: the regenerated bundle reads the structured fields.
+#[test]
+fn shipped_bundle_matches_rebound_payload_shape() {
+    let bundle = include_str!("../dist-js/holochain-env/index.min.js");
+    assert!(
+        bundle.contains("payload.app_id") && bundle.contains("payload.seq"),
+        "dist-js/holochain-env/index.min.js is stale — run `npm run build` in crates/tauri-plugin-holochain"
+    );
+}
