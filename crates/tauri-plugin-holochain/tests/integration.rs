@@ -255,3 +255,61 @@ fn rebind_window_reroutes_app_request_in_place() {
         assert!(matches!(unbound, Err(Error::WindowNotBound)));
     });
 }
+
+/// A *failed* rebind must not change the window's routing. `init_deferred`
+/// leaves the runtime `NotReady`, so `rebind_window`'s `spawn_signal_forwarder`
+/// fails deterministically — the previous binding must survive (no half-rebind
+/// where `app_request` points at an app whose signal stream never started).
+#[test]
+fn rebind_failed_spawn_keeps_prior_binding() {
+    let tmp = TempDir::new().unwrap();
+    let app = mock_builder()
+        .plugin(tauri_plugin_holochain::init_deferred(
+            HolochainPluginConfig::new(tmp.path().to_path_buf(), NetworkConfig::default()),
+        ))
+        .build(mock_context(noop_assets()))
+        .expect("failed to build mock tauri app");
+    let plugin = app.holochain().unwrap();
+
+    plugin.bind_window("main", APP_ID.into());
+    assert_eq!(plugin.bound_app("main"), Some(APP_ID.to_string()));
+
+    let result =
+        tauri::async_runtime::block_on(plugin.rebind_window("main", Some("other-app".into())));
+    assert!(
+        matches!(result, Err(Error::NotReady)),
+        "expected the rebind to fail with NotReady, got {result:?}"
+    );
+    assert_eq!(
+        plugin.bound_app("main"),
+        Some(APP_ID.to_string()),
+        "a failed rebind must not flip the window's routing to the new app"
+    );
+}
+
+/// Dropping a window clears its routing — the same `drop_window` path the
+/// window-destroy handler (`plugin_builder`'s `on_event` → `RunEvent::WindowEvent`
+/// `Destroyed`) runs to prune a closed window's maps and abort its forwarder. The
+/// OS-window-destroy event itself only fires on a real window close, which the
+/// mock test runtime doesn't drive, so this exercises the cleanup it calls.
+#[test]
+fn unbind_drops_window_routing() {
+    let tmp = TempDir::new().unwrap();
+    let app = mock_builder()
+        .plugin(tauri_plugin_holochain::init_deferred(
+            HolochainPluginConfig::new(tmp.path().to_path_buf(), NetworkConfig::default()),
+        ))
+        .build(mock_context(noop_assets()))
+        .expect("failed to build mock tauri app");
+    let plugin = app.holochain().unwrap();
+
+    plugin.bind_window("main", APP_ID.into());
+    assert_eq!(plugin.bound_app("main"), Some(APP_ID.to_string()));
+
+    tauri::async_runtime::block_on(plugin.rebind_window("main", None)).unwrap();
+    assert_eq!(
+        plugin.bound_app("main"),
+        None,
+        "dropping a window must clear its routing"
+    );
+}

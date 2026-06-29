@@ -86,14 +86,20 @@ function injectHolochainTauriEnv(installedAppId: string, pluginName: string) {
   (window as any).__HC_ZOME_CALL_SIGNER__ = makeZomeCallSigner(pluginName);
 
   // Live rebind: after `HolochainPlugin::rebind_window`, the plugin emits
-  // `holochain://rebound` with the new app id (or null when unbound). Update the
-  // env in place and dispatch a DOM `holochain-rebound` event so the host SPA can
-  // reconnect `@holochain/client` to the new app — no OS-window recreate, so the
-  // window (and any attached WebDriver session) survives.
-  void listen<string | null>('holochain://rebound', (event) => {
-    env.INSTALLED_APP_ID = event.payload ?? '';
+  // `holochain://rebound` with a monotonic `seq` and the new app id (or null when
+  // unbound). Apply only when `seq` is newer than the last we applied — so an
+  // out-of-order delivery can't leave the env on a stale app while routing and
+  // signals are on the latest — then update the env in place and dispatch a DOM
+  // `holochain-rebound` event so the host SPA can reconnect `@holochain/client` to
+  // the new app (no OS-window recreate, so the window survives).
+  let lastReboundSeq = 0;
+  void listen<{ seq: number; app_id: string | null }>('holochain://rebound', (event) => {
+    if (event.payload.seq <= lastReboundSeq) return;
+    lastReboundSeq = event.payload.seq;
+    const appId = event.payload.app_id;
+    env.INSTALLED_APP_ID = appId ?? '';
     window.dispatchEvent(
-      new CustomEvent('holochain-rebound', { detail: { installedAppId: event.payload } })
+      new CustomEvent('holochain-rebound', { detail: { installedAppId: appId } })
     );
   });
 }
