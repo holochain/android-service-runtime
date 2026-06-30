@@ -37,12 +37,15 @@ fn build_app(tmp: &TempDir) -> tauri::App<tauri::test::MockRuntime> {
         .expect("failed to build mock tauri app")
 }
 
-/// Wait until the plugin has finished booting the conductor (it manages its
-/// state and emits `holochain://ready` at that point).
+/// Wait until the conductor has booted — i.e. the plugin's runtime is populated
+/// (it emits `holochain://ready` at that point). Gating on `holochain()` alone
+/// is not enough: the plugin handle is managed before the conductor boots (so
+/// `init_deferred` consumers can call `start`), so the readiness signal is the
+/// runtime, not the handle.
 async fn wait_for_ready<R: tauri::Runtime>(app: &tauri::App<R>) {
     let mut waited = Duration::ZERO;
     let step = Duration::from_millis(200);
-    while app.holochain().is_err() {
+    while app.holochain().and_then(|p| p.try_runtime()).is_err() {
         assert!(
             waited < Duration::from_secs(60),
             "conductor did not become ready within 60s"
@@ -176,4 +179,151 @@ fn app_request_serves_app_api_in_process() {
             .await;
         assert!(matches!(unbound, Err(Error::WindowNotBound)));
     });
+}
+
+/// `rebind_window` re-routes a window's `app_request` to a different app — and
+/// unbinds it — in place, so a consumer can move one persistent window between
+/// apps (and to/from an app-less dashboard) without recreating it.
+#[test]
+fn rebind_window_reroutes_app_request_in_place() {
+    let tmp = TempDir::new().unwrap();
+    let app = build_app(&tmp);
+
+    tauri::async_runtime::block_on(async move {
+        wait_for_ready(&app).await;
+        let plugin = app.holochain().unwrap();
+        let runtime = plugin.runtime();
+
+        // Two enabled apps to rebind between.
+        install_and_enable_forum(&runtime).await;
+        const APP_ID_2: &str = "forum-2";
+        runtime
+            .install_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
+                agent_key: None,
+                installed_app_id: Some(APP_ID_2.into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+            })
+            .await
+            .expect("install forum-2 failed");
+        runtime
+            .enable_app(APP_ID_2.into())
+            .await
+            .expect("enable forum-2 failed");
+
+        // Bind to the first app, then rebind to the second — the route follows
+        // the binding, with no recreate.
+        plugin
+            .rebind_window("main", Some(APP_ID.into()))
+            .await
+            .unwrap();
+        let resp: AppResponse = decode(
+            &plugin
+                .app_request_bytes("main", encode(&AppRequest::AppInfo).unwrap())
+                .await
+                .expect("app_request AppInfo failed"),
+        )
+        .unwrap();
+        assert!(
+            matches!(&resp, AppResponse::AppInfo(Some(i)) if i.installed_app_id == APP_ID),
+            "expected AppInfo for {APP_ID}, got {resp:?}"
+        );
+
+        plugin
+            .rebind_window("main", Some(APP_ID_2.into()))
+            .await
+            .unwrap();
+        let resp: AppResponse = decode(
+            &plugin
+                .app_request_bytes("main", encode(&AppRequest::AppInfo).unwrap())
+                .await
+                .expect("app_request AppInfo failed"),
+        )
+        .unwrap();
+        assert!(
+            matches!(&resp, AppResponse::AppInfo(Some(i)) if i.installed_app_id == APP_ID_2),
+            "expected AppInfo for {APP_ID_2}, got {resp:?}"
+        );
+
+        // Unbind — the window can no longer reach any app.
+        plugin.rebind_window("main", None).await.unwrap();
+        let unbound = plugin
+            .app_request_bytes("main", encode(&AppRequest::AppInfo).unwrap())
+            .await;
+        assert!(matches!(unbound, Err(Error::WindowNotBound)));
+    });
+}
+
+/// A *failed* rebind must not change the window's routing. `init_deferred`
+/// leaves the runtime `NotReady`, so `rebind_window`'s `spawn_signal_forwarder`
+/// fails deterministically — the previous binding must survive (no half-rebind
+/// where `app_request` points at an app whose signal stream never started).
+#[test]
+fn rebind_failed_spawn_keeps_prior_binding() {
+    let tmp = TempDir::new().unwrap();
+    let app = mock_builder()
+        .plugin(tauri_plugin_holochain::init_deferred(
+            HolochainPluginConfig::new(tmp.path().to_path_buf(), NetworkConfig::default()),
+        ))
+        .build(mock_context(noop_assets()))
+        .expect("failed to build mock tauri app");
+    let plugin = app.holochain().unwrap();
+
+    plugin.bind_window("main", APP_ID.into());
+    assert_eq!(plugin.bound_app("main"), Some(APP_ID.to_string()));
+
+    let result =
+        tauri::async_runtime::block_on(plugin.rebind_window("main", Some("other-app".into())));
+    assert!(
+        matches!(result, Err(Error::NotReady)),
+        "expected the rebind to fail with NotReady, got {result:?}"
+    );
+    assert_eq!(
+        plugin.bound_app("main"),
+        Some(APP_ID.to_string()),
+        "a failed rebind must not flip the window's routing to the new app"
+    );
+}
+
+/// Dropping a window clears its routing — the same `drop_window` path the
+/// window-destroy handler (`plugin_builder`'s `on_event` → `RunEvent::WindowEvent`
+/// `Destroyed`) runs to prune a closed window's maps and abort its forwarder. The
+/// OS-window-destroy event itself only fires on a real window close, which the
+/// mock test runtime doesn't drive, so this exercises the cleanup it calls.
+#[test]
+fn unbind_drops_window_routing() {
+    let tmp = TempDir::new().unwrap();
+    let app = mock_builder()
+        .plugin(tauri_plugin_holochain::init_deferred(
+            HolochainPluginConfig::new(tmp.path().to_path_buf(), NetworkConfig::default()),
+        ))
+        .build(mock_context(noop_assets()))
+        .expect("failed to build mock tauri app");
+    let plugin = app.holochain().unwrap();
+
+    plugin.bind_window("main", APP_ID.into());
+    assert_eq!(plugin.bound_app("main"), Some(APP_ID.to_string()));
+
+    tauri::async_runtime::block_on(plugin.rebind_window("main", None)).unwrap();
+    assert_eq!(
+        plugin.bound_app("main"),
+        None,
+        "dropping a window must clear its routing"
+    );
+}
+
+/// The shipped JS bundle is built from `guest-js/` and injected verbatim by
+/// `main_window_builder` (`include_str!` of this same file). No runtime test
+/// exercises the injected JS, so a stale bundle silently ships the old rebound
+/// listener — which read the whole event payload as the app id, with no seq
+/// gate. Guard against that: the regenerated bundle reads the structured fields.
+#[test]
+fn shipped_bundle_matches_rebound_payload_shape() {
+    let bundle = include_str!("../dist-js/holochain-env/index.min.js");
+    assert!(
+        bundle.contains("payload.app_id") && bundle.contains("payload.seq"),
+        "dist-js/holochain-env/index.min.js is stale — run `npm run build` in crates/tauri-plugin-holochain"
+    );
 }

@@ -59,7 +59,9 @@ function injectHolochainClientEnv(installedAppId: string, port: number, token: U
 /// plugin's `app_request` command and receives signals forwarded as
 /// `holochain://signal` events — no app websocket.
 function injectHolochainTauriEnv(installedAppId: string, pluginName: string) {
-  (window as any).__HC_TAURI_HOLOCHAIN__ = {
+  const env = {
+    // Empty string means the window is currently unbound (app-less / dashboard);
+    // a non-empty id means it is bound to that app. Mutated in place on rebind.
     INSTALLED_APP_ID: installedAppId,
     PLUGIN_NAME: pluginName,
     // Bridge the plugin's per-window signal events to the transport. The Rust
@@ -80,7 +82,26 @@ function injectHolochainTauriEnv(installedAppId: string, pluginName: string) {
       };
     },
   };
+  (window as any).__HC_TAURI_HOLOCHAIN__ = env;
   (window as any).__HC_ZOME_CALL_SIGNER__ = makeZomeCallSigner(pluginName);
+
+  // Live rebind: after `HolochainPlugin::rebind_window`, the plugin emits
+  // `holochain://rebound` with a monotonic `seq` and the new app id (or null when
+  // unbound). Apply only when `seq` is newer than the last we applied — so an
+  // out-of-order delivery can't leave the env on a stale app while routing and
+  // signals are on the latest — then update the env in place and dispatch a DOM
+  // `holochain-rebound` event so the host SPA can reconnect `@holochain/client` to
+  // the new app (no OS-window recreate, so the window survives).
+  let lastReboundSeq = 0;
+  void listen<{ seq: number; app_id: string | null }>('holochain://rebound', (event) => {
+    if (event.payload.seq <= lastReboundSeq) return;
+    lastReboundSeq = event.payload.seq;
+    const appId = event.payload.app_id;
+    env.INSTALLED_APP_ID = appId ?? '';
+    window.dispatchEvent(
+      new CustomEvent('holochain-rebound', { detail: { installedAppId: appId } })
+    );
+  });
 }
 
 (window as any).injectHolochainClientEnv = injectHolochainClientEnv;

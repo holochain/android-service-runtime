@@ -30,13 +30,15 @@ use holochain::conductor::api::AppRequest;
 use holochain::prelude::{decode, encode, InstalledAppId};
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, RwLock};
 use tokio::sync::broadcast;
 
 use sodoken::LockedArray;
 use tauri::{
     plugin::{Builder, TauriPlugin},
-    AppHandle, Emitter, Manager, Runtime as TauriRuntime, WebviewUrl, WebviewWindowBuilder,
+    AppHandle, Emitter, Manager, RunEvent, Runtime as TauriRuntime, WebviewUrl,
+    WebviewWindowBuilder, WindowEvent,
 };
 
 /// Emitted on the app handle once the conductor is up and [`HolochainExt::holochain`]
@@ -53,6 +55,24 @@ pub const EVENT_SETUP_FAILED: &str = "holochain://setup-failed";
 /// [`holochain_types::signal::Signal`] for the app the window is bound to. The
 /// injected env bridges this to `@holochain/client`'s Tauri transport.
 pub const EVENT_SIGNAL: &str = "holochain://signal";
+
+/// Emitted to a window when [`HolochainPlugin::rebind_window`] changes the app it
+/// is bound to — **without recreating the OS window**. The payload is a
+/// [`ReboundEvent`]: a monotonic `seq` plus the new `app_id` (`null` when the
+/// window is unbound). The injected env applies it only when `seq` exceeds the
+/// last it applied — so an out-of-order delivery can't leave the UI on a stale
+/// app — then updates `__HC_TAURI_HOLOCHAIN__.INSTALLED_APP_ID` and the SPA
+/// re-connects the App API to the new app.
+pub const EVENT_REBOUND: &str = "holochain://rebound";
+
+/// Payload of [`EVENT_REBOUND`]. `seq` is a per-plugin monotonic counter so the
+/// injected env can drop a stale (out-of-order) rebound; `app_id` is the new
+/// binding, or `None` when the window is unbound.
+#[derive(Clone, serde::Serialize)]
+pub struct ReboundEvent {
+    pub seq: u64,
+    pub app_id: Option<InstalledAppId>,
+}
 
 /// Configuration for the in-process Holochain conductor.
 #[derive(Clone)]
@@ -135,6 +155,14 @@ pub struct HolochainPlugin<R: TauriRuntime> {
     /// The `app_request` command uses this to scope each request to the app the
     /// calling window was opened for — replacing the per-app websocket token.
     window_apps: Arc<Mutex<HashMap<String, InstalledAppId>>>,
+    /// Per-window signal-forwarder task handles, so a rebind (or the re-bind done
+    /// by [`swap_runtime`]) can abort the previous forwarder before starting the
+    /// new one — otherwise the old app's signals would keep arriving at the window.
+    window_forwarders: Arc<Mutex<HashMap<String, tauri::async_runtime::JoinHandle<()>>>>,
+    /// Monotonic rebind counter — rides each [`EVENT_REBOUND`] as its `seq` so the
+    /// injected env can drop a stale (out-of-order) rebound rather than leave the
+    /// UI on a different app than `app_request` routes to.
+    rebind_seq: AtomicU64,
 }
 
 impl<R: TauriRuntime> HolochainPlugin<R> {
@@ -264,13 +292,73 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
             .insert(label.into(), app_id);
     }
 
+    /// Rebind an existing webview window to a different installed app — or unbind
+    /// it — **without recreating the OS window**. Updates the `app_request`
+    /// routing, swaps the window's signal forwarder, and emits [`EVENT_REBOUND`]
+    /// to the window so the injected env can update
+    /// `__HC_TAURI_HOLOCHAIN__.INSTALLED_APP_ID` and the SPA can re-connect the App
+    /// API to the new app.
+    ///
+    /// `app_id = Some(..)` (re)binds to that app; `None` unbinds the window
+    /// (app-less / dashboard). This is the in-process, no-flicker alternative to
+    /// destroying and rebuilding the window to switch which app it talks to — the
+    /// WebDriver session and window state survive, and there is no boot flash.
+    pub async fn rebind_window(
+        &self,
+        label: impl Into<String>,
+        app_id: Option<InstalledAppId>,
+    ) -> Result<()> {
+        let label: String = label.into();
+        // Stamp each rebound with a monotonic seq so the injected env can drop a
+        // stale (out-of-order) one rather than leave the UI on the wrong app.
+        let seq = self.rebind_seq.fetch_add(1, Ordering::Relaxed) + 1;
+        match app_id {
+            Some(app_id) => {
+                // Spawn the new forwarder first — it is the fallible step (its
+                // subscribe can fail mid-restart). Flip routing only once it
+                // succeeds, so a failed rebind leaves the window on its previous
+                // app instead of routing app_request to an app whose signal
+                // stream never started.
+                self.spawn_signal_forwarder(label.clone(), app_id.clone())
+                    .await?;
+                self.bind_window(label.clone(), app_id.clone());
+                self.app_handle.emit_to(
+                    label.as_str(),
+                    EVENT_REBOUND,
+                    ReboundEvent {
+                        seq,
+                        app_id: Some(app_id),
+                    },
+                )?;
+            }
+            None => {
+                self.drop_window(&label);
+                self.app_handle.emit_to(
+                    label.as_str(),
+                    EVENT_REBOUND,
+                    ReboundEvent { seq, app_id: None },
+                )?;
+            }
+        }
+        Ok(())
+    }
+
+    /// The app a window is currently bound to, or `None` if it is unbound.
+    pub fn bound_app(&self, label: &str) -> Option<InstalledAppId> {
+        self.window_apps.lock().unwrap().get(label).cloned()
+    }
+
+    /// Drop a window's routing and abort its signal forwarder. Used when a
+    /// window is unbound (rebind to `None`) or destroyed.
+    fn drop_window(&self, label: &str) {
+        self.window_apps.lock().unwrap().remove(label);
+        if let Some(prev) = self.window_forwarders.lock().unwrap().remove(label) {
+            prev.abort();
+        }
+    }
+
     fn app_id_for_window(&self, label: &str) -> Result<InstalledAppId> {
-        self.window_apps
-            .lock()
-            .unwrap()
-            .get(label)
-            .cloned()
-            .ok_or(Error::WindowNotBound)
+        self.bound_app(label).ok_or(Error::WindowNotBound)
     }
 
     /// Core of the `app_request` command: decode a msgpack-encoded App API
@@ -309,7 +397,7 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     pub async fn main_window_builder(
         &self,
         label: impl Into<String>,
-        app_id: String,
+        app_id: Option<String>,
         options: WindowOptions,
     ) -> Result<WebviewWindowBuilder<'_, R, AppHandle<R>>> {
         let label: String = label.into();
@@ -319,18 +407,25 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
 
         let env_script = if options.use_app_websocket {
             // Legacy: attach an app websocket and point @holochain/client at it.
+            // This path requires a bound app.
+            let app_id = app_id.ok_or(Error::WindowNotBound)?;
             let app_auth = self.try_runtime()?.ensure_app_websocket(app_id.clone()).await?;
             format!(
                 r#"window.injectHolochainClientEnv("{}", {}, {:?});"#,
                 app_id, app_auth.port, app_auth.authentication.token,
             )
         } else {
-            // Direct: bind this window to the app, forward its signals, and
-            // inject the env that routes the App API over Tauri IPC.
-            self.bind_window(label.clone(), app_id.clone());
-            self.spawn_signal_forwarder(label.clone(), app_id.clone())
-                .await?;
-            format!(r#"window.injectHolochainTauriEnv({app_id:?}, "holochain");"#)
+            // Direct: inject the IPC env (+ the rebound listener). If an app is
+            // given, bind the window and forward its signals; `None` opens an
+            // app-less window (dashboard) that `rebind_window` can bind later
+            // without recreating the OS window.
+            if let Some(app_id) = &app_id {
+                self.bind_window(label.clone(), app_id.clone());
+                self.spawn_signal_forwarder(label.clone(), app_id.clone())
+                    .await?;
+            }
+            let injected = app_id.unwrap_or_default();
+            format!(r#"window.injectHolochainTauriEnv({injected:?}, "holochain");"#)
         };
 
         let mut window_builder =
@@ -353,24 +448,32 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     async fn spawn_signal_forwarder(&self, label: String, app_id: InstalledAppId) -> Result<()> {
         let mut signals = self.try_runtime()?.subscribe_to_app_signals(app_id).await?;
         let app_handle = self.app_handle.clone();
-        tauri::async_runtime::spawn(async move {
+        let task_label = label.clone();
+        let handle = tauri::async_runtime::spawn(async move {
             loop {
                 match signals.recv().await {
                     Ok(signal) => match encode(&signal) {
                         Ok(bytes) => {
-                            if let Err(e) = app_handle.emit_to(label.as_str(), EVENT_SIGNAL, bytes) {
-                                log::error!("Failed to forward signal to window {label}: {e:?}");
+                            if let Err(e) =
+                                app_handle.emit_to(task_label.as_str(), EVENT_SIGNAL, bytes)
+                            {
+                                log::error!("Failed to forward signal to window {task_label}: {e:?}");
                             }
                         }
                         Err(e) => log::error!("Failed to encode signal: {e}"),
                     },
                     Err(broadcast::error::RecvError::Lagged(n)) => {
-                        log::warn!("Signal forwarder for window {label} lagged; dropped {n}");
+                        log::warn!("Signal forwarder for window {task_label} lagged; dropped {n}");
                     }
                     Err(broadcast::error::RecvError::Closed) => break,
                 }
             }
         });
+        // Replace (and abort) any prior forwarder for this window — a rebind or a
+        // swap_runtime re-bind must not leave the old app's forwarder running.
+        if let Some(prev) = self.window_forwarders.lock().unwrap().insert(label, handle) {
+            prev.abort();
+        }
         Ok(())
     }
 }
@@ -378,10 +481,12 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
 /// Extension trait giving Tauri's `App`/`AppHandle`/`Window` access to the
 /// in-process Holochain conductor.
 pub trait HolochainExt<R: TauriRuntime> {
-    /// Access the running Holochain plugin.
-    ///
-    /// Returns [`Error::NotReady`] until the conductor has finished starting;
-    /// listen for [`EVENT_READY`] before calling this.
+    /// Access the Holochain plugin handle. Available as soon as the plugin is
+    /// registered — including before the conductor boots, so `init_deferred`
+    /// consumers can call [`HolochainPlugin::start`]. The handle being available
+    /// does **not** mean the runtime is: gate conductor use on [`EVENT_READY`]
+    /// (or [`HolochainPlugin::try_runtime`]). Returns [`Error::NotReady`] only
+    /// when the plugin isn't registered.
     fn holochain(&self) -> Result<&HolochainPlugin<R>>;
 }
 
@@ -413,9 +518,26 @@ fn plugin_builder<R: TauriRuntime>(
                 start_lock: tokio::sync::Mutex::new(()),
                 app_handle: app.clone(),
                 window_apps: Arc::new(Mutex::new(HashMap::new())),
+                window_forwarders: Arc::new(Mutex::new(HashMap::new())),
+                rebind_seq: AtomicU64::new(0),
             });
             on_setup(app);
             Ok(())
+        })
+        // Prune a window's routing + signal forwarder when it is destroyed, so
+        // the maps don't grow unbounded and a closed window's forwarder task is
+        // aborted rather than left running until its app's signal channel closes.
+        .on_event(|app_handle, event| {
+            if let RunEvent::WindowEvent {
+                label,
+                event: WindowEvent::Destroyed,
+                ..
+            } = event
+            {
+                if let Ok(plugin) = app_handle.holochain() {
+                    plugin.drop_window(label);
+                }
+            }
         })
         .build()
 }
