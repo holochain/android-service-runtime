@@ -17,9 +17,7 @@ pub fn run() {
         .plugin(tauri_plugin_holochain_service::init(
             RuntimeNetworkConfigFfi {
                 bootstrap_url: "https://dev-test-bootstrap2.holochain.org".to_string(),
-                signal_url: "wss://dev-test-bootstrap2.holochain.org".to_string(),
                 relay_url: "https://use1-1.relay.n0.iroh-canary.iroh.link./".to_string(),
-                ice_urls: vec!["stun:stun.nextcloud.com:443".to_string()],
             },
         ))
         .plugin(tauri_plugin_log::Builder::new().skip_logger().build())

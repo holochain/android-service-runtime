@@ -23,13 +23,13 @@ keywords = ["holochain", "android", "tauri", "p2p"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-holochain = "0.7.0-dev.28"
-holochain_conductor_api = "0.7.0-dev.27"
-holochain_types = "0.7.0-dev.27"
+holochain = "0.7.0"
+holochain_conductor_api = "0.7.0"
+holochain_types = "0.7.0"
 holochain_serialized_bytes = "0.0.57"
 # Network-stats types (ApiTransportStats) returned by AdminRequest::DumpNetworkStats;
-# pinned to the version holochain 0.7.0-dev.28 resolves so it unifies to one copy.
-kitsune2_api = "0.5.0-dev.3"
+# pinned to the version holochain 0.7.0 resolves so it unifies to one copy.
+kitsune2_api = "0.5.0"
 sodoken = "0.1.0"
 url2 = "0.0.6"
 lair_keystore_api = "0.7.1"
@@ -59,7 +59,3 @@ uuid = "1.15.1"
 # holochain_conductor_api = { path = "../holochain/crates/holochain_conductor_api" }
 # holochain_types = { path = "../holochain/crates/holochain_types" }
 # kitsune_p2p_types = { path = "../holochain/crates/kitsune_p2p/types" }
-
-[patch.crates-io]
-wasmer-vm = { git = "https://github.com/guillemcordoba/wasmer", branch = "fix-x86" }
-wasmer-types = { git = "https://github.com/guillemcordoba/wasmer", branch = "fix-x86" }

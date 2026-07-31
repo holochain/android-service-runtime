@@ -3,18 +3,15 @@ use holochain_conductor_api::{
     ZomeCallParamsSigned,
 };
 use holochain_types::{
-    app::{
-        AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload,
-        RoleSettings,
-    },
+    app::{AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload, RoleSettings},
     dna::{
         hash_type::{Agent, Dna},
         HoloHash,
     },
     prelude::{
-        AppStatus, CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName,
-        Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties, ZomeCallParams,
-        ZomeName,
+        AppStatus, CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO,
+        FunctionName, Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties,
+        ZomeCallParams, ZomeName,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -152,16 +149,25 @@ pub enum AppStatusFfi {
     Disabled { reason: DisabledAppReasonFfi },
     Enabled,
     AwaitingMemproofs,
+    AwaitingRestore,
+    Unrecoverable { cell_id: CellIdFfi, reason: String },
 }
 
 impl From<AppStatus> for AppStatusFfi {
     fn from(value: AppStatus) -> Self {
         match value {
-            AppStatus::Disabled (disabled) => AppStatusFfi::Disabled {
+            AppStatus::Disabled(disabled) => AppStatusFfi::Disabled {
                 reason: disabled.into(),
             },
             AppStatus::Enabled => AppStatusFfi::Enabled,
             AppStatus::AwaitingMemproofs => AppStatusFfi::AwaitingMemproofs,
+            AppStatus::AwaitingRestore => AppStatusFfi::AwaitingRestore,
+            // The FFI surface carries the reason as a rendered string; the
+            // warrant details are not needed across the boundary.
+            AppStatus::Unrecoverable(cell_id, reason) => AppStatusFfi::Unrecoverable {
+                cell_id: cell_id.into(),
+                reason: format!("{reason:?}"),
+            },
         }
     }
 }
@@ -214,7 +220,7 @@ pub struct AppAuthFfi {
     pub port: u16,
 }
 
-#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug)]
+#[derive(uniffi::Record, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
 pub struct CellIdFfi {
     pub dna_hash: Vec<u8>,
     pub agent_pub_key: Vec<u8>,
@@ -339,13 +345,15 @@ impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
     fn try_into(self) -> Result<InstallAppPayload, Self::Error> {
         Ok(InstallAppPayload {
             source: AppBundleSource::Bytes(self.source.into()),
-            agent_key: self.agent_key.map(|k| HoloHash::<Agent>::from_raw_39(k)),
+            agent_key: self.agent_key.map(HoloHash::<Agent>::from_raw_39),
             installed_app_id: Some(self.installed_app_id),
             network_seed: self.network_seed,
             roles_settings: self
                 .roles_settings
                 .map(|r| r.into_iter().map(|(k, v)| (k, v.into())).collect()),
             ignore_genesis_failure: false,
+            // The FFI surface does not carry DHT restore yet.
+            restore_from_dht: false,
         })
     }
 }
@@ -365,25 +373,15 @@ pub struct RuntimeNetworkConfigFfi {
     /// URL of the bootstrap server
     pub bootstrap_url: String,
 
-    /// URL of the sbd server
-    pub signal_url: String,
-
+    /// URL of the iroh relay server
     pub relay_url: String,
-    
-    /// URLs of ICE servers
-    pub ice_urls: Vec<String>,
 }
 
 impl Default for RuntimeNetworkConfigFfi {
     fn default() -> Self {
         Self {
             bootstrap_url: "https://dev-test-bootstrap2.holochain.org".to_string(),
-            signal_url: "wss://dev-test-bootstrap2.holochain.org".to_string(),
             relay_url: "https://use1-1.relay.n0.iroh-canary.iroh.link./".to_string(),
-            ice_urls: vec![
-                "stun:stun.cloudflare.com:3478".to_string(),
-                "stun:stun.l.google.com:19302".to_string(),
-            ],
         }
     }
 }

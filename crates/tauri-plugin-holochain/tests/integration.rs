@@ -66,6 +66,7 @@ async fn install_and_enable_forum(
             network_seed: Some(Uuid::new_v4().to_string()),
             roles_settings: Some(HashMap::new()),
             ignore_genesis_failure: false,
+            restore_from_dht: false,
         })
         .await
         .expect("install_app failed");
@@ -205,6 +206,7 @@ fn rebind_window_reroutes_app_request_in_place() {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
+                restore_from_dht: false,
             })
             .await
             .expect("install forum-2 failed");

@@ -15,9 +15,9 @@ use holochain::{
     prelude::{AgentPubKey, AppStatus, CellId, InstallAppPayload, InstalledAppId, ZomeCallParams},
 };
 use holochain_keystore::MetaLairClient;
+use holochain_types::network::HolochainTransportStats;
 use holochain_types::signal::Signal;
 use holochain_types::websocket::AllowedOrigins;
-use holochain_types::network::HolochainTransportStats;
 use lair_keystore_api::types::SharedLockedArray;
 use log::{debug, error};
 use std::collections::HashMap;
@@ -187,7 +187,8 @@ impl Runtime {
 
         // Phase between (a) and (b): run the hc-auth flow and inject the material.
         let (hc_auth_status, hc_auth_agent_key, hc_auth_raw_ed25519_b64url) = match &hc_auth {
-            Some(cfg) => match hc_auth::perform_auth_flow(&lair_client, cfg, &data_root_path).await {
+            Some(cfg) => match hc_auth::perform_auth_flow(&lair_client, cfg, &data_root_path).await
+            {
                 Ok(result) => {
                     if let Some(material) = &result.auth_material {
                         if cfg.auth_bootstrap {
@@ -308,7 +309,9 @@ impl Runtime {
             .await
             .map_err(RuntimeError::Lair)?;
 
-        Ok(AgentPubKey::from_raw_32(seed_info.ed25519_pub_key.0.to_vec()))
+        Ok(AgentPubKey::from_raw_32(
+            seed_info.ed25519_pub_key.0.to_vec(),
+        ))
     }
 
     /// Stop the Conductor
@@ -331,7 +334,7 @@ impl Runtime {
             .await?;
         match response {
             AdminResponse::AppInstalled(app_info) => Ok(app_info),
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
         }
     }
 
@@ -344,7 +347,7 @@ impl Runtime {
             .await?;
         match response {
             AdminResponse::AppUninstalled => Ok(()),
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
         }
     }
 
@@ -353,10 +356,8 @@ impl Runtime {
             .req_admin_api(AdminRequest::EnableApp { installed_app_id })
             .await?;
         match response {
-            AdminResponse::AppEnabled(app) => {
-                Ok(app)
-            }
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+            AdminResponse::AppEnabled(app) => Ok(app),
+            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
         }
     }
 
@@ -366,7 +367,7 @@ impl Runtime {
             .await?;
         match response {
             AdminResponse::AppDisabled => Ok(()),
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
         }
     }
 
@@ -378,7 +379,7 @@ impl Runtime {
             .await?;
         match response {
             AdminResponse::AppsListed(apps) => Ok(apps),
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
         }
     }
 
@@ -391,7 +392,7 @@ impl Runtime {
         let response = self.req_admin_api(AdminRequest::DumpNetworkStats).await?;
         match response {
             AdminResponse::NetworkStatsDumped(stats) => Ok(stats),
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
         }
     }
 
@@ -407,10 +408,12 @@ impl Runtime {
     /// pre-registration / standalone key-generation path; open-mode installs
     /// derive their key implicitly, so they don't need this.
     pub async fn generate_agent_pub_key(&self) -> RuntimeResult<AgentPubKey> {
-        let response = self.req_admin_api(AdminRequest::GenerateAgentPubKey).await?;
+        let response = self
+            .req_admin_api(AdminRequest::GenerateAgentPubKey)
+            .await?;
         match response {
             AdminResponse::AgentPubKeyGenerated(key) => Ok(key),
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
         }
     }
 
@@ -474,9 +477,9 @@ impl Runtime {
             .map_err(RuntimeError::Lair)?;
         match entry {
             LairEntryInfo::Seed { seed_info, .. }
-            | LairEntryInfo::DeepLockedSeed { seed_info, .. } => {
-                Ok(AgentPubKey::from_raw_32(seed_info.ed25519_pub_key.0.to_vec()))
-            }
+            | LairEntryInfo::DeepLockedSeed { seed_info, .. } => Ok(AgentPubKey::from_raw_32(
+                seed_info.ed25519_pub_key.0.to_vec(),
+            )),
             _ => Err(RuntimeError::AgentSeed(
                 "device seed entry is not a seed".into(),
             )),
@@ -546,7 +549,10 @@ impl Runtime {
         for app in apps {
             if matches!(app.status, AppStatus::Enabled) {
                 if let Err(e) = self.disable_app(app.installed_app_id.clone()).await {
-                    error!("Error disabling app {} on shutdown: {e:?}", app.installed_app_id);
+                    error!(
+                        "Error disabling app {} on shutdown: {e:?}",
+                        app.installed_app_id
+                    );
                 }
             }
         }
@@ -581,7 +587,8 @@ impl Runtime {
         self.stop_conductor_only().await?;
 
         log::info!("hc-auth restart: generating fresh auth material");
-        let result = hc_auth::perform_auth_flow(&self.lair_client, &cfg, &self.data_root_path).await?;
+        let result =
+            hc_auth::perform_auth_flow(&self.lair_client, &cfg, &self.data_root_path).await?;
         if let Some(material) = &result.auth_material {
             if add_auth_material_to_bootstrap {
                 network.base64_auth_material_bootstrap = Some(material.clone());
@@ -817,7 +824,7 @@ impl Runtime {
             .await?;
         match response {
             AdminResponse::AppAuthenticationTokenIssued(auth) => Ok(auth),
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
         }
     }
 
@@ -837,7 +844,7 @@ impl Runtime {
             .await?;
         match response {
             AdminResponse::AppInterfaceAttached { port } => Ok(port),
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
+            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
         }
     }
 }
@@ -851,14 +858,13 @@ mod test {
     use holochain::conductor::api::ProvisionedCell;
     use holochain::conductor::config::KeystoreConfig;
     use holochain_types::prelude::AppBundleSource;
+    use holochain_types::prelude::AppStatus;
     use holochain_types::prelude::DisabledAppReason;
     use holochain_types::prelude::ExternIO;
     use holochain_types::prelude::Link;
     use holochain_types::prelude::Nonce256Bits;
     use holochain_types::prelude::Timestamp;
-    use holochain_types::prelude::AppStatus;
 
-    use serde_json::json;
     use sodoken::LockedArray;
     use std::sync::Mutex;
     use std::time::Duration;
@@ -877,6 +883,7 @@ mod test {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
+                restore_from_dht: false,
             })
             .await
             .unwrap()
@@ -886,10 +893,7 @@ mod test {
     async fn test_new_runtime() {
         let tmp_dir = TempDir::new().unwrap();
         let bootstrap_url = Url2::try_parse("https://bootstrap.com").unwrap();
-        let signal_url = Url2::try_parse("wss://signal.com").unwrap();
         let relay_url = Url2::try_parse("https://relay.com").unwrap();
-        let stun_url = Url2::try_parse("stun:stun.com:1234").unwrap();
-        let ice_urls = vec![stun_url.clone()];
 
         let runtime = Runtime::new(
             Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
@@ -897,9 +901,7 @@ mod test {
                 data_root_path: tmp_dir.path().into(),
                 network: RuntimeNetworkConfig {
                     bootstrap_url: bootstrap_url.clone(),
-                    signal_url: signal_url.clone(),
                     relay_url: relay_url.clone(),
-                    ice_urls: ice_urls.clone(),
                 },
             },
         )
@@ -925,26 +927,8 @@ mod test {
             bootstrap_url
         );
         assert_eq!(
-            runtime.conductor.config.network.signal_url.clone(),
-            signal_url
-        );
-        assert_eq!(
             runtime.conductor.config.network.relay_url.clone(),
             relay_url
-        );
-        assert_eq!(
-            runtime
-                .conductor
-                .config
-                .network
-                .webrtc_config
-                .clone()
-                .unwrap(),
-            json!({
-                "iceServers": [
-                    { "urls": [stun_url.to_string()] },
-                ]
-            })
         );
 
         let res = AdminInterfaceApi::new(runtime.conductor)
@@ -1016,6 +1000,7 @@ mod test {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
+                restore_from_dht: false,
             })
             .await;
         assert!(res.is_ok());
@@ -1063,10 +1048,7 @@ mod test {
         Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0])))
     }
 
-    async fn boot_runtime(
-        dir: &TempDir,
-        pending_import_seed: Option<Vec<u8>>,
-    ) -> Runtime {
+    async fn boot_runtime(dir: &TempDir, pending_import_seed: Option<Vec<u8>>) -> Runtime {
         Runtime::new_with_boot_config(
             empty_passphrase(),
             RuntimeBootConfig {
@@ -1134,6 +1116,7 @@ mod test {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
+                restore_from_dht: false,
             })
             .await
             .unwrap();
@@ -1177,6 +1160,7 @@ mod test {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
+                restore_from_dht: false,
             })
             .await
             .unwrap();
@@ -1186,10 +1170,11 @@ mod test {
     }
 
     /// Installing under an agent key that lives in a *different* lair (so the
-    /// local keystore can't sign for it) fails genesis with
-    /// `GenesisFailed / "Query returned no rows"` — the conductor can't sign the
-    /// genesis records, so the source-chain read comes back empty. This is the
-    /// exact failure a stale persisted agent key produces in a consumer app.
+    /// local keystore can't sign for it) fails up front with
+    /// `AgentKeyNotInKeystore` — since holochain 0.7 the conductor checks the
+    /// key before attempting genesis rather than failing genesis with an empty
+    /// source-chain read. This is the exact failure a stale persisted agent key
+    /// produces in a consumer app.
     #[tokio::test(flavor = "multi_thread")]
     async fn test_install_with_foreign_key_fails_genesis() {
         let tmp1 = TempDir::new().unwrap();
@@ -1209,6 +1194,7 @@ mod test {
                 network_seed: Some(Uuid::new_v4().to_string()),
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
+                restore_from_dht: false,
             })
             .await;
 
@@ -1216,10 +1202,9 @@ mod test {
             "{:?}",
             result.expect_err("install under a non-local agent key must fail")
         );
-        assert!(msg.contains("GenesisFailed"), "expected GenesisFailed, got: {msg}");
         assert!(
-            msg.contains("Query returned no rows"),
-            "expected the empty source-chain genesis error, got: {msg}"
+            msg.contains("AgentKeyNotInKeystore"),
+            "expected AgentKeyNotInKeystore, got: {msg}"
         );
     }
 
@@ -1290,9 +1275,7 @@ mod test {
         assert_eq!(apps.len(), 1);
         assert!(matches!(
             apps.first().unwrap().status,
-            AppStatus::Disabled (
-                DisabledAppReason::User
-            )
+            AppStatus::Disabled(DisabledAppReason::User)
         ));
     }
 
@@ -1622,6 +1605,7 @@ mod test {
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
+                    restore_from_dht: false,
                 },
                 false,
             )
@@ -1640,6 +1624,7 @@ mod test {
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
+                    restore_from_dht: false,
                 },
                 false,
             )
@@ -1673,6 +1658,7 @@ mod test {
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
+                    restore_from_dht: false,
                 },
                 false,
             )
@@ -1708,6 +1694,7 @@ mod test {
                     network_seed: Some(Uuid::new_v4().to_string()),
                     roles_settings: Some(HashMap::new()),
                     ignore_genesis_failure: false,
+                    restore_from_dht: false,
                 },
                 true,
             )
@@ -1715,9 +1702,6 @@ mod test {
         assert!(res.is_ok());
 
         let apps = runtime.list_apps().await.unwrap();
-        assert!(matches!(
-            apps.first().unwrap().status,
-            AppStatus::Enabled
-        ));
+        assert!(matches!(apps.first().unwrap().status, AppStatus::Enabled));
     }
 }

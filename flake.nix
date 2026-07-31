@@ -7,7 +7,7 @@
   # composed here from nixpkgs, so the repo has no dependency on any external
   # Tauri/Holochain dev-shell flake.
   inputs = {
-    holonix.url = "github:holochain/holonix/main-0.6";
+    holonix.url = "github:holochain/holonix/main-0.7";
 
     # webkitgtk pin for the desktop dev shell. holonix's nixpkgs ships webkitgtk
     # 2.52.x, which aborts with "Could not create default EGL display:
@@ -90,7 +90,7 @@
               androidSdk
             ] ++ (with pkgs; [
               cargo-ndk # build Rust -> Android jniLibs
-              nodejs_20
+              nodejs_22
               pnpm
               jdk17 # Gradle
               pkg-config

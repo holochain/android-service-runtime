@@ -84,6 +84,7 @@ async fn open_main_window(handle: AppHandle) -> Result<(), Box<dyn Error>> {
                 network_seed: None,
                 roles_settings: Some(HashMap::new()),
                 ignore_genesis_failure: false,
+                restore_from_dht: false,
             },
             true,
         )

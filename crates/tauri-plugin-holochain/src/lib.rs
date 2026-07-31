@@ -175,18 +175,15 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     /// Panics if called before the conductor has started; gate on [`EVENT_READY`]
     /// (or use [`HolochainExt::holochain`] only after it fires).
     pub fn runtime(&self) -> Runtime {
-        self.try_runtime()
-            .expect("holochain runtime not started yet; wait for EVENT_READY before calling runtime()")
+        self.try_runtime().expect(
+            "holochain runtime not started yet; wait for EVENT_READY before calling runtime()",
+        )
     }
 
     /// Like [`HolochainPlugin::runtime`] but returns [`Error::NotReady`] instead
     /// of panicking when the conductor has not started.
     pub fn try_runtime(&self) -> Result<Runtime> {
-        self.runtime
-            .read()
-            .unwrap()
-            .clone()
-            .ok_or(Error::NotReady)
+        self.runtime.read().unwrap().clone().ok_or(Error::NotReady)
     }
 
     /// Boot the conductor with `passphrase` using the config supplied at
@@ -369,11 +366,7 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     /// carries (holochain's `SerializedBytes` codec), so this is wire-compatible
     /// with `@holochain/client`'s Tauri transport. App-level failures come back
     /// as an encoded `AppResponse::Error`, matching the websocket interface.
-    pub async fn app_request_bytes(
-        &self,
-        window_label: &str,
-        request: Vec<u8>,
-    ) -> Result<Vec<u8>> {
+    pub async fn app_request_bytes(&self, window_label: &str, request: Vec<u8>) -> Result<Vec<u8>> {
         let app_id = self.app_id_for_window(window_label)?;
         let app_request: AppRequest =
             decode(&request).map_err(|e| Error::Serialization(e.to_string()))?;
@@ -409,7 +402,10 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
             // Legacy: attach an app websocket and point @holochain/client at it.
             // This path requires a bound app.
             let app_id = app_id.ok_or(Error::WindowNotBound)?;
-            let app_auth = self.try_runtime()?.ensure_app_websocket(app_id.clone()).await?;
+            let app_auth = self
+                .try_runtime()?
+                .ensure_app_websocket(app_id.clone())
+                .await?;
             format!(
                 r#"window.injectHolochainClientEnv("{}", {}, {:?});"#,
                 app_id, app_auth.port, app_auth.authentication.token,
@@ -428,10 +424,9 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
             format!(r#"window.injectHolochainTauriEnv({injected:?}, "holochain");"#)
         };
 
-        let mut window_builder =
-            WebviewWindowBuilder::new(&self.app_handle, label, url)
-                .initialization_script(include_str!("../dist-js/holochain-env/index.min.js"))
-                .initialization_script(env_script.as_str());
+        let mut window_builder = WebviewWindowBuilder::new(&self.app_handle, label, url)
+            .initialization_script(include_str!("../dist-js/holochain-env/index.min.js"))
+            .initialization_script(env_script.as_str());
 
         if let Some(title) = options.title {
             window_builder = window_builder.title(title);
@@ -457,7 +452,9 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
                             if let Err(e) =
                                 app_handle.emit_to(task_label.as_str(), EVENT_SIGNAL, bytes)
                             {
-                                log::error!("Failed to forward signal to window {task_label}: {e:?}");
+                                log::error!(
+                                    "Failed to forward signal to window {task_label}: {e:?}"
+                                );
                             }
                         }
                         Err(e) => log::error!("Failed to encode signal: {e}"),

@@ -77,5 +77,8 @@ pub(crate) async fn app_request<R: Runtime>(
     request: Vec<u8>,
 ) -> Result<Vec<u8>> {
     let label = webview.label().to_string();
-    webview.holochain()?.app_request_bytes(&label, request).await
+    webview
+        .holochain()?
+        .app_request_bytes(&label, request)
+        .await
 }

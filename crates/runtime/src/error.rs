@@ -8,7 +8,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum RuntimeError {
     #[error(transparent)]
-    Conductor(#[from] ConductorError),
+    Conductor(Box<ConductorError>),
 
     #[error("Conductor was never started")]
     ConductorNotStarted,
@@ -23,7 +23,7 @@ pub enum RuntimeError {
     AdminApiAppEnabled(Vec<(CellId, String)>),
 
     #[error("Admin Api Bad Response: {0:?}")]
-    AdminApiBadResponse(AdminResponse),
+    AdminApiBadResponse(Box<AdminResponse>),
 
     #[error("Move to Locked Memory Error")]
     MoveToLockedMem(OneErr),
@@ -54,6 +54,12 @@ pub enum RuntimeError {
 
     #[error("Invalid Arguments: {0}")]
     InvalidArguments(String),
+}
+
+impl From<ConductorError> for RuntimeError {
+    fn from(err: ConductorError) -> Self {
+        RuntimeError::Conductor(Box::new(err))
+    }
 }
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;

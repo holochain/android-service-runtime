@@ -30,14 +30,7 @@ impl RuntimeFfi {
                 data_root_path: runtime_config.data_root_path.into(),
                 network: RuntimeNetworkConfig {
                     bootstrap_url: Url2::try_parse(runtime_config.network.bootstrap_url)?,
-                    signal_url: Url2::try_parse(runtime_config.network.signal_url)?,
                     relay_url: Url2::try_parse(runtime_config.network.relay_url)?,
-                    ice_urls: runtime_config
-                        .network
-                        .ice_urls
-                        .into_iter()
-                        .flat_map(Url2::try_parse)
-                        .collect(),
                 },
             },
         )
@@ -153,7 +146,9 @@ impl RuntimeFfi {
     pub async fn import_key_seed(&self, seed: Vec<u8>) -> RuntimeResultFfi<Vec<u8>> {
         debug!("RuntimeFfi::import_key_seed");
         let seed: [u8; 32] = seed.try_into().map_err(|_| {
-            holochain_conductor_runtime::RuntimeError::InvalidArguments("Seed must be 32 bytes".to_string())
+            holochain_conductor_runtime::RuntimeError::InvalidArguments(
+                "Seed must be 32 bytes".to_string(),
+            )
         })?;
         let agent_pub_key = self.0.import_key_seed(seed).await?;
         Ok(agent_pub_key.into_inner())
