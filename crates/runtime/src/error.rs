@@ -34,6 +34,12 @@ pub enum RuntimeError {
     #[error("Lair Error")]
     Lair(OneErr),
 
+    #[error("hc-auth error: {0}")]
+    HcAuth(String),
+
+    #[error("agent seed error: {0}")]
+    AgentSeed(String),
+
     #[error("App Bundle Error")]
     AppBundle(#[from] AppBundleError),
 
@@ -45,6 +51,9 @@ pub enum RuntimeError {
 
     #[error("Failed to write persisted data to file: {0}")]
     PersistedFileWriteError(String),
+
+    #[error("Invalid Arguments: {0}")]
+    InvalidArguments(String),
 }
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;

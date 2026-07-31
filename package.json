@@ -58,10 +58,15 @@
 
       "test:runtime": "RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime -- --nocapture",
       "test:runtime-ffi": " RUST_BACKTRACE=1 RUST_LOG=info cargo test -p holochain-conductor-runtime-ffi -- --nocapture",
+      "test:tauri-plugin-holochain": "RUST_BACKTRACE=1 RUST_LOG=info cargo test -p tauri-plugin-holochain -- --nocapture",
+      "build:example": "npm --prefix apps/holochain-runtime-example/ui install && npm --prefix apps/holochain-runtime-example/ui run build",
+      "test:example": "pnpm run build:example && cargo build -p holochain-runtime-example",
+      "test:tauri-plugin": "pnpm run test:tauri-plugin-holochain && pnpm run test:example",
       "test:service": "cd libraries/service && ./gradlew connectedDebugAndroidTest",
       "test:client": "cd libraries/client && ./gradlew connectedDebugAndroidTest",
-      "test": " npm run test:runtime && pnpm run test:runtime-ffi && pnpm run test:service && pnpm run test:client",
+      "test": " npm run test:runtime && pnpm run test:runtime-ffi && pnpm run test:tauri-plugin && pnpm run test:service && pnpm run test:client",
 
+      "start:example": "pnpm run build:example && cargo run -p holochain-runtime-example",
       "start:android-service-runtime": "pnpm run --dir apps/android-service-runtime start:android",
       "start:example-client-app": "pnpm run --dir apps/example-client-app start:android"
     },

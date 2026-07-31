@@ -20,7 +20,8 @@ pub fn create_post(post: Post) -> ExternResult<Record> {
 #[hdk_extern]
 pub fn get_latest_post(original_post_hash: ActionHash) -> ExternResult<Option<Record>> {
     let links = get_links(
-        GetLinksInputBuilder::try_new(original_post_hash.clone(), LinkTypes::PostUpdates)?.build(),
+        LinkQuery::try_new(original_post_hash.clone(), LinkTypes::PostUpdates)?,
+        GetStrategy::default(),
     )?;
     let latest_link = links
         .into_iter()
@@ -58,7 +59,8 @@ pub fn get_all_revisions_for_post(original_post_hash: ActionHash) -> ExternResul
         return Ok(vec![]);
     };
     let links = get_links(
-        GetLinksInputBuilder::try_new(original_post_hash.clone(), LinkTypes::PostUpdates)?.build(),
+        LinkQuery::try_new(original_post_hash.clone(), LinkTypes::PostUpdates)?,
+        GetStrategy::default(),
     )?;
     let get_input: Vec<GetInput> = links
         .into_iter()
@@ -106,12 +108,13 @@ pub fn update_post(input: UpdatePostInput) -> ExternResult<Record> {
 pub fn delete_post(original_post_hash: ActionHash) -> ExternResult<ActionHash> {
     let path = Path::from("all_posts");
     let links = get_links(
-        GetLinksInputBuilder::try_new(path.path_entry_hash()?, LinkTypes::AllPosts)?.build(),
+        LinkQuery::try_new(path.path_entry_hash()?, LinkTypes::AllPosts)?,
+        GetStrategy::default(),
     )?;
     for link in links {
         if let Some(hash) = link.target.into_action_hash() {
             if hash == original_post_hash {
-                delete_link(link.create_link_hash)?;
+                delete_link(link.create_link_hash, GetOptions::default())?;
             }
         }
     }

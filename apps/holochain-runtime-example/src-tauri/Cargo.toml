@@ -1,0 +1,20 @@
+[package]
+name = "holochain-runtime-example"
+version = "0.1.0"
+description = "Desktop example exercising the in-process tauri-plugin-holochain"
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "holochain_runtime_example_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { workspace = true }
+
+[dependencies]
+tauri = { workspace = true }
+tauri-plugin-holochain = { path = "../../../crates/tauri-plugin-holochain" }
+tauri-plugin-log = "2"
+holochain = { workspace = true }
+log = { workspace = true }

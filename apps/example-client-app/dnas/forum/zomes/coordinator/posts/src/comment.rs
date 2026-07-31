@@ -48,13 +48,13 @@ pub fn delete_comment(original_comment_hash: ActionHash) -> ExternResult<ActionH
         )))?;
     let comment = <Comment>::try_from(entry)?;
     let links = get_links(
-        GetLinksInputBuilder::try_new(comment.post_hash.clone(), LinkTypes::PostToComments)?
-            .build(),
+        LinkQuery::try_new(comment.post_hash.clone(), LinkTypes::PostToComments)?,
+        GetStrategy::default(),
     )?;
     for link in links {
         if let Some(action_hash) = link.target.into_action_hash() {
             if action_hash == original_comment_hash {
-                delete_link(link.create_link_hash)?;
+                delete_link(link.create_link_hash, GetOptions::default())?;
             }
         }
     }
@@ -94,18 +94,19 @@ pub fn get_oldest_delete_for_comment(
 
 #[hdk_extern]
 pub fn get_comments_for_post(post_hash: ActionHash) -> ExternResult<Vec<Link>> {
-    get_links(GetLinksInputBuilder::try_new(post_hash, LinkTypes::PostToComments)?.build())
+    get_links(
+        LinkQuery::try_new(post_hash, LinkTypes::PostToComments)?,
+        GetStrategy::default(),
+    )
 }
 
 #[hdk_extern]
 pub fn get_deleted_comments_for_post(
     post_hash: ActionHash,
 ) -> ExternResult<Vec<(SignedActionHashed, Vec<SignedActionHashed>)>> {
-    let details = get_link_details(
-        post_hash,
-        LinkTypes::PostToComments,
-        None,
-        GetOptions::default(),
+    let details = get_links_details(
+        LinkQuery::try_new(post_hash, LinkTypes::PostToComments)?,
+        GetStrategy::default(),
     )?;
     Ok(details
         .into_inner()

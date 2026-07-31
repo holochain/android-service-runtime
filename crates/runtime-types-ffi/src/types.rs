@@ -1,10 +1,10 @@
 use holochain_conductor_api::{
-    AppAuthenticationTokenIssued, AppInfo, AppInfoStatus, CellInfo, ProvisionedCell, StemCell,
+    AppAuthenticationTokenIssued, AppInfo, CellInfo, ProvisionedCell, StemCell,
     ZomeCallParamsSigned,
 };
 use holochain_types::{
     app::{
-        AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload, PausedAppReason,
+        AppBundleError, AppBundleSource, DisabledAppReason, InstallAppPayload,
         RoleSettings,
     },
     dna::{
@@ -12,7 +12,7 @@ use holochain_types::{
         HoloHash,
     },
     prelude::{
-        CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName,
+        AppStatus, CapSecret, CellId, ClonedCell, DnaModifiers, DnaModifiersOpt, ExternIO, FunctionName,
         Nonce256Bits, SerializedBytes, Timestamp, UnsafeBytes, YamlProperties, ZomeCallParams,
         ZomeName,
     },
@@ -127,23 +127,9 @@ impl From<CellInfo> for CellInfoFfi {
 }
 
 #[derive(uniffi::Enum, Eq, PartialEq, Debug)]
-pub enum PausedAppReasonFfi {
-    Error(String),
-}
-
-impl From<PausedAppReason> for PausedAppReasonFfi {
-    fn from(value: PausedAppReason) -> Self {
-        match value {
-            PausedAppReason::Error(error) => PausedAppReasonFfi::Error(error),
-        }
-    }
-}
-
-#[derive(uniffi::Enum, Eq, PartialEq, Debug)]
 pub enum DisabledAppReasonFfi {
     NeverStarted,
     NotStartedAfterProvidingMemproofs,
-    DeletingAgentKey,
     User,
     Error(String),
 }
@@ -155,7 +141,6 @@ impl From<DisabledAppReason> for DisabledAppReasonFfi {
             DisabledAppReason::NotStartedAfterProvidingMemproofs => {
                 DisabledAppReasonFfi::NotStartedAfterProvidingMemproofs
             }
-            DisabledAppReason::DeletingAgentKey => DisabledAppReasonFfi::DeletingAgentKey,
             DisabledAppReason::User => DisabledAppReasonFfi::User,
             DisabledAppReason::Error(error) => DisabledAppReasonFfi::Error(error),
         }
@@ -163,24 +148,20 @@ impl From<DisabledAppReason> for DisabledAppReasonFfi {
 }
 
 #[derive(uniffi::Enum, Eq, PartialEq, Debug)]
-pub enum AppInfoStatusFfi {
-    Paused { reason: PausedAppReasonFfi },
+pub enum AppStatusFfi {
     Disabled { reason: DisabledAppReasonFfi },
-    Running,
+    Enabled,
     AwaitingMemproofs,
 }
 
-impl From<AppInfoStatus> for AppInfoStatusFfi {
-    fn from(value: AppInfoStatus) -> Self {
+impl From<AppStatus> for AppStatusFfi {
+    fn from(value: AppStatus) -> Self {
         match value {
-            AppInfoStatus::Paused { reason: paused } => AppInfoStatusFfi::Paused {
-                reason: paused.into(),
-            },
-            AppInfoStatus::Disabled { reason: disabled } => AppInfoStatusFfi::Disabled {
+            AppStatus::Disabled (disabled) => AppStatusFfi::Disabled {
                 reason: disabled.into(),
             },
-            AppInfoStatus::Running => AppInfoStatusFfi::Running,
-            AppInfoStatus::AwaitingMemproofs => AppInfoStatusFfi::AwaitingMemproofs,
+            AppStatus::Enabled => AppStatusFfi::Enabled,
+            AppStatus::AwaitingMemproofs => AppStatusFfi::AwaitingMemproofs,
         }
     }
 }
@@ -190,7 +171,7 @@ pub struct AppInfoFfi {
     /// The unique identifier for an installed app in this conductor
     pub installed_app_id: String,
     pub cell_info: HashMap<String, Vec<CellInfoFfi>>,
-    pub status: AppInfoStatusFfi,
+    pub status: AppStatusFfi,
     pub agent_pub_key: Vec<u8>,
 }
 
@@ -319,9 +300,6 @@ impl From<ZomeCallParamsSigned> for ZomeCallParamsSignedFfi {
 
 #[derive(uniffi::Enum, Serialize, Deserialize, Clone, Debug)]
 pub enum RoleSettingsFfi {
-    UseExisting {
-        cell_id: CellIdFfi,
-    },
     Provisioned {
         membrane_proof: Option<Vec<u8>>,
         modifiers: Option<DnaModifiersOptFfi>,
@@ -331,9 +309,6 @@ pub enum RoleSettingsFfi {
 impl From<RoleSettingsFfi> for RoleSettings {
     fn from(val: RoleSettingsFfi) -> Self {
         match val {
-            RoleSettingsFfi::UseExisting { cell_id } => RoleSettings::UseExisting {
-                cell_id: cell_id.into(),
-            },
             RoleSettingsFfi::Provisioned {
                 membrane_proof,
                 modifiers,
@@ -341,6 +316,8 @@ impl From<RoleSettingsFfi> for RoleSettings {
                 membrane_proof: membrane_proof
                     .map(|p| std::sync::Arc::new(SerializedBytes::from(UnsafeBytes::from(p)))),
                 modifiers: modifiers.map(|m| m.into()),
+                // The FFI surface does not carry migration init_properties.
+                init_properties: None,
             },
         }
     }
@@ -353,21 +330,22 @@ pub struct InstallAppPayloadFfi {
     pub installed_app_id: String,
     pub network_seed: Option<String>,
     pub roles_settings: Option<HashMap<String, RoleSettingsFfi>>,
+    #[uniffi(default = None)]
+    pub agent_key: Option<Vec<u8>>,
 }
 
 impl TryInto<InstallAppPayload> for InstallAppPayloadFfi {
     type Error = AppBundleError;
     fn try_into(self) -> Result<InstallAppPayload, Self::Error> {
         Ok(InstallAppPayload {
-            source: AppBundleSource::Bytes(self.source),
-            agent_key: None,
+            source: AppBundleSource::Bytes(self.source.into()),
+            agent_key: self.agent_key.map(|k| HoloHash::<Agent>::from_raw_39(k)),
             installed_app_id: Some(self.installed_app_id),
             network_seed: self.network_seed,
             roles_settings: self
                 .roles_settings
                 .map(|r| r.into_iter().map(|(k, v)| (k, v.into())).collect()),
             ignore_genesis_failure: false,
-            allow_throwaway_random_agent_key: false,
         })
     }
 }
@@ -390,6 +368,8 @@ pub struct RuntimeNetworkConfigFfi {
     /// URL of the sbd server
     pub signal_url: String,
 
+    pub relay_url: String,
+    
     /// URLs of ICE servers
     pub ice_urls: Vec<String>,
 }
@@ -399,6 +379,7 @@ impl Default for RuntimeNetworkConfigFfi {
         Self {
             bootstrap_url: "https://dev-test-bootstrap2.holochain.org".to_string(),
             signal_url: "wss://dev-test-bootstrap2.holochain.org".to_string(),
+            relay_url: "https://use1-1.relay.n0.iroh-canary.iroh.link./".to_string(),
             ice_urls: vec![
                 "stun:stun.cloudflare.com:3478".to_string(),
                 "stun:stun.l.google.com:19302".to_string(),

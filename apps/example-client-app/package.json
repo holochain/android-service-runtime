@@ -15,7 +15,7 @@
     "tauri": "tauri"
   },
   "devDependencies": {
-    "@holochain/hc-spin": "^0.500.1",
+    "@holochain/hc-spin": "^0.600.0-rc.0",
     "concurrently": "^6.5.1",
     "@tauri-apps/cli": "^2.5.0"
   },

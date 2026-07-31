@@ -11,10 +11,6 @@ object RoleSettingsFfiParceler : Parceler<RoleSettingsFfi> {
     override fun create(parcel: Parcel): RoleSettingsFfi =
         when (parcel.readInt()) {
             1 ->
-                RoleSettingsFfi.UseExisting(
-                    parcelableCreator<CellIdFfiParcel>().createFromParcel(parcel).inner,
-                )
-            2 ->
                 RoleSettingsFfi.Provisioned(
                     membraneProof = parcel.createByteArray() ?: ByteArray(0),
                     modifiers =
@@ -28,12 +24,8 @@ object RoleSettingsFfiParceler : Parceler<RoleSettingsFfi> {
         flags: Int,
     ) {
         when (this) {
-            is RoleSettingsFfi.UseExisting -> {
-                parcel.writeInt(1)
-                CellIdFfiParcel(cellId).writeToParcel(parcel, flags)
-            }
             is RoleSettingsFfi.Provisioned -> {
-                parcel.writeInt(2)
+                parcel.writeInt(1)
                 parcel.writeByteArray(membraneProof)
 
                 if (modifiers != null) {
@@ -64,6 +56,7 @@ object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
             installedAppId!!,
             parcel.readString(),
             readRoleSettingsMap(parcel),
+            parcel.createByteArray(),
         )
     }
 
@@ -81,10 +74,8 @@ object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
         sourceSharedMemory.writeToParcel(parcel, flags)
         parcel.writeString(installedAppId)
         parcel.writeString(networkSeed)
-
-        if (rolesSettings != null) {
-            writeRoleSettingsMap(parcel, rolesSettings!!, flags)
-        }
+        writeRoleSettingsMap(parcel, rolesSettings, flags)
+        parcel.writeByteArray(agentKey)
     }
 
     private fun readRoleSettingsMap(parcel: Parcel): Map<String, RoleSettingsFfi>? {
@@ -109,15 +100,15 @@ object InstallAppPayloadFfiParceler : Parceler<InstallAppPayloadFfi> {
         map: Map<String, RoleSettingsFfi>?,
         flags: Int,
     ) {
-        if (map != null) {
-            parcel.writeInt(map.size)
-
-            map.forEach { (key, value) ->
-                parcel.writeString(key)
-                RoleSettingsFfiParcel(value).writeToParcel(parcel, flags)
-            }
-        } else {
+        if (map == null) {
             parcel.writeInt(0)
+            return
+        }
+        parcel.writeInt(map.size)
+
+        map.forEach { (key, value) ->
+            parcel.writeString(key)
+            RoleSettingsFfiParcel(value).writeToParcel(parcel, flags)
         }
     }
 
@@ -136,7 +127,7 @@ object AppInfoFfiParceler : Parceler<AppInfoFfi> {
         AppInfoFfi(
             installedAppId = parcel.readString() ?: "",
             cellInfo = readCellInfoMap(parcel),
-            status = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel).inner,
+            status = parcelableCreator<AppStatusFfiParcel>().createFromParcel(parcel).inner,
             agentPubKey = parcel.createByteArray() ?: ByteArray(0),
         )
 
@@ -146,7 +137,7 @@ object AppInfoFfiParceler : Parceler<AppInfoFfi> {
     ) {
         parcel.writeString(installedAppId)
         writeCellInfoMap(parcel, cellInfo, flags)
-        AppInfoStatusFfiParcel(status).writeToParcel(parcel, flags)
+        AppStatusFfiParcel(status).writeToParcel(parcel, flags)
         parcel.writeByteArray(agentPubKey)
     }
 
@@ -185,37 +176,29 @@ object AppInfoFfiParceler : Parceler<AppInfoFfi> {
     }
 }
 
-object AppInfoStatusFfiParceler : Parceler<AppInfoStatusFfi> {
-    override fun create(parcel: Parcel): AppInfoStatusFfi =
+object AppStatusFfiParceler : Parceler<AppStatusFfi> {
+    override fun create(parcel: Parcel): AppStatusFfi =
         when (parcel.readInt()) {
             1 ->
-                AppInfoStatusFfi.Paused(
-                    parcelableCreator<PausedAppReasonFfiParcel>().createFromParcel(parcel).inner,
-                )
-            2 ->
-                AppInfoStatusFfi.Disabled(
+                AppStatusFfi.Disabled(
                     parcelableCreator<DisabledAppReasonFfiParcel>().createFromParcel(parcel).inner,
                 )
-            3 -> AppInfoStatusFfi.Running
-            4 -> AppInfoStatusFfi.AwaitingMemproofs
-            else -> throw IllegalArgumentException("Unknown AppInfoStatusFfi type")
+            2 -> AppStatusFfi.Enabled
+            3 -> AppStatusFfi.AwaitingMemproofs
+            else -> throw IllegalArgumentException("Unknown AppStatusFfi type")
         }
 
-    override fun AppInfoStatusFfi.write(
+    override fun AppStatusFfi.write(
         parcel: Parcel,
         flags: Int,
     ) {
         when (this) {
-            is AppInfoStatusFfi.Paused -> {
+            is AppStatusFfi.Disabled -> {
                 parcel.writeInt(1)
-                PausedAppReasonFfiParcel(reason).writeToParcel(parcel, flags)
-            }
-            is AppInfoStatusFfi.Disabled -> {
-                parcel.writeInt(2)
                 DisabledAppReasonFfiParcel(reason).writeToParcel(parcel, flags)
             }
-            is AppInfoStatusFfi.Running -> parcel.writeInt(3)
-            is AppInfoStatusFfi.AwaitingMemproofs -> parcel.writeInt(4)
+            is AppStatusFfi.Enabled -> parcel.writeInt(2)
+            is AppStatusFfi.AwaitingMemproofs -> parcel.writeInt(3)
         }
     }
 }
@@ -463,34 +446,13 @@ object DnaModifiersOptFfiParceler : Parceler<DnaModifiersOptFfi> {
     }
 }
 
-object PausedAppReasonFfiParceler : Parceler<PausedAppReasonFfi> {
-    override fun create(parcel: Parcel): PausedAppReasonFfi =
-        when (parcel.readInt()) {
-            1 -> PausedAppReasonFfi.Error(parcel.readString() ?: "")
-            else -> throw IllegalArgumentException("Unknown PausedAppReasonFfi type")
-        }
-
-    override fun PausedAppReasonFfi.write(
-        parcel: Parcel,
-        flags: Int,
-    ) {
-        when (this) {
-            is PausedAppReasonFfi.Error -> {
-                parcel.writeInt(1)
-                parcel.writeString(v1)
-            }
-        }
-    }
-}
-
 object DisabledAppReasonFfiParceler : Parceler<DisabledAppReasonFfi> {
     override fun create(parcel: Parcel): DisabledAppReasonFfi =
         when (parcel.readInt()) {
             1 -> DisabledAppReasonFfi.NeverStarted
             2 -> DisabledAppReasonFfi.NotStartedAfterProvidingMemproofs
-            3 -> DisabledAppReasonFfi.DeletingAgentKey
-            4 -> DisabledAppReasonFfi.User
-            5 -> DisabledAppReasonFfi.Error(parcel.readString() ?: "")
+            3 -> DisabledAppReasonFfi.User
+            4 -> DisabledAppReasonFfi.Error(parcel.readString() ?: "")
             else -> throw IllegalArgumentException("Unknown DisabledAppReasonFfi type")
         }
 
@@ -501,10 +463,9 @@ object DisabledAppReasonFfiParceler : Parceler<DisabledAppReasonFfi> {
         when (this) {
             is DisabledAppReasonFfi.NeverStarted -> parcel.writeInt(1)
             is DisabledAppReasonFfi.NotStartedAfterProvidingMemproofs -> parcel.writeInt(2)
-            is DisabledAppReasonFfi.DeletingAgentKey -> parcel.writeInt(3)
-            is DisabledAppReasonFfi.User -> parcel.writeInt(4)
+            is DisabledAppReasonFfi.User -> parcel.writeInt(3)
             is DisabledAppReasonFfi.Error -> {
-                parcel.writeInt(5)
+                parcel.writeInt(4)
                 parcel.writeString(v1)
             }
         }
@@ -537,12 +498,14 @@ object RuntimeNetworkConfigFfiParceler : Parceler<RuntimeNetworkConfigFfi> {
     override fun create(parcel: Parcel): RuntimeNetworkConfigFfi {
         val bootstrapUrl = parcel.readString() ?: ""
         val signalUrl = parcel.readString() ?: ""
+        val relayUrl = parcel.readString() ?: ""
         var iceUrls = mutableListOf<String>()
         parcel.readStringList(iceUrls)
 
         return RuntimeNetworkConfigFfi(
             bootstrapUrl = bootstrapUrl,
             signalUrl = signalUrl,
+            relayUrl = relayUrl,
             iceUrls = iceUrls,
         )
     }
@@ -553,6 +516,7 @@ object RuntimeNetworkConfigFfiParceler : Parceler<RuntimeNetworkConfigFfi> {
     ) {
         parcel.writeString(bootstrapUrl)
         parcel.writeString(signalUrl)
+        parcel.writeString(relayUrl)
         parcel.writeStringList(iceUrls)
     }
 }

@@ -1,0 +1,16 @@
+{
+  "name": "holochain-runtime-example-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@holochain/client": "file:../../../../holochain-client-js"
+  },
+  "devDependencies": {
+    "vite": "^6.2.5"
+  }
+}

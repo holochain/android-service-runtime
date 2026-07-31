@@ -1,6 +1,5 @@
 package org.holochain.androidserviceruntime.client
 
-import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -10,8 +9,10 @@ import android.util.Log
 import kotlinx.coroutines.delay
 
 class HolochainServiceAppClient(
-    private val activity: Activity,
+    private val context: Context,
     private val serviceComponentName: ComponentName,
+    private val onConnected: (() -> Unit)? = null,
+    private val onDisconnected: (() -> Unit)? = null,
 ) {
     private var mService: IHolochainServiceApp? = null
     private val logTag = "HolochainServiceAppClient"
@@ -25,11 +26,13 @@ class HolochainServiceAppClient(
             ) {
                 mService = IHolochainServiceApp.Stub.asInterface(service)
                 Log.d(logTag, "IHolochainServiceApp connected")
+                onConnected?.invoke()
             }
 
             override fun onServiceDisconnected(className: ComponentName) {
                 mService = null
                 Log.d(logTag, "IHolochainServiceApp disconnected")
+                onDisconnected?.invoke()
             }
         }
 
@@ -43,13 +46,13 @@ class HolochainServiceAppClient(
 
         // Giving the intent a unique action ensures the HolochainService `onBind()` callback is
         // triggered.
-        val packageName: String = this.activity.getPackageName()
+        val packageName: String = this.context.packageName
         val intent = Intent("$packageName:$installedAppId")
 
         intent.putExtra("api", "app")
         intent.putExtra("installedAppId", installedAppId)
         intent.setComponent(this.serviceComponentName)
-        this.activity.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
+        this.context.bindService(intent, this.mConnection, Context.BIND_ABOVE_CLIENT)
     }
 
     /**
@@ -96,13 +99,19 @@ class HolochainServiceAppClient(
      * @param installAppPayload The payload containing app installation data
      * @param enableAfterInstall Whether to enable the app after installation
      * @return AppAuthFfi object containing authentication and connection information
+     * @throws HolochainServiceNotConnectedException if not connected to the service
      */
     suspend fun connectSetupApp(
         installAppPayload: InstallAppPayloadFfi,
         enableAfterInstall: Boolean,
     ): AppAuthFfi {
         this.connect(installAppPayload.installedAppId!!)
-        this.waitForConnectReady()
+
+        if (!this.waitForConnectReady()) {
+            throw HolochainServiceNotConnectedException()
+        }
+
+        this.waitForServiceReady()
         return this.setupApp(installAppPayload, enableAfterInstall)
     }
 
@@ -147,6 +156,32 @@ class HolochainServiceAppClient(
     }
 
     /**
+     * Imports a private key seed into the Lair keystore.
+     *
+     * @param seed 32-byte private key seed
+     * @return AgentPubKey (raw bytes) of the imported key
+     * @throws HolochainServiceNotConnectedException if not connected to the service
+     */
+    suspend fun importKeySeed(seed: ByteArray): ByteArray {
+        Log.d(logTag, "importKeySeed")
+        if (this.mService == null) {
+            throw HolochainServiceNotConnectedException()
+        }
+
+        val callbackDeferred = ImportKeySeedCallbackDeferred()
+        this.mService!!.importKeySeed(callbackDeferred, seed)
+
+        return callbackDeferred.await()
+    }
+
+    /**
+     * Checks if the Holochain runtime is ready to receive calls.
+     *
+     * @return true if connected and runtime is ready, false otherwise
+     */
+    fun isReady(): Boolean = this.mService?.isReady() ?: false
+
+    /**
      * Polls until connected to the service, or the timeout has elapsed.
      *
      * @param timeoutMs Maximum time to wait for connection in milliseconds (default: 100ms)
@@ -155,14 +190,40 @@ class HolochainServiceAppClient(
     private suspend fun waitForConnectReady(
         timeoutMs: Long = 100L,
         intervalMs: Long = 5L,
-    ) {
+    ): Boolean {
         var elapsedMs = 0L
         while (elapsedMs <= timeoutMs) {
             Log.d(logTag, "waitForConnectReady " + elapsedMs)
-            if (this.mService != null) break
+            if (this.mService != null) return true
 
             delay(intervalMs)
             elapsedMs += intervalMs
         }
+        return false
+    }
+
+    /**
+     * Polls until the Holochain service runtime is ready, or the timeout has elapsed.
+     *
+     * This is necessary because the service may be connected (onBind returned) but the
+     * Holochain conductor may not have finished starting yet.
+     *
+     * @param timeoutMs Maximum time to wait for service to be ready in milliseconds (default: 30000ms)
+     * @param intervalMs Time between readiness checks in milliseconds (default: 100ms)
+     * @return true if service became ready within timeout, false otherwise
+     */
+    suspend fun waitForServiceReady(
+        timeoutMs: Long = 30000L,
+        intervalMs: Long = 100L,
+    ): Boolean {
+        var elapsedMs = 0L
+        while (elapsedMs <= timeoutMs) {
+            Log.d(logTag, "waitForServiceReady " + elapsedMs)
+            if (this.isReady()) return true
+
+            delay(intervalMs)
+            elapsedMs += intervalMs
+        }
+        return false
     }
 }

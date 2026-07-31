@@ -23,6 +23,9 @@ pub struct RuntimeNetworkConfig {
     /// URL of the sbd server
     pub signal_url: Url2,
 
+    /// URL of the iroh-raly server
+    pub relay_url: Url2,
+
     /// URLs of ICE servers
     pub ice_urls: Vec<Url2>,
 }
@@ -30,8 +33,9 @@ pub struct RuntimeNetworkConfig {
 impl Default for RuntimeNetworkConfig {
     fn default() -> Self {
         Self {
-            bootstrap_url: Url2::parse("https://relay.volla.tech"),
-            signal_url: Url2::parse("wss://relay.volla.tech"),
+            bootstrap_url: Url2::parse("https://dev-test-bootstrap2.holochain.org"),
+            signal_url: Url2::parse("wss://dev-test-bootstrap2.holochain.org"),
+            relay_url: Url2::parse("https://use1-1.relay.n0.iroh-canary.iroh.link./"),
             ice_urls: vec![Url2::parse("stun:stun.nextcloud.com:443")],
         }
     }
@@ -42,6 +46,7 @@ impl From<RuntimeNetworkConfig> for NetworkConfig {
         NetworkConfig {
             bootstrap_url: val.bootstrap_url,
             signal_url: val.signal_url,
+            relay_url: val.relay_url,
             webrtc_config: Some(json!({
                 "iceServers": val.ice_urls
                     .clone()
@@ -57,7 +62,6 @@ impl From<RuntimeNetworkConfig> for NetworkConfig {
 impl From<RuntimeConfig> for ConductorConfig {
     fn from(val: RuntimeConfig) -> Self {
         Self {
-            device_seed_lair_tag: Some(DEVICE_SEED_LAIR_TAG.to_string()),
             data_root_path: Some(val.data_root_path.clone().into()),
             keystore: KeystoreConfig::LairServerInProc { lair_root: None },
             network: val.network.into(),

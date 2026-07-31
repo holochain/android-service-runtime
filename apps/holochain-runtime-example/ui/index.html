@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Holochain Runtime Example</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.4; }
+      h1 { font-size: 1.2rem; }
+      pre { background: #f4f4f4; padding: 0.75rem; border-radius: 6px; white-space: pre-wrap; word-break: break-all; }
+      .ok { color: #137333; } .err { color: #c5221f; }
+    </style>
+  </head>
+  <body>
+    <h1>tauri-plugin-holochain (in-process / FFI-free) — desktop example</h1>
+
+    <h2>1. Injected holochain env</h2>
+    <pre id="env">reading…</pre>
+
+    <h2>2. @holochain/client connection</h2>
+    <pre id="conn">connecting…</pre>
+
+    <h2>3. Zome call (posts: get_all_posts)</h2>
+    <pre id="zome">waiting…</pre>
+
+    <h2>4. Zome call (posts: create_post)</h2>
+    <pre id="create">waiting…</pre>
+
+    <h2>5. Signal (emitted by create_post)</h2>
+    <pre id="signal">waiting…</pre>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

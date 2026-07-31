@@ -17,12 +17,6 @@ data class AppInfoFfiParcel(
 ) : Parcelable
 
 @Parcelize
-@TypeParceler<PausedAppReasonFfi, PausedAppReasonFfiParceler>
-data class PausedAppReasonFfiParcel(
-    val inner: PausedAppReasonFfi,
-) : Parcelable
-
-@Parcelize
 @TypeParceler<DisabledAppReasonFfi, DisabledAppReasonFfiParceler>
 data class DisabledAppReasonFfiParcel(
     val inner: DisabledAppReasonFfi,
@@ -65,9 +59,9 @@ data class StemCellFfiParcel(
 ) : Parcelable
 
 @Parcelize
-@TypeParceler<AppInfoStatusFfi, AppInfoStatusFfiParceler>
-data class AppInfoStatusFfiParcel(
-    val inner: AppInfoStatusFfi,
+@TypeParceler<AppStatusFfi, AppStatusFfiParceler>
+data class AppStatusFfiParcel(
+    val inner: AppStatusFfi,
 ) : Parcelable
 
 @Parcelize
