@@ -8,7 +8,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@holochain/client": "file:../../../../holochain-client-js"
+    "@holochain/client": "^0.21.0"
   },
   "devDependencies": {
     "vite": "^6.2.5"

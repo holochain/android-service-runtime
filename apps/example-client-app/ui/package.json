@@ -7,7 +7,7 @@
     "package": "npm run build && rimraf dist.zip && cd dist && bestzip ../dist.zip *"
   },
   "dependencies": {
-    "@holochain/client": "file:../../../../holochain-client-js",
+    "@holochain/client": "^0.21.0",
     "@msgpack/msgpack": "^3.1.2",
     "uuid": "^11.1.0"
   },

@@ -56,14 +56,13 @@ Rust side compiles clean (`cargo check --workspace --all-targets`: 0 warnings;
 Goal: `holochain-runtime-example` (desktop Tauri app embedding
 `tauri-plugin-holochain`) installs, runs, and rebinds apps against 0.7.0.
 
-1. **JS client to released 0.21.** All `package.json`s point
-   `@holochain/client` at `file:../../../holochain-client-js` (local dev
-   checkout). Switch to the released `^0.21.0` from npm in:
-   `crates/tauri-plugin-holochain`, `apps/holochain-runtime-example/ui`,
-   `apps/android-service-runtime`, `crates/tauri-plugin-{client,service}`,
-   `apps/example-client-app/{ui,tests}`. Then rebuild the injected env bundle
-   (`dist-js/holochain-env/index.min.js`) — the staleness guard added on
-   `main-0.6` will fail the build if this is skipped.
+1. **JS client to released 0.21.** DONE — all seven `package.json`s moved from
+   the `file:../../../holochain-client-js` dev checkout (which was at
+   0.21.0-rc.1) to the released `^0.21.0` from npm; the pnpm workspace
+   lockfile regenerated (pnpm 11 build-script approvals recorded in
+   `pnpm-workspace.yaml`). The rebuilt `dist-js/holochain-env/index.min.js`
+   came out byte-identical (the client import is type-only), confirming the
+   shipped bundle is current — the staleness-guard test agrees.
 2. **Local validation.**
    - `cargo test -p holochain-conductor-runtime` and `-p
      holochain-conductor-runtime-ffi` (conductor lifecycle, install/enable,
@@ -73,16 +72,15 @@ Goal: `holochain-runtime-example` (desktop Tauri app embedding
    - `pnpm run test:example` — builds the desktop example against the plugin.
    - Manual smoke: `pnpm run start:example` in the dev shell (webkit pin).
 3. **CI validation.**
-   - `test.yml` (PRs to `main-*`) runs `make integration-test` in the nix
-     shell. Add the desktop plugin suite so it's actually gated in CI:
-     `integration-test` should also run
-     `cargo test -p tauri-plugin-holochain` and build the example
-     (`pnpm run test:example`). Today those exist only as pnpm scripts and CI
-     never runs them.
+   - DONE — `make integration-test` now also runs
+     `cargo test -p tauri-plugin-holochain` and `pnpm run test:example`, so
+     the desktop plugin suite and example build are gated by `test.yml` on
+     PRs to `main-*`.
    - The `static` target (fmt + clippy + `git diff --exit-code`) already gates
      the dist-js staleness guard output.
-   - Open a PR against `main-0.7` (branch pattern `main-*` already triggers
-     `test.yml` + `build.yml`) and require both green.
+   - Remaining: land these changes via a PR against `main-0.7` and require
+     `test.yml` + `build.yml` green. The stale draft #140 (old
+     `asr-main-0.7` lineage) is superseded by `main-0.7`.
 
 ## Phase 2 — Android: service/client crates + Kotlin libraries
 

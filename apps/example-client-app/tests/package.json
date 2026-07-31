@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.2",
-    "@holochain/client": "file:../../../../holochain-client-js",
+    "@holochain/client": "^0.21.0",
     "@holochain-open-dev/tryorama": "^0.20.0-dev.0",
     "typescript": "^4.9.4",
     "vitest": "^0.28.4"

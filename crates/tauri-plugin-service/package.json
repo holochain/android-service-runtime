@@ -31,7 +31,7 @@
     "prepare": "pnpm build:js"
   },
   "dependencies": {
-    "@holochain/client": "file:../../../holochain-client-js",
+    "@holochain/client": "^0.21.0",
     "@tauri-apps/api": "^2.5.0",
     "@msgpack/msgpack": "^3.1.2"
   },
