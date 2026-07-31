@@ -23,12 +23,12 @@ keywords = ["holochain", "android", "tauri", "p2p"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-holochain = "0.6.2-rc.0"
-holochain_conductor_api = "0.6.2-rc.0"
-holochain_types = "0.6.2-rc.0"
+holochain = "0.6.3"
+holochain_conductor_api = "0.6.3"
+holochain_types = "0.6.3"
 holochain_serialized_bytes = "0.0.57"
 # Network-stats types (ApiTransportStats) returned by AdminRequest::DumpNetworkStats;
-# pinned to the version holochain 0.6.2-rc.0 resolves so it unifies to one copy.
+# pinned to the version holochain 0.6.3 resolves so it unifies to one copy.
 kitsune2_api = "0.4.1"
 sodoken = "0.1.0"
 url2 = "0.0.6"

@@ -93,7 +93,7 @@ async fn open_main_window(handle: AppHandle) -> Result<(), Box<dyn Error>> {
     plugin
         .main_window_builder(
             "main",
-            APP_ID.to_string(),
+            Some(APP_ID.to_string()),
             WindowOptions {
                 title: Some("Holochain Runtime Example".into()),
                 ..Default::default()
