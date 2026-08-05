@@ -25,6 +25,7 @@
 
       "build:example-client-app": "pnpm run --dir apps/example-client-app build:android",
       "build:android-service-runtime": "pnpm run --dir apps/android-service-runtime build:android",
+      "build:holochain-runtime-example": "pnpm run --dir apps/holochain-runtime-example build:android",
 
       "lint:fix:client": "cd libraries/client && ./gradlew formatKotlin",
       "lint:fix:service": "cd libraries/service && ./gradlew formatKotlin",
@@ -67,6 +68,7 @@
       "test": " npm run test:runtime && pnpm run test:runtime-ffi && pnpm run test:tauri-plugin && pnpm run test:service && pnpm run test:client",
 
       "start:example": "pnpm run build:example && cargo run -p holochain-runtime-example",
+      "start:example-android": "pnpm run build:example && pnpm run --dir apps/holochain-runtime-example start:android",
       "start:android-service-runtime": "pnpm run --dir apps/android-service-runtime start:android",
       "start:example-client-app": "pnpm run --dir apps/example-client-app start:android"
     },

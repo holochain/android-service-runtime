@@ -2,11 +2,11 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "holochain-runtime-example",
   "version": "0.1.0",
-  "identifier": "org.holochain.runtime-example",
+  "identifier": "org.holochain.runtimeexample",
   "build": {
     "frontendDist": "../ui/dist",
-    "beforeDevCommand": "npm --prefix ../ui run dev",
-    "beforeBuildCommand": "npm --prefix ../ui install && npm --prefix ../ui run build"
+    "beforeDevCommand": "npm --prefix ui run dev",
+    "beforeBuildCommand": "npm --prefix ui install && npm --prefix ui run build"
   },
   "app": {
     "withGlobalTauri": true,

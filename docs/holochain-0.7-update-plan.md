@@ -5,7 +5,10 @@ Target: the `main-0.7` branch runs against **released holochain 0.7.0** (not the
 
 - **Phase 1 (primary):** the unified `tauri-plugin-holochain` works in a desktop
   build, validated in CI.
-- **Phase 2 (secondary):** the two Android service/client crates
+- **Phase 2 (secondary):** the unified `tauri-plugin-holochain` works in an
+  **Android** build — the NDK cross-compile of the 0.7 stack plus Android
+  scaffolding for `holochain-runtime-example`.
+- **Phase 3 (deferred):** the two Android service/client crates
   (`tauri-plugin-service`, `tauri-plugin-client`) and the Kotlin libraries they
   feed (`libraries/service`, `libraries/client`) work in the Android build,
   validated in CI.
@@ -38,7 +41,7 @@ Rust side compiles clean (`cargo check --workspace --all-targets`: 0 warnings;
   - `NetworkConfig` lost `signal_url` + `webrtc_config` (tx5/WebRTC transport
     removed in favor of iroh): `signal_url` and `ice_urls` removed from
     `RuntimeNetworkConfig`, `RuntimeNetworkConfigFfi`, the FFI mappers, and the
-    ASR app. **This is a breaking change to the FFI/Kotlin surface (Phase 2).**
+    ASR app. **This is a breaking change to the FFI/Kotlin surface (Phase 3).**
   - `RuntimeError` variants boxed (`ConductorError`, `AdminResponse`) —
     clippy `result_large_err` under rust 1.95.
   - Forum fixture ported to hdk 0.7.0 / hdi 0.8.0 and repacked with `hc` 0.7.0
@@ -82,7 +85,84 @@ Goal: `holochain-runtime-example` (desktop Tauri app embedding
      `test.yml` + `build.yml` green. The stale draft #140 (old
      `asr-main-0.7` lineage) is superseded by `main-0.7`.
 
-## Phase 2 — Android: service/client crates + Kotlin libraries
+## Phase 2 — Android: unified tauri-plugin-holochain
+
+Goal: `holochain-runtime-example` builds and runs as an Android app (x86_64
+emulator + aarch64 device) embedding the in-process conductor. No uniffi, no
+Kotlin — the plugin is pure Rust, so this phase is (a) making the 0.7 stack
+cross-compile under the NDK and (b) giving the example app an Android target.
+
+### 2.1 NDK toolchain updates — DONE (outcome differed from prediction)
+
+The probe (`cargo ndk -t x86_64 -t arm64-v8a --platform 27 check -p
+tauri-plugin-holochain`) surfaced a different blocker than expected:
+
+- **`aws-lc-sys` 0.41 built fine** under cargo-ndk (via iroh's `noq-proto`
+  crypto and rustls' default provider) — the feared "iroh on Android NDK" risk
+  was a non-event, needing only `cmake` (now in the flake; it had been silently
+  leaking in from the host).
+- **The real blocker was vendored OpenSSL 3.6** (`libsqlite3-sys` →
+  sqlcipher → `openssl-src` 300.6): its `sm4-x86_64.S` uses SM4 AVX
+  instructions (`vsm4rnds4`) that NDK r26's clang 17 integrated assembler
+  rejects. Verified empirically that clang 18 (r27+) assembles them. Fixed by
+  bumping the flake NDK **26.1 → r28.2 (28.2.13676358)**: clang 19, and 16 KB
+  page-aligned `.so`s by default (Play requirement for Android 15+ targeting).
+- **cargo-ndk poisons host builds**: it exports plain `CC`/`CXX`/`AR` pointing
+  at NDK clang, which hijacks *host-targeted* units too (sqlx-macros'
+  proc-macro chain builds its own vendored OpenSSL for the host). Fixed by
+  exporting `HOST_CC`/`HOST_CXX`/`HOST_AR` in the dev shell — the `cc` crate
+  gives these precedence for host units.
+- **SDK platform 36 added to the flake** alongside 34: tauri 2.11's bundled
+  `:tauri-android` gradle subproject compiles against it, and gradle can't
+  auto-install platforms into the read-only nix store.
+- Other native deps (ring, libsodium-sys, bundled sqlcipher C, wasmer 7.1
+  cranelift) all compiled. Wasmer JIT remains a *runtime* watch item (2.3).
+  The tx5/WebRTC stack (the old NDK pain) is gone entirely.
+
+### 2.2 Android scaffolding for the example app — DONE
+
+1. `tauri android init` generated `gen/android` (identifier changed to
+   `org.holochain.runtimeexample` — Android package segments can't contain
+   `-`); `minSdk` 27 to match the other apps; `package.json` with
+   `start:android`/`build:android` added and wired into the pnpm workspace +
+   root scripts (`build:holochain-runtime-example`, `start:example-android`).
+   Template deviations worth knowing: `ndkVersion` is set in
+   `app/build.gradle.kts` (must match the flake — without it AGP can't find
+   `llvm-strip` and packages the unstripped Rust `.so`, a ~919 MB APK that
+   won't install on a stock emulator; stripped it's ~159 MB), and the tauri
+   template's `jniLibs.keepDebugSymbols` block is removed for the same reason.
+   The same `ndkVersion` pin was added to the other two apps' gradle configs:
+   AGP 8.6's default NDK is 26.1, which the old flake happened to ship — with
+   only r28 installed they'd otherwise package unstripped jniLibs silently.
+2. Plugin audit: no changes needed — the plugin itself is mobile-clean. The
+   *example app* needed `#[cfg_attr(mobile, tauri::mobile_entry_point)]` and a
+   per-platform data dir (desktop keeps the throwaway temp dir; mobile uses
+   `app.path().app_data_dir()/holochain`, so plugin registration moved from
+   the builder into `setup()` where the path resolver is live). Single-window
+   direct-IPC needs no tauri `unstable` feature.
+
+### 2.3 Validation
+
+1. **Emulator smoke — DONE (x86_64, API 34 AVD):** full lifecycle verified
+   from the app's file log (`logs/holochain-runtime-example.log`): lair
+   created + unlocked, conductor ready, forum happ installed, main window
+   opened, UI connected over direct Tauri IPC, signed zome call
+   (`get_all_posts`), `create_post`, and the app signal received. Wasmer 7.1
+   cranelift JIT works on Android x86_64. Known non-fatal issue: iroh can't
+   read Android's DNS config (`ndk_context not initialized; call
+   install_android_jni_context`) and falls back to Google DNS — follow-up is
+   to install the JNI context (the `ndk-context` crate) at app start.
+   A dedicated AVD `asr_example_test` (12 G data partition) was created for
+   this; the stock 6 G images don't fit the debug APK's extracted lib.
+2. **Device check (aarch64)** when available — JIT and iroh sockets behave
+   differently on real devices (`cargo ndk -t arm64-v8a check` already
+   passes).
+3. **CI — DONE:** `build.yml` gained a `build-example-android` job building
+   the debug APK (`--debug --target x86_64 --apk`) in the nix shell — debug
+   so it needs no release-signing environment. Emulator-connected tests can
+   come later with Phase 3's jobs.
+
+## Phase 3 (deferred) — Android: service/client crates + Kotlin libraries
 
 Goal: `tauri-plugin-service` + `tauri-plugin-client` (and beneath them
 `runtime-ffi` / `runtime-types-ffi` → uniffi Kotlin bindings →
@@ -90,9 +170,9 @@ Goal: `tauri-plugin-service` + `tauri-plugin-client` (and beneath them
 both Android apps build.
 
 1. **Cross-compile check.** `pnpm run build:single-target:runtime-ffi
-   x86_64-linux-android` (and the aarch64 target) — first build of holochain
-   0.7's iroh/QUIC transport stack under cargo-ndk. Risk item: iroh-native
-   deps on the NDK; this is the step that surfaces it.
+   x86_64-linux-android` (and the aarch64 target) — should be routine once
+   Phase 2.1's NDK toolchain work (aws-lc-sys under cargo-ndk) has landed,
+   since `runtime-ffi` sits on the same `holochain-conductor-runtime` stack.
 2. **Kotlin surface updates.** Regenerating the uniffi bindings changes the
    public API:
    - `RuntimeNetworkConfigFfi` loses `signalUrl` + `iceUrls` (breaking).
@@ -109,7 +189,7 @@ both Android apps build.
    exactly this pipeline (build FFI single-target → publish client to
    mavenLocal → build service → lint → emulator
    `connectedDebugAndroidTest` for client and service), and `build.yml`
-   builds both APKs. Phase 2 is done when both jobs are green on the
+   builds both APKs. Phase 3 is done when both jobs are green on the
    `main-0.7` PR.
 
 ## Open questions / risks
@@ -117,8 +197,12 @@ both Android apps build.
 - **Default relay URL** is still the iroh-canary dev relay
   (`use1-1.relay.n0.iroh-canary.iroh.link`); confirm the production relay and
   bootstrap URLs for 0.7 before any release.
-- **iroh on Android NDK** (Phase 2 step 1) is the largest unknown; no
-  workaround identified yet if it fails.
+- **iroh on Android NDK** (Phase 2.1) is the largest unknown, now concretely
+  identified as `aws-lc-sys` (CMake-built C, pulled in by iroh's `noq-proto`
+  and rustls) needing to build under cargo-ndk/NDK 26. aws-lc-rs documents
+  Android support, so this should be toolchain plumbing rather than a hard
+  blocker; if it does fail, the fallback to investigate is forcing rustls's
+  `ring` provider through the iroh/kitsune2 feature chain.
 - **`restore_from_dht` / `init_properties`** are deliberately not exposed over
   FFI yet; expose later if Android consumers need DHT restore or migration
   properties.

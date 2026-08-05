@@ -4,6 +4,7 @@ packages:
   - apps/android-service-runtime
   - apps/example-client-app
   - apps/example-client-app/ui
+  - apps/holochain-runtime-example
   - '!**/android/**'
   - '!**/dist-js/**'
   - '!**/permissions/**'

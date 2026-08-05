@@ -134,6 +134,12 @@ importers:
         specifier: ^6.2.5
         version: 6.4.3(@types/node@20.17.46)(jiti@1.21.7)(terser@5.39.0)(yaml@2.7.0)
 
+  apps/holochain-runtime-example:
+    devDependencies:
+      '@tauri-apps/cli':
+        specifier: ^2.5.0
+        version: 2.5.0
+
   crates/tauri-plugin-client:
     dependencies:
       '@holochain/client':

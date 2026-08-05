@@ -1,15 +1,19 @@
-//! Minimal **desktop** example for the in-process `tauri-plugin-holochain`.
+//! Minimal example (desktop + Android) for the in-process
+//! `tauri-plugin-holochain`.
 //!
 //! On startup it boots an in-process Holochain conductor (via the plugin),
 //! installs + enables the bundled `forum.happ` fixture, then opens a window
-//! wired to the conductor's app websocket. The webview (`ui/index.html`) reads
-//! the injected `__HC_LAUNCHER_ENV__` and connects with `@holochain/client`.
+//! bound to the app over direct Tauri IPC. The webview (`ui/index.html`) reads
+//! the injected `__HC_TAURI_HOLOCHAIN__` env and connects with
+//! `@holochain/client` — no loopback websocket.
 
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;
 
 use holochain::prelude::{AppBundleSource, InstallAppPayload};
+#[cfg(mobile)]
+use tauri::Manager;
 use tauri::{AppHandle, Listener};
 use tauri_plugin_holochain::{
     vec_to_locked, HolochainExt, HolochainPluginConfig, NetworkConfig, WindowOptions, EVENT_READY,
@@ -19,8 +23,22 @@ use tauri_plugin_holochain::{
 const APP_ID: &str = "forum";
 const HAPP_BUNDLE: &[u8] = include_bytes!("../../../../crates/runtime/fixtures/forum.happ");
 
-fn data_dir() -> PathBuf {
-    std::env::temp_dir().join("holochain-runtime-example")
+/// Desktop keeps the historical throwaway temp dir (the integration test relies
+/// on a fresh conductor per run); mobile has no writable temp dir, so use the
+/// per-app data dir Android/iOS give us.
+fn data_dir(app: &AppHandle) -> PathBuf {
+    #[cfg(desktop)]
+    {
+        let _ = app;
+        std::env::temp_dir().join("holochain-runtime-example")
+    }
+    #[cfg(mobile)]
+    {
+        app.path()
+            .app_data_dir()
+            .expect("no app data dir on this platform")
+            .join("holochain")
+    }
 }
 
 /// Called back by the webview UI so its `@holochain/client` results are visible
@@ -34,6 +52,7 @@ fn report(step: String, ok: bool, detail: String) {
     }
 }
 
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(
@@ -43,10 +62,6 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![report])
-        .plugin(tauri_plugin_holochain::init(
-            vec_to_locked(vec![]),
-            HolochainPluginConfig::new(data_dir(), NetworkConfig::default()),
-        ))
         .setup(|app| {
             let handle = app.handle().clone();
 
@@ -63,6 +78,14 @@ pub fn run() {
                     }
                 });
             });
+
+            // Registered here (not on the builder) because the mobile data dir
+            // comes from the app's path resolver, which needs a live handle.
+            let holochain_data_dir = data_dir(app.handle());
+            app.handle().plugin(tauri_plugin_holochain::init(
+                vec_to_locked(vec![]),
+                HolochainPluginConfig::new(holochain_data_dir, NetworkConfig::default()),
+            ))?;
 
             Ok(())
         })

@@ -1,5 +1,4 @@
 import java.util.Properties
-import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
@@ -14,54 +13,37 @@ val tauriProperties = Properties().apply {
     }
 }
 
-val keystorePropertiesFile = rootProject.file("key.properties")
-val keystoreProperties = Properties()
-keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-
 android {
-    buildToolsVersion = "34.0.0"
     compileSdk = 34
-    // Must match the flake's ndkVersion — AGP 8.6's default NDK (26.1) is no
-    // longer in the nix SDK, and without a resolvable NDK AGP can't find
-    // llvm-strip and silently packages jniLibs unstripped.
+    // Must match the flake's ndkVersion — AGP needs it to locate llvm-strip,
+    // otherwise the Rust jniLib is packaged unstripped (~900 MB APK).
     ndkVersion = "28.2.13676358"
-    namespace = "org.holochain.androidserviceruntime.app"
+    namespace = "org.holochain.runtimeexample"
     defaultConfig {
-        manifestPlaceholders["usesCleartextTraffic"] = "true"
-        applicationId = "org.holochain.androidserviceruntime.app"
+        manifestPlaceholders["usesCleartextTraffic"] = "false"
+        applicationId = "org.holochain.runtimeexample"
         minSdk = 27
         targetSdk = 34
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
-    signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["storePassword"] as String
-        }
-    }
     buildTypes {
         getByName("debug") {
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
             isDebuggable = true
             isJniDebuggable = true
             isMinifyEnabled = false
-            packaging {
-                jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
-                jniLibs.keepDebugSymbols.add("*/armeabi-v7a/*.so")
-                jniLibs.keepDebugSymbols.add("*/x86/*.so")
-                jniLibs.keepDebugSymbols.add("*/x86_64/*.so")
-            }
+            // Unlike the tauri template, let AGP strip the Rust jniLibs: with the
+            // full holochain stack the unstripped debug .so pushes the APK past
+            // 900 MB, which won't even install on a stock-sized emulator image.
         }
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
                     .toList().toTypedArray()
             )
-            signingConfig = signingConfigs.getByName("release")
         }
     }
     kotlinOptions {

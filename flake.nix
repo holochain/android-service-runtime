@@ -43,9 +43,16 @@
           # Android SDK + NDK, matching the gradle config (compileSdk/buildTools 34,
           # minSdk 27). The NDK is what `cargo ndk` uses to cross-compile the Rust
           # crates into the jniLibs consumed by the Android libraries/plugins.
-          ndkVersion = "26.1.10909125";
+          # r28: clang 19 — needed because vendored OpenSSL 3.6 (libsqlite3-sys →
+          # sqlcipher) ships SM4 x86 asm that r26's clang 17 can't assemble — and
+          # .so files come out 16 KB-page-aligned by default (Play requirement for
+          # apps targeting Android 15+).
+          ndkVersion = "28.2.13676358";
           androidComposition = pkgs.androidenv.composeAndroidPackages {
-            platformVersions = [ "34" ];
+            # 34: the apps' compileSdk/targetSdk. 36: tauri 2.11's bundled
+            # `:tauri-android` gradle subproject compiles against it, and gradle
+            # cannot auto-install platforms into the read-only nix store.
+            platformVersions = [ "34" "36" ];
             buildToolsVersions = [ "34.0.0" ];
             includeNDK = true;
             ndkVersions = [ ndkVersion ];
@@ -90,6 +97,7 @@
               androidSdk
             ] ++ (with pkgs; [
               cargo-ndk # build Rust -> Android jniLibs
+              cmake # aws-lc-sys (iroh/rustls crypto) builds its C sources with CMake
               nodejs_22
               pnpm
               jdk17 # Gradle
@@ -114,6 +122,15 @@
               export ANDROID_NDK_ROOT="${ndkHome}"
               export ANDROID_NDK_HOME="${ndkHome}"
               export NDK_HOME="${ndkHome}"
+
+              # cargo-ndk exports plain CC/CXX/AR pointing at the NDK clang, which
+              # also hijacks *host* compiles (build scripts, proc-macro deps — e.g.
+              # sqlx-macros' vendored OpenSSL). The HOST_* variants take precedence
+              # in the `cc` crate for host-targeted units, so host builds keep the
+              # host toolchain even under `cargo ndk`.
+              export HOST_CC=gcc
+              export HOST_CXX=g++
+              export HOST_AR=ar
 
               # GTK/webkit runtime so `tauri dev` renders (see the webkitnixpkgs input).
               export GIO_MODULE_DIR=${webkitPkgs.glib-networking}/lib/gio/modules/
