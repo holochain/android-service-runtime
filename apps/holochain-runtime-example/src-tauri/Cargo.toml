@@ -14,7 +14,9 @@ tauri-build = { workspace = true }
 
 [dependencies]
 tauri = { workspace = true }
+# The wasm backend (cranelift vs. wasmi on iOS) is selected by target cfg in
+# crates/runtime; no feature flags are needed at any build entry point.
 tauri-plugin-holochain = { path = "../../../crates/tauri-plugin-holochain" }
 tauri-plugin-log = "2"
-holochain = { workspace = true }
+holochain = { workspace = true, features = ["encryption", "schema"] }
 log = { workspace = true }

@@ -11,9 +11,11 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+# The wasm backend (cranelift vs. wasmi on iOS) is selected by target cfg in
+# holochain-conductor-runtime's Cargo.toml and unifies across the graph.
 holochain-conductor-runtime = { path = "../runtime", version = "0.2.2" }
 holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi", version = "0.2.2" }
-holochain = { workspace = true }
+holochain = { workspace = true, features = ["encryption", "schema"] }
 lair_keystore_api = { workspace = true }
 sodoken = { workspace = true }
 tauri = { workspace = true }

@@ -1,0 +1,491 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0DB058FDB7A953746AFBDBEA /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 823225EFFF9F1618D32CACC8 /* WebKit.framework */; };
+		18843D0314C059B0D94C0526 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = B78A2181A9E5EA0AFF04826F /* main.mm */; };
+		464C7ED613FEB63A2A1B3482 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F7C50167344A6ADD4EBBBB92 /* LaunchScreen.storyboard */; };
+		51B958DE796F25F61EC5BD2C /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DF85C00C99C6CB867684C016 /* libapp.a */; };
+		535233E1B09DC5DF09FD1AF0 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF870882E2134E934D8BEE4E /* UIKit.framework */; };
+		572E237219AF6A48CEC07221 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B237C63BCD5786CAA0F46D73 /* MetalKit.framework */; };
+		61911E16F86F7A90C4CD7F76 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 353EDD69543694AEC2444AC7 /* QuartzCore.framework */; };
+		682C0716C7A279DCF33A51B4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5AB5EC4403000C15F910DC17 /* Assets.xcassets */; };
+		6DB15C646A0E20D294D8E54E /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 1A43951A129E10AF413DBC7C /* assets */; };
+		A91C218EFF279B3CE897236F /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = 93459FCDC5A7281920A70DCE /* libapp.a */; };
+		BFB770BF46A670FE2F1EEF51 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AAC32573BF97133761D516C /* CoreGraphics.framework */; };
+		BFD45BA085E54FD4BD0F9892 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82E34606DDCCDC7993E9B2F8 /* Security.framework */; };
+		C5A7E81BF3E563377C18EF22 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FFD9B41D054010EB9E3F501 /* SystemConfiguration.framework */; };
+		E383669094D475657018C4D7 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E3356000FA633250DFD733A /* Metal.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0E3356000FA633250DFD733A /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		0FFD9B41D054010EB9E3F501 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		1A43951A129E10AF413DBC7C /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
+		2142EC697CD8AE24ADB2BC14 /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		353EDD69543694AEC2444AC7 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		3AAC32573BF97133761D516C /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		52D3FCA9F4C09BB8CEA5E327 /* holochain-runtime-example_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "holochain-runtime-example_iOS.entitlements"; sourceTree = "<group>"; };
+		55FF346F62B52FCF7EAAED75 /* holochain-runtime-example_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "holochain-runtime-example_iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5AB5EC4403000C15F910DC17 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6B1080B48F49120BF52C59FD /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
+		823225EFFF9F1618D32CACC8 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		82E34606DDCCDC7993E9B2F8 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		93459FCDC5A7281920A70DCE /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		9F310C2B22594AF8EDFA1F13 /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
+		A0F1A09073623C83B4674ADD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B237C63BCD5786CAA0F46D73 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		B78A2181A9E5EA0AFF04826F /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		BF870882E2134E934D8BEE4E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		DF85C00C99C6CB867684C016 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		F7C50167344A6ADD4EBBBB92 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C95CA8B4A70D82DAAE4718ED /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				51B958DE796F25F61EC5BD2C /* libapp.a in Frameworks */,
+				BFB770BF46A670FE2F1EEF51 /* CoreGraphics.framework in Frameworks */,
+				E383669094D475657018C4D7 /* Metal.framework in Frameworks */,
+				572E237219AF6A48CEC07221 /* MetalKit.framework in Frameworks */,
+				61911E16F86F7A90C4CD7F76 /* QuartzCore.framework in Frameworks */,
+				BFD45BA085E54FD4BD0F9892 /* Security.framework in Frameworks */,
+				C5A7E81BF3E563377C18EF22 /* SystemConfiguration.framework in Frameworks */,
+				535233E1B09DC5DF09FD1AF0 /* UIKit.framework in Frameworks */,
+				0DB058FDB7A953746AFBDBEA /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		186A9C31A0336BFCFE1601A5 = {
+			isa = PBXGroup;
+			children = (
+				1A43951A129E10AF413DBC7C /* assets */,
+				5AB5EC4403000C15F910DC17 /* Assets.xcassets */,
+				F7C50167344A6ADD4EBBBB92 /* LaunchScreen.storyboard */,
+				9F87D02E8FB09CA9396A5AE1 /* Externals */,
+				71846DC8E31EFA7BB7AFCC8E /* holochain-runtime-example_iOS */,
+				5622E24FAAF15E3BC6DDDBA1 /* Sources */,
+				6E0B2A63C849A3EB136E3866 /* src */,
+				A61F4A5599124E4174435169 /* Frameworks */,
+				FA49E298ED20B938B94096D1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5622E24FAAF15E3BC6DDDBA1 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				DA4C0FEE61A2C9E5D170269C /* holochain-runtime-example */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		66D56C544B5015307BE21266 /* bindings */ = {
+			isa = PBXGroup;
+			children = (
+				6B1080B48F49120BF52C59FD /* bindings.h */,
+			);
+			path = bindings;
+			sourceTree = "<group>";
+		};
+		6E0B2A63C849A3EB136E3866 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				9F310C2B22594AF8EDFA1F13 /* lib.rs */,
+				2142EC697CD8AE24ADB2BC14 /* main.rs */,
+			);
+			name = src;
+			path = ../../src;
+			sourceTree = "<group>";
+		};
+		71846DC8E31EFA7BB7AFCC8E /* holochain-runtime-example_iOS */ = {
+			isa = PBXGroup;
+			children = (
+				52D3FCA9F4C09BB8CEA5E327 /* holochain-runtime-example_iOS.entitlements */,
+				A0F1A09073623C83B4674ADD /* Info.plist */,
+			);
+			path = "holochain-runtime-example_iOS";
+			sourceTree = "<group>";
+		};
+		922DD90C6A842AAFA117E65D /* arm64 */ = {
+			isa = PBXGroup;
+			children = (
+				A105C9B9E8D7E094726FB5E2 /* debug */,
+			);
+			path = arm64;
+			sourceTree = "<group>";
+		};
+		9F87D02E8FB09CA9396A5AE1 /* Externals */ = {
+			isa = PBXGroup;
+			children = (
+				922DD90C6A842AAFA117E65D /* arm64 */,
+			);
+			path = Externals;
+			sourceTree = "<group>";
+		};
+		A105C9B9E8D7E094726FB5E2 /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				93459FCDC5A7281920A70DCE /* libapp.a */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
+		A61F4A5599124E4174435169 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3AAC32573BF97133761D516C /* CoreGraphics.framework */,
+				DF85C00C99C6CB867684C016 /* libapp.a */,
+				0E3356000FA633250DFD733A /* Metal.framework */,
+				B237C63BCD5786CAA0F46D73 /* MetalKit.framework */,
+				353EDD69543694AEC2444AC7 /* QuartzCore.framework */,
+				82E34606DDCCDC7993E9B2F8 /* Security.framework */,
+				0FFD9B41D054010EB9E3F501 /* SystemConfiguration.framework */,
+				BF870882E2134E934D8BEE4E /* UIKit.framework */,
+				823225EFFF9F1618D32CACC8 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		DA4C0FEE61A2C9E5D170269C /* holochain-runtime-example */ = {
+			isa = PBXGroup;
+			children = (
+				B78A2181A9E5EA0AFF04826F /* main.mm */,
+				66D56C544B5015307BE21266 /* bindings */,
+			);
+			path = "holochain-runtime-example";
+			sourceTree = "<group>";
+		};
+		FA49E298ED20B938B94096D1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				55FF346F62B52FCF7EAAED75 /* holochain-runtime-example_iOS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		"TEMP_94D1D041-43BE-4937-B451-2ED44C40F295" /* x86_64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = x86_64;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		EEF08B6C7B3DA2954627FE2B /* holochain-runtime-example_iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 817C8FBA99814E1896282384 /* Build configuration list for PBXNativeTarget "holochain-runtime-example_iOS" */;
+			buildPhases = (
+				8089B49A06E47432405B1DDE /* Build Rust Code */,
+				625116E06900E2B26C0BEF93 /* Sources */,
+				E9050B3A5E6150F98636BCC7 /* Resources */,
+				C95CA8B4A70D82DAAE4718ED /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "holochain-runtime-example_iOS";
+			packageProductDependencies = (
+			);
+			productName = "holochain-runtime-example_iOS";
+			productReference = 55FF346F62B52FCF7EAAED75 /* holochain-runtime-example_iOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		497713965A28635D6164A3C2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 8473C6861E1D2EC4404B529F /* Build configuration list for PBXProject "holochain-runtime-example" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 186A9C31A0336BFCFE1601A5;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = FA49E298ED20B938B94096D1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EEF08B6C7B3DA2954627FE2B /* holochain-runtime-example_iOS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E9050B3A5E6150F98636BCC7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				682C0716C7A279DCF33A51B4 /* Assets.xcassets in Resources */,
+				464C7ED613FEB63A2A1B3482 /* LaunchScreen.storyboard in Resources */,
+				6DB15C646A0E20D294D8E54E /* assets in Resources */,
+				A91C218EFF279B3CE897236F /* libapp.a in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8089B49A06E47432405B1DDE /* Build Rust Code */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Rust Code";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Externals/x86_64/${CONFIGURATION}/libapp.a",
+				"$(SRCROOT)/Externals/arm64/${CONFIGURATION}/libapp.a",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "pnpm tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths \"${FRAMEWORK_SEARCH_PATHS:?}\" --header-search-paths \"${HEADER_SEARCH_PATHS:?}\" --gcc-preprocessor-definitions \"${GCC_PREPROCESSOR_DEFINITIONS:-}\" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		625116E06900E2B26C0BEF93 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18843D0314C059B0D94C0526 /* main.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2B618034F6CF671260FE4C1A /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "holochain-runtime-example_iOS/holochain-runtime-example_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "holochain-runtime-example_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = org.holochain.runtimeexample;
+				PRODUCT_NAME = "holochain-runtime-example";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+			};
+			name = release;
+		};
+		4ED9037B5FF20301E543915B /* release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = release;
+		};
+		8F2FCD083C1E12A072F9A340 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "holochain-runtime-example_iOS/holochain-runtime-example_iOS.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = "holochain-runtime-example_iOS/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = org.holochain.runtimeexample;
+				PRODUCT_NAME = "holochain-runtime-example";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+			};
+			name = debug;
+		};
+		9830A98F174806D5AF811B4F /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		817C8FBA99814E1896282384 /* Build configuration list for PBXNativeTarget "holochain-runtime-example_iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8F2FCD083C1E12A072F9A340 /* debug */,
+				2B618034F6CF671260FE4C1A /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+		8473C6861E1D2EC4404B529F /* Build configuration list for PBXProject "holochain-runtime-example" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9830A98F174806D5AF811B4F /* debug */,
+				4ED9037B5FF20301E543915B /* release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 497713965A28635D6164A3C2 /* Project object */;
+}

@@ -10,7 +10,6 @@ name = "holochain_conductor_runtime"
 
 
 [dependencies]
-holochain = { workspace = true }
 holochain_types = { workspace = true }
 holochain_keystore = "0.7.0"
 kitsune2_api = { workspace = true }
@@ -29,6 +28,27 @@ serde_json = { workspace = true }
 rustls = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }
+
+# Wasm execution backend, selected per target rather than by cargo feature.
+#
+# iOS forbids JIT compilation, so it must use holochain's wasmi interpreter
+# backend; every other platform uses the cranelift JIT. This has to be a target
+# cfg rather than a feature pair because default features cannot be subtracted
+# by downstream consumers, and `tauri ios dev/build` offers `--features` but no
+# `--no-default-features` — a feature-based default would silently link the JIT
+# into the iOS binary. Doing it here (the deepest crate declaring `holochain`)
+# is enough: cargo unifies features across the whole graph.
+#
+# Holochain emits a compile_error! if no backend is enabled, so a target that
+# matches neither arm fails loudly.
+#
+# wasmi caveats (see docs/ios-test-build-plan.md): no metering, no serialized
+# module cache, ~3x slower than the JIT, and upstream calls it experimental.
+[target.'cfg(not(target_os = "ios"))'.dependencies]
+holochain = { workspace = true, features = ["encryption", "schema", "wasmer-sys-cranelift"] }
+
+[target.'cfg(target_os = "ios")'.dependencies]
+holochain = { workspace = true, features = ["encryption", "schema", "wasmer-wasmi"] }
 
 [dev-dependencies]
 tempfile = { workspace = true }

@@ -9,4 +9,7 @@ targets = [
   "i686-linux-android",
   "x86_64-linux-android",
   "wasm32-unknown-unknown",
+  # iOS: only installable on macOS hosts; rustup skips them elsewhere.
+  "aarch64-apple-ios",
+  "aarch64-apple-ios-sim",
 ]

@@ -23,7 +23,12 @@ keywords = ["holochain", "android", "tauri", "p2p"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-holochain = "0.7.0"
+# default-features = false so the wasm backend is not pinned here: the defaults
+# include `wasmer-sys-cranelift` (a JIT), which cannot run on iOS, and default
+# features cannot be subtracted downstream. Every member that depends on
+# holochain re-adds `encryption` + `schema`; the backend itself is chosen per
+# target in crates/runtime/Cargo.toml.
+holochain = { version = "0.7.0", default-features = false }
 holochain_conductor_api = "0.7.0"
 holochain_types = "0.7.0"
 holochain_serialized_bytes = "0.0.57"
