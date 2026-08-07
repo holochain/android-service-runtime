@@ -33,9 +33,14 @@ Three things differed from the plan and are written up in the phases below:
 2. The C/toolchain deps were a **non-issue** (§2) — the opposite of the Android
    experience. The real Phase 3 blocker was a **missing
    `SystemConfiguration.framework`** in the generated Xcode project (§3).
-3. The conductor cannot run anywhere under the iOS app container because
-   lair's keystore socket exceeds the AF_UNIX path limit (§4). This is the one
-   finding that still needs a real fix before anything ships.
+3. lair's keystore socket exceeds the AF_UNIX path limit under
+   `app_data_dir()` on both iOS targets (§4.0) — the one finding that still
+   needs a real fix. Note the simulator and a device fail *differently*: a
+   device container is ~78 bytes shorter, so a short in-container path fits
+   there, while in the simulator nothing under the container ever fits and the
+   only reason it runs at all is that simulator apps can write outside their
+   sandbox. Do not read the working simulator build as evidence about a
+   device.
 
 Environment used: macOS 26 (Darwin 25.5.0, arm64), Xcode 26.6 (iOS SDK 26.5),
 rustup toolchain 1.95.0, Node/pnpm from Homebrew, tauri-cli 2.5.0. No nix.
@@ -259,25 +264,45 @@ connects to it. Lair derives that socket from the data root
 (`connection_url = unix://<canonicalized data_root>/socket`), and AF_UNIX paths
 are capped at ~104 bytes.
 
-iOS paths are far longer than that:
+iOS paths are far longer than that. All figures below are **canonicalized**,
+since lair calls `dunce::canonicalize` on the root — on a device that turns
+`/var` into `/private/var` and costs 8 bytes; simulator containers live under
+`/Users` and are unaffected.
 
-| | length |
-| --- | --- |
-| simulator container | 162 B |
-| simulator container + `…/Library/Application Support/<id>/holochain/socket` | 236 B |
-| device equivalent | 150 B |
-| **AF_UNIX limit** | **~104 B** |
+| path | device | simulator |
+| --- | --- | --- |
+| container root alone | 84 B | 162 B |
+| `<container>/socket` | 91 B ✅ | 169 B ❌ |
+| `<container>/hc/socket` | 94 B ✅ | 172 B ❌ |
+| `<container>/Documents/hc/socket` | 104 B ❌ | 182 B ❌ |
+| `app_data_dir()/holochain/socket` | 158 B ❌ | 236 B ❌ |
 
-So this is not "pick a shorter subdirectory" — **no** path under
-`app_data_dir()` can hold the socket, on device or simulator. A bare device
-container plus `/socket` is ~82 B and would fit, but nothing with
-`Library/Application Support/<bundle-id>` in it does.
+**The two targets fail for different reasons, and this is the part that is easy
+to misread.** A device container is ~78 bytes shorter than a simulator's, so on
+a device a short in-container path clears the limit with ~10 bytes to spare —
+`Documents/hc` misses by exactly one byte, and anything carrying the bundle id
+(28 bytes on its own) is hopeless. In the simulator the container is 162 bytes
+before anything is appended, so **nothing under it can ever fit**.
+
+Which inverts the usual expectation: the working simulator build is the *more*
+artificial of the two. It only runs because simulator apps are ordinary macOS
+processes that can write outside their container (`/tmp/hcex`), an escape a
+real device does not permit. The device, with its stricter sandbox but shorter
+paths, is the one that can plausibly stay inside the container. So a green
+simulator run says nothing about a device, in either direction.
 
 Test-build workaround (in `apps/holochain-runtime-example/src-tauri/src/lib.rs`,
-commented there): the simulator uses `/tmp/hcex`, and the device arm uses
-`home_dir()/hc` (~94 B — see §4.2, untested). Neither is shippable: `/tmp` is
-not app-writable on a device and leaves data unsandboxed, and 10 bytes of
-headroom is not a design.
+commented there): the simulator escapes to `/tmp/hcex`, the device arm stays in
+the container at `home_dir()/hc` (94 B, untested — §4.2).
+
+Neither is shippable, for different reasons. The simulator arm writes outside
+the sandbox, which is meaningless for a real app. The device arm has ~10 bytes
+of headroom and is forced to put conductor data at the *container root* rather
+than in `Application Support` — so it gets no conventional backup semantics, an
+unconventional layout, and it breaks the moment anything longer appears in the
+path. That last point is the real argument for fixing this upstream rather than
+tuning the path: the constraint is not "our directory name is too long", it is
+that a whole class of correct locations is unreachable.
 
 **The socket is avoidable, and that is the real story.** lair ships a genuinely
 socket-free in-process server — `InProcKeystore` (`in_proc_keystore.rs`) wires

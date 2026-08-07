@@ -61,6 +61,12 @@ fn data_dir(app: &AppHandle) -> PathBuf {
     // but simulator apps can write outside their container, so use a short
     // absolute path there.
     //
+    // Note the inversion, which is easy to misread: the *simulator* is the
+    // more artificial arm. It runs only by escaping its sandbox, which a real
+    // device forbids; the device has the stricter sandbox but the shorter
+    // path, and is the one that can stay inside the container. A green
+    // simulator run is not evidence about a device.
+    //
     // Neither arm is shippable. 10 bytes of headroom is not a design, and the
     // simulator arm leaves data unsandboxed and unbacked-up. The real fix is
     // upstream — holochain already has a socket-free in-proc keystore path it
