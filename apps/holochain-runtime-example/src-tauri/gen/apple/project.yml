@@ -53,6 +53,13 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         CFBundleShortVersionString: 0.1.0
         CFBundleVersion: 0.1.0
+        # iroh's peer discovery touches the local network, which iOS gates
+        # behind a permission prompt; without a usage string the app is killed
+        # rather than prompted. Also covers `tauri ios dev`, which serves the
+        # frontend over the LAN. Not in the `tauri ios init` template, so it is
+        # dropped if this file is regenerated (same as SystemConfiguration).
+        NSLocalNetworkUsageDescription: >-
+          Holochain peers discover each other over the local network.
     entitlements:
       path: holochain-runtime-example_iOS/holochain-runtime-example_iOS.entitlements
     scheme:

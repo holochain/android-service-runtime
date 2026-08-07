@@ -7,7 +7,7 @@ compiles, the conductor boots, and zome calls execute — not a shippable app.
 
 ## Status: done on the simulator (2026-08-05)
 
-Phases 1–4.1 are complete. `holochain-runtime-example` builds for
+Phases 1–4.1 are complete (simulator only; no device run yet). `holochain-runtime-example` builds for
 `aarch64-apple-ios-sim` and `aarch64-apple-ios`, and on an iPhone 17 Pro
 simulator (iOS 26.5) the conductor boots, the forum fixture installs, and the
 webview makes a zome call over direct Tauri IPC:
@@ -81,8 +81,9 @@ the iOS build reuses those example-app changes — `mobile_entry_point`,
 One correction to the original assumption: the `#[cfg(mobile)]`
 `app_data_dir().join("holochain")` branch did **not** cover iOS by
 construction. It compiles, but the conductor cannot boot from that path at all
-— see §4.0. `data_dir()` now has separate `target_os = "android"` and
-`target_os = "ios"` arms.
+— see §4.0. `data_dir()` now has three mobile arms: `target_os = "android"`,
+iOS-device, and iOS-simulator (split on `target_abi = "sim"`, because the
+simulator's container path is 70 bytes longer than a device's).
 
 Scope: **unified plugin only.** `tauri-plugin-service` / `tauri-plugin-client`
 declare `.ios_path("ios")` for directories that don't exist and reference Swift
@@ -273,16 +274,35 @@ container plus `/socket` is ~82 B and would fit, but nothing with
 `Library/Application Support/<bundle-id>` in it does.
 
 Test-build workaround (in `apps/holochain-runtime-example/src-tauri/src/lib.rs`,
-commented there): iOS uses `/tmp/hcex`. That works in the simulator, where apps
-can write outside their container. It is **not** shippable — on a real device
-`/tmp` is not app-writable, and the data is neither sandboxed nor backed up.
+commented there): the simulator uses `/tmp/hcex`, and the device arm uses
+`home_dir()/hc` (~94 B — see §4.2, untested). Neither is shippable: `/tmp` is
+not app-writable on a device and leaves data unsandboxed, and 10 bytes of
+headroom is not a design.
 
-A proper fix belongs upstream and looks cheap: `LairServerConfigInner` already
-keeps `connection_url`, `pid_file`, and `store_file` as independent fields, so
-the socket could live on a short path while the keystore database stays in the
-container. Alternatively lair could `chdir` and bind a relative path. Either
-way it needs a lair/holochain change, or a runtime API that lets callers set a
-lair root separate from the conductor data root.
+**The socket is avoidable, and that is the real story.** lair ships a genuinely
+socket-free in-process server — `InProcKeystore` (`in_proc_keystore.rs`) wires
+client to server over in-memory channels and only reads the `?k=` server pubkey
+out of `connection_url`; it never calls `get_connection_path()` and never
+binds. holochain deliberately bypasses it in
+`holochain_keystore::lair_keystore::spawn_lair_keystore_in_proc`:
+
+```rust
+// rather than using the in-proc server directly,
+// use the actual standalone server so we get the pid-checks, etc
+let mut server = StandaloneServer::new(config).await?;
+```
+
+So iOS is blocked by an opt-in to pid-checks that are meaningless inside a
+single sandboxed app process. holochain already demonstrates the socket-free
+pattern in the same crate — `spawn_mem_keystore()` (gated behind `test_utils`)
+does `InProcKeystore::new(config, store_factory, passphrase)` then
+`new_client()`, using root `"/"`, which proves the path is irrelevant on that
+path. Making it persistent instead of in-memory means swapping the factory for
+`lair_keystore::create_sql_pool_factory(&config.store_file,
+&config.database_salt)` — the same call `StandaloneServer::run` makes
+internally, and already a public re-export.
+
+See "Upstream issues to file" below.
 
 ### 4.1. Simulator — done
 
@@ -318,18 +338,60 @@ xcrun simctl spawn "iPhone 17 Pro" log stream --level debug \
   --predicate 'subsystem == "org.holochain.runtimeexample"' --style compact
 ```
 
-### 4.2. Device build — not done
+### 4.2. Device build — prepared but UNTESTED
 
-Needs an Apple developer team + provisioning, which this machine has none of
-(`tauri ios build` warns "No code signing certificates found"). Still open, and
-still the only way to prove the networking questions: iroh QUIC to the relay,
-and whether LAN peer discovery trips the local-network permission (if so,
-`NSLocalNetworkUsageDescription` in the generated Info.plist). Note that §4.0
-must be solved first — `/tmp` is not writable on a device.
+No device run has happened: this machine has no signing identity
+(`security find-identity -v -p codesigning` → "0 valid identities found"), no
+provisioning profiles, and no Xcode account. Two changes were made in advance
+so a device build is a signing exercise and not a code change — **both are
+untested on hardware**:
 
-The simulator already shows iroh failing to reach the dev relay
-(`sendmsg error: … HostUnreachable` to the iroh-canary relay), the same open
-risk carried over from the 0.7 plan.
+- `data_dir()` has a device arm using `home_dir()/hc` (the app container root,
+  ~94 B with the socket) instead of the simulator's `/tmp/hcex`, selected with
+  `cfg(target_abi = "sim")`. See §4.0 for the byte budget. It clears SUN_LEN by
+  only ~10 bytes, so treat it as a probe, not a fix.
+- `NSLocalNetworkUsageDescription` added to `project.yml`'s Info.plist
+  properties — iOS kills rather than prompts an app that touches the local
+  network without a usage string. Like the `SystemConfiguration` line, it is
+  lost if `tauri ios init` regenerates the file.
+
+Signing setup (the team ID is **not** committed):
+
+```
+# 1. Xcode ▸ Settings ▸ Accounts ▸ + ▸ Apple ID, then select the team and
+#    "Manage Certificates…" ▸ + ▸ Apple Development to create a cert.
+# 2. Confirm it landed:
+security find-identity -v -p codesigning     # expect >=1 valid identity
+pnpm tauri ios build --help >/dev/null; pnpm tauri info   # lists certificates
+# 3. Team ID is the 10-char code in Xcode ▸ Settings ▸ Accounts, or at
+#    developer.apple.com/account ▸ Membership.
+export APPLE_DEVELOPMENT_TEAM=XXXXXXXXXX
+```
+
+The env var is `APPLE_DEVELOPMENT_TEAM` (the tauri CLI reads exactly this
+name); the config equivalent is `bundle > iOS > developmentTeam`. The CLI
+injects `DEVELOPMENT_TEAM[sdk=iphoneos*]`, `CODE_SIGN_IDENTITY`,
+`CODE_SIGN_STYLE` and `PROVISIONING_PROFILE_SPECIFIER` into the `xcodebuild`
+call, so nothing needs baking into `project.yml`. For CI there are
+`IOS_CERTIFICATE`, `IOS_CERTIFICATE_PASSWORD` and `IOS_MOBILE_PROVISION`.
+
+On the device itself: iOS 16+ needs Settings ▸ Privacy & Security ▸ **Developer
+Mode** enabled, then connect over USB and trust the Mac.
+
+Then build and install — prefer `build` over `dev` for the same embedded-asset
+reason as §4.1:
+
+```
+pnpm tauri ios build --target aarch64 --debug --export-method debugging
+xcrun devicectl device install app --device <udid> <path-to>.app
+xcrun devicectl device process launch --device <udid> org.holochain.runtimeexample
+```
+
+What a device proves that the simulator cannot: iroh QUIC to the relay, and
+whether LAN peer discovery trips the local-network prompt. The simulator
+already shows iroh failing to reach the dev relay (`sendmsg error: …
+HostUnreachable` to the iroh-canary relay), the same open risk carried over
+from the 0.7 plan. Backgrounding behaviour is also worth checking (§4.3).
 
 ### 4.3. Known limitations (recorded, not fixed)
 
@@ -357,14 +419,96 @@ dropped `SystemConfiguration.framework` (§3.4) — a plain `cargo build` will
 not, since the missing symbols only surface at Xcode's link step. Full device
 `tauri ios build` stays out of scope (signing).
 
+## Upstream issues to file
+
+All line references are against `holochain 0.7.0`, `holochain_keystore 0.7.0`,
+`lair_keystore_api 0.7.1`, `lair_keystore 0.7.1` as published on crates.io.
+
+### A. holochain — `spawn_lair_keystore_in_proc` binds a unix socket, making iOS impossible (primary)
+
+*Repo: holochain/holochain. This is the one that actually blocks iOS.*
+
+`holochain_keystore::lair_keystore::spawn_lair_keystore_in_proc` builds a
+`StandaloneServer`, which binds an AF_UNIX socket at `<data_root>/socket`
+(`lair_keystore_api::ipc_keystore::raw_ipc` →
+`tokio::net::UnixListener::bind`). AF_UNIX paths are capped at ~104 bytes,
+while an iOS app-container data dir is 150 B (device) to 162 B (simulator)
+before anything is appended. Every iOS-legal data directory therefore fails at
+conductor startup with:
+
+```
+Lair({"error":"InvalidInput","message":"path must be shorter than SUN_LEN"})
+```
+
+The socket is not required. `lair_keystore_api::in_proc_keystore::InProcKeystore`
+connects client to server over in-memory channels, reads only the `?k=` pubkey
+from `connection_url`, and never binds. holochain already uses that shape in
+`spawn_mem_keystore()` (`holochain_keystore/src/lib.rs`, `test_utils`-gated),
+which passes root `"/"` — the path is inert on that path. The only difference
+for a persistent keystore is the store factory:
+`lair_keystore::create_sql_pool_factory(&config.store_file, &config.database_salt)`,
+which is a public re-export and is exactly what `StandaloneServer::run` calls
+internally.
+
+Ask: offer a socket-free in-proc keystore (either as the default for
+`KeystoreConfig::LairServerInProc`, or as a new variant / flag). The stated
+reason for the current choice — "so we get the pid-checks, etc" — has no value
+inside a single sandboxed mobile app, and on iOS it is fatal.
+
+### B. lair — `tcp://` connection URLs are documented but not implemented
+
+*Repo: holochain/lair.*
+
+`LairServerConfigInner::connection_url`'s doc comment advertises three schemes:
+
+```rust
+/// - `unix:///path/to/unix/socket?k=Yada`
+/// - `named_pipe:\\.\pipe\my_pipe_name?k=Yada`
+/// - `tcp://127.0.0.1:12345?k=Yada`
+```
+
+and `get_connection_scheme()` says `"unix", "named-pipe", or "tcp"`. But
+`ipc_keystore/raw_ipc.rs` only handles `"unix"` and `"named-pipe"` — there is no
+`TcpListener` anywhere in the crate. Worse, `config::get_connection_path()`
+would **panic** on a tcp URL, since it calls
+`url.to_file_path().expect("The connection url is invalid …")`.
+
+This matters because loopback TCP is the natural escape hatch from SUN_LEN on
+iOS, and the docs suggest it already exists.
+
+Ask: implement tcp loopback binding, or remove it from the docs. If
+implemented, note that a loopback listener on iOS may trip the local-network
+privacy prompt, so it is a weaker fix than (A).
+
+### C. lair — the generated default `connection_url` is unusable on iOS
+
+*Repo: holochain/lair. Lower priority; fixing (A) makes this cosmetic.*
+
+`LairServerConfigInner::new()` unconditionally derives
+`unix://<canonicalize(root_path)>/socket`, with no length validation. On iOS
+this silently produces a config that can never bind, and canonicalization adds
+a further 8 bytes (`/var` → `/private/var`). Embedders only discover this at
+runtime, as an opaque `InvalidInput` from deep inside a bind call.
+
+Note there *is* an escape hatch today, and it is worth documenting either way:
+`LairServerConfigInner`'s fields are `pub`, `from_bytes` is `pub`, and
+holochain's `get_config` reads an existing `lair-keystore-config.yaml` verbatim
+before falling back to generating one. So an embedder can pre-write a config
+with a short `connection_url` and a container-resident `store_file`. That works
+but every embedder has to rediscover it.
+
+Ask: validate the socket path length in `new()` and fail with a message that
+names the problem, and/or document the split-config escape hatch.
+
 ## Next steps
 
-1. **Fix the lair socket path (§4.0).** This gates everything else on iOS —
-   device builds included, since `/tmp` is not writable there. Most likely an
-   upstream lair/holochain change, or a `crates/runtime` API that separates the
-   lair root from the conductor data root.
-2. **Device build (§4.2)** once (1) is done and a developer team is available —
-   the only way to test iroh QUIC and LAN discovery.
+1. **File issue (A)** against holochain — a socket-free in-proc keystore. This
+   gates everything else on iOS; both current `data_dir()` arms are probes, not
+   fixes. (B) and (C) against lair are worth filing but secondary.
+2. **Device build (§4.2)** — signing setup is documented and the code arms are
+   in place, but nothing has run on hardware. This is the only way to test iroh
+   QUIC and LAN discovery, and it will also tell us whether the ~10 bytes of
+   SUN_LEN headroom in the device arm actually holds.
 3. **CI job (Phase 5)** to protect what now works.
 
 ## Open questions
