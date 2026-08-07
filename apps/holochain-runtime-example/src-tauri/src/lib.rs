@@ -12,9 +12,7 @@ use std::error::Error;
 use std::path::PathBuf;
 
 use holochain::prelude::{AppBundleSource, InstallAppPayload};
-// `Manager` brings `app.path()` into scope — needed by every mobile arm of
-// `data_dir` except the iOS simulator, which uses a fixed absolute path.
-#[cfg(all(mobile, not(all(target_os = "ios", target_abi = "sim"))))]
+#[cfg(mobile)]
 use tauri::Manager;
 use tauri::{AppHandle, Listener};
 use tauri_plugin_holochain::{
@@ -26,64 +24,27 @@ const APP_ID: &str = "forum";
 const HAPP_BUNDLE: &[u8] = include_bytes!("../../../../crates/runtime/fixtures/forum.happ");
 
 /// Desktop keeps the historical throwaway temp dir (the integration test relies
-/// on a fresh conductor per run); Android uses the per-app data dir. iOS cannot
-/// use its app data dir at all — see below.
+/// on a fresh conductor per run); mobile uses the per-app data dir.
+///
+/// iOS needed two extra arms until holochain's in-process keystore stopped
+/// binding a unix socket: an iOS app container path is far longer than the
+/// ~104-byte AF_UNIX limit (158 B for this directory on device, 236 B in the
+/// simulator), so the conductor could not boot from here at all. With the
+/// socket gone the path length is irrelevant again and mobile is uniform.
+/// Requires the `holochain_keystore` patch in the workspace Cargo.toml — see
+/// docs/ios-test-build-plan.md §4.0.
 fn data_dir(app: &AppHandle) -> PathBuf {
     #[cfg(desktop)]
     {
         let _ = app;
         std::env::temp_dir().join("holochain-runtime-example")
     }
-    #[cfg(target_os = "android")]
+    #[cfg(mobile)]
     {
         app.path()
             .app_data_dir()
             .expect("no app data dir on this platform")
             .join("holochain")
-    }
-    // iOS has a hard path-length budget the other platforms don't.
-    //
-    // Holochain's "in-process" lair keystore is really a StandaloneServer bound
-    // to a unix domain socket at `<data_root>/socket`, and AF_UNIX paths are
-    // capped at ~104 bytes (SUN_LEN). Lair also canonicalizes the root, and on
-    // iOS `/var` -> `/private/var` costs another 8 bytes. Budget for the
-    // socket, measured with a real 36-char container UUID:
-    //
-    //   device    <container>/hc/socket                                 94 B  ok
-    //   device    <container>/Documents/hc/socket                      104 B  fails
-    //   device    app_data_dir()/holochain/socket                      158 B  fails
-    //   simulator <container>/hc/socket                                172 B  fails
-    //
-    // So on device nothing with the bundle id in it fits (the id alone is 28
-    // bytes) and `app_data_dir()` is hopeless; the container root plus a
-    // 2-char subdir clears it with ~10 bytes to spare. In the simulator the
-    // container is 162 bytes on its own, so nothing under it can ever work —
-    // but simulator apps can write outside their container, so use a short
-    // absolute path there.
-    //
-    // Note the inversion, which is easy to misread: the *simulator* is the
-    // more artificial arm. It runs only by escaping its sandbox, which a real
-    // device forbids; the device has the stricter sandbox but the shorter
-    // path, and is the one that can stay inside the container. A green
-    // simulator run is not evidence about a device.
-    //
-    // Neither arm is shippable. 10 bytes of headroom is not a design, and the
-    // simulator arm leaves data unsandboxed and unbacked-up. The real fix is
-    // upstream — holochain already has a socket-free in-proc keystore path it
-    // chooses not to use here. See docs/ios-test-build-plan.md §4.0.
-    //
-    // UNTESTED on a physical device: no signing team was available.
-    #[cfg(all(target_os = "ios", not(target_abi = "sim")))]
-    {
-        app.path()
-            .home_dir()
-            .expect("no home dir on iOS")
-            .join("hc")
-    }
-    #[cfg(all(target_os = "ios", target_abi = "sim"))]
-    {
-        let _ = app;
-        PathBuf::from("/tmp/hcex")
     }
 }
 

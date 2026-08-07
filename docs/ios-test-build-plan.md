@@ -33,14 +33,19 @@ Three things differed from the plan and are written up in the phases below:
 2. The C/toolchain deps were a **non-issue** (§2) — the opposite of the Android
    experience. The real Phase 3 blocker was a **missing
    `SystemConfiguration.framework`** in the generated Xcode project (§3).
-3. lair's keystore socket exceeds the AF_UNIX path limit under
-   `app_data_dir()` on both iOS targets (§4.0) — the one finding that still
-   needs a real fix. Note the simulator and a device fail *differently*: a
-   device container is ~78 bytes shorter, so a short in-container path fits
-   there, while in the simulator nothing under the container ever fits and the
-   only reason it runs at all is that simulator apps can write outside their
-   sandbox. Do not read the working simulator build as evidence about a
-   device.
+3. lair's keystore socket exceeded the AF_UNIX path limit under
+   `app_data_dir()` on both iOS targets (§4.0). **Now fixed upstream-style**:
+   holochain's "in-process" keystore no longer binds a socket, so the path
+   length is irrelevant and the conductor boots from the conventional data
+   dir. Both iOS `data_dir()` workarounds are gone and mobile is one uniform
+   arm again.
+
+> ⚠️ **This branch no longer builds standalone.** The workspace `Cargo.toml`
+> carries a `[patch.crates-io]` block pointing at a sibling `../holochain`
+> checkout on branch `ios-inproc-keystore`. Without that checkout, `cargo`
+> fails to resolve. This is deliberate and temporary — it must not merge to
+> `main` until the keystore change is upstream and released. See "Upstream
+> issues to file → A".
 
 Environment used: macOS 26 (Darwin 25.5.0, arm64), Xcode 26.6 (iOS SDK 26.5),
 rustup toolchain 1.95.0, Node/pnpm from Homebrew, tauri-cli 2.5.0. No nix.
@@ -247,7 +252,12 @@ Mac prerequisites, as predicted: full Xcode (not just CLT), Homebrew,
 
 ## Phase 4 — run and validate
 
-### 4.0. Blocker: lair's keystore socket vs. the AF_UNIX path limit
+### 4.0. Blocker: lair's keystore socket vs. the AF_UNIX path limit — RESOLVED
+
+*Kept in full because the analysis explains why the fix is what it is. The
+outcome: holochain's in-proc keystore no longer binds a socket, the workarounds
+below were deleted, and the conductor boots from `app_data_dir()`. See
+"Upstream issues to file → A" for the patch and its proof.*
 
 The conductor could not boot anywhere under the iOS app container:
 
@@ -291,18 +301,16 @@ real device does not permit. The device, with its stricter sandbox but shorter
 paths, is the one that can plausibly stay inside the container. So a green
 simulator run says nothing about a device, in either direction.
 
-Test-build workaround (in `apps/holochain-runtime-example/src-tauri/src/lib.rs`,
-commented there): the simulator escapes to `/tmp/hcex`, the device arm stays in
-the container at `home_dir()/hc` (94 B, untested — §4.2).
+The workarounds this originally shipped — `/tmp/hcex` in the simulator and
+`home_dir()/hc` on device — have been **deleted**. Neither was shippable: the
+first writes outside the sandbox, the second had ~10 bytes of headroom and was
+forced to put conductor data at the container root rather than in `Application
+Support`, losing conventional backup semantics.
 
-Neither is shippable, for different reasons. The simulator arm writes outside
-the sandbox, which is meaningless for a real app. The device arm has ~10 bytes
-of headroom and is forced to put conductor data at the *container root* rather
-than in `Application Support` — so it gets no conventional backup semantics, an
-unconventional layout, and it breaks the moment anything longer appears in the
-path. That last point is the real argument for fixing this upstream rather than
-tuning the path: the constraint is not "our directory name is too long", it is
-that a whole class of correct locations is unreachable.
+That last point was the real argument for fixing it upstream rather than tuning
+the path: the constraint was never "our directory name is too long", it was
+that a whole class of correct locations was unreachable. `data_dir()` is now a
+single `#[cfg(mobile)]` arm using `app_data_dir()`, same as Android.
 
 **The socket is avoidable, and that is the real story.** lair ships a genuinely
 socket-free in-process server — `InProcKeystore` (`in_proc_keystore.rs`) wires
@@ -371,10 +379,10 @@ provisioning profiles, and no Xcode account. Two changes were made in advance
 so a device build is a signing exercise and not a code change — **both are
 untested on hardware**:
 
-- `data_dir()` has a device arm using `home_dir()/hc` (the app container root,
-  ~94 B with the socket) instead of the simulator's `/tmp/hcex`, selected with
-  `cfg(target_abi = "sim")`. See §4.0 for the byte budget. It clears SUN_LEN by
-  only ~10 bytes, so treat it as a probe, not a fix.
+- `data_dir()` needs no device-specific arm at all any more. The socket is
+  gone (§4.0), so a device uses the same `app_data_dir()` as Android and the
+  simulator, with no path-length constraint to satisfy. This removed the whole
+  `target_abi = "sim"` split and the ~10-byte headroom risk that came with it.
 - `NSLocalNetworkUsageDescription` added to `project.yml`'s Info.plist
   properties — iOS kills rather than prompts an app that touches the local
   network without a usage string. Like the `SystemConfiguration` line, it is
@@ -453,6 +461,14 @@ All line references are against `holochain 0.7.0`, `holochain_keystore 0.7.0`,
 
 *Repo: holochain/holochain. This is the one that actually blocks iOS.*
 
+> **Fixed and proven locally.** A patch exists on branch `ios-inproc-keystore`
+> in a sibling `../holochain` checkout (cut from the `holochain-0.7.0` tag),
+> wired in through `[patch.crates-io]` in the workspace `Cargo.toml`. With it,
+> the conductor boots from the standard `app_data_dir()` — a 229-byte root
+> whose socket would have been 236 B — and completes a zome call and signal on
+> the simulator, with no socket created. Both iOS `data_dir()` workarounds were
+> deleted as a result; mobile is one uniform arm again. See "Proof" below.
+
 `holochain_keystore::lair_keystore::spawn_lair_keystore_in_proc` builds a
 `StandaloneServer`, which binds an AF_UNIX socket at `<data_root>/socket`
 (`lair_keystore_api::ipc_keystore::raw_ipc` →
@@ -475,10 +491,60 @@ for a persistent keystore is the store factory:
 which is a public re-export and is exactly what `StandaloneServer::run` calls
 internally.
 
-Ask: offer a socket-free in-proc keystore (either as the default for
-`KeystoreConfig::LairServerInProc`, or as a new variant / flag). The stated
-reason for the current choice — "so we get the pid-checks, etc" — has no value
-inside a single sandboxed mobile app, and on iOS it is fatal.
+Ask: offer a socket-free in-proc keystore. The patch below does it
+unconditionally, since nothing depended on the socket.
+
+**Proof (branch `ios-inproc-keystore`, one file,
+`crates/holochain_keystore/src/lair_keystore.rs`).** Replace the
+`StandaloneServer` + connect-back-over-IPC dance with:
+
+```rust
+// same guard StandaloneServer::new applies, kept verbatim
+tokio::task::spawn_blocking(move || ::lair_keystore::pid_check::pid_check(&config))
+    .await.map_err(one_err::OneErr::new)??;
+
+// the same persistent sqlcipher store StandaloneServer would have built
+let store_factory = ::lair_keystore::create_sql_pool_factory(
+    &config.store_file, &config.database_salt);
+
+let keystore = InProcKeystore::new(config, store_factory, passphrase).await?;
+let client = keystore.new_client().await?;
+std::mem::forget(keystore);          // mirrors the existing mem::forget(server)
+
+let (s, _) = tokio::sync::mpsc::unbounded_channel();
+Ok(MetaLairClient(Arc::new(parking_lot::Mutex::new(client)), s))
+```
+
+Note the pid-check is **retained** — `pid_check` is public and callable
+directly, so the only behaviour dropped is the socket. That matters for
+desktop, where two conductors sharing a lair root is a real scenario; the
+earlier framing ("pid-checks have no value") was too glib, and it costs
+nothing to keep them.
+
+Compatibility: `connection_url` is still read for the server identity key, so
+existing lair configs work untouched. The only visible change on disk is that
+no `socket` file appears; `pid_file`, `store_file` and the databases are
+unchanged.
+
+Results on an iPhone 17 Pro simulator (iOS 26.5), conductor rooted at the
+standard `app_data_dir()` (229 B; its socket would have been 236 B):
+
+```
+[ui] zome:   OK — get_all_posts returned 0 record(s) — zome call + signing OK
+[ui] create: OK — create_post OK
+[ui] signal: OK — received — type=app zome=posts
+
+$ ls "<container>/Library/Application Support/org.holochain.runtimeexample/holochain"
+databases  lair-keystore-config.yaml  pid_file  store_file  store_file-shm  store_file-wal
+                                      ^^^^^^^^ kept          no `socket` — this is the fix
+```
+
+0 SUN_LEN errors; 6/6 `tauri-plugin-holochain` desktop tests still pass.
+
+Caveats for the real PR: this was cut from the `holochain-0.7.0` tag so it
+could be `[patch.crates-io]`'d into this 0.7.0 workspace, and needs
+forward-porting to `develop` (0.8.0-dev) to be submitted. It has not been run
+on a physical iOS device, on Android, or against holochain's own test suite.
 
 ### B. lair — `tcp://` connection URLs are documented but not implemented
 
@@ -527,14 +593,18 @@ names the problem, and/or document the split-config escape hatch.
 
 ## Next steps
 
-1. **File issue (A)** against holochain — a socket-free in-proc keystore. This
-   gates everything else on iOS; both current `data_dir()` arms are probes, not
-   fixes. (B) and (C) against lair are worth filing but secondary.
-2. **Device build (§4.2)** — signing setup is documented and the code arms are
-   in place, but nothing has run on hardware. This is the only way to test iroh
-   QUIC and LAN discovery, and it will also tell us whether the ~10 bytes of
-   SUN_LEN headroom in the device arm actually holds.
-3. **CI job (Phase 5)** to protect what now works.
+1. **Upstream the keystore fix (issue A).** It is written and proven locally on
+   `../holochain` branch `ios-inproc-keystore`, but cut from the
+   `holochain-0.7.0` tag; it needs forward-porting to `develop` (0.8.0-dev) and
+   running against holochain's own test suite before it can be submitted. Until
+   it lands and ships in a release, **this branch cannot merge to `main`** —
+   the `[patch.crates-io]` block makes the workspace unbuildable without a
+   sibling `../holochain` checkout.
+2. **Device build (§4.2)** — signing setup is documented; nothing has run on
+   hardware. The only way to test iroh QUIC and LAN discovery.
+3. **File (B) and (C)** against lair. Secondary now that (A) is solved: (C)
+   becomes cosmetic and (B) stops mattering for this use case.
+4. **CI job (Phase 5)** to protect what now works.
 
 ## Open questions
 
