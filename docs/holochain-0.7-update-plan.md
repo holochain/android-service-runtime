@@ -73,7 +73,10 @@ Goal: `holochain-runtime-example` (desktop Tauri app embedding
    - `cargo test -p tauri-plugin-holochain` — integration tests cover boot,
      app setup, direct-IPC admin/app calls, signals, and window rebind.
    - `pnpm run test:example` — builds the desktop example against the plugin.
-   - Manual smoke: `pnpm run start:example` in the dev shell (webkit pin).
+   - Manual smoke: `pnpm run start:example` in the dev shell (webkitgtk 2.52
+     with a host-first EGL vendor list on non-NixOS hosts — the host's native
+     drivers are tried first, nixpkgs Mesa is the last resort, which drives
+     AMD/Intel GPUs in hardware and falls back to software only on NVIDIA).
 3. **CI validation.**
    - DONE — `make integration-test` now also runs
      `cargo test -p tauri-plugin-holochain` and `pnpm run test:example`, so
