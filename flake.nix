@@ -9,14 +9,6 @@
   inputs = {
     holonix.url = "github:holochain/holonix/main-0.7";
 
-    # webkitgtk pin for the desktop dev shell. holonix's nixpkgs ships webkitgtk
-    # 2.52.x, which aborts with "Could not create default EGL display:
-    # EGL_BAD_PARAMETER" and renders a blank Tauri webview on non-NixOS GPUs during
-    # `tauri dev`. This nixpkgs rev provides webkitgtk 2.42.5, which renders
-    # correctly. Dev-shell only: production bundles link the system/CI webkit, not
-    # this.
-    webkitnixpkgs.url = "github:nixos/nixpkgs/ed4db9c6c75079ff3570a9e3eb6806c8f692dc26";
-
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
     rust-overlay.follows = "holonix/rust-overlay";
@@ -64,15 +56,9 @@
           androidHome = "${androidSdk}/libexec/android-sdk";
           ndkHome = "${androidHome}/ndk/${ndkVersion}";
 
-          # GTK/webkit stack from the pinned (older, working) nixpkgs — see the
-          # `webkitnixpkgs` input comment. Sourced here rather than from `pkgs` so
-          # `tauri dev` renders instead of aborting on EGL.
-          webkitPkgs = inputs.webkitnixpkgs.legacyPackages.${system};
-
           # System libraries to build/run a Tauri v2 desktop app on Linux. Needed
           # for the desktop-first unified plugin work; harmless for Android builds.
-          # The GTK/webkit libs come from webkitPkgs (2.42.5); openssl from pkgs.
-          tauriDeps = (with webkitPkgs; [
+          tauriDeps = with pkgs; [
             webkitgtk_4_1
             gtk3
             gdk-pixbuf
@@ -81,7 +67,8 @@
             librsvg
             libsoup_3
             dbus
-          ]) ++ (with pkgs; [ openssl ]);
+            openssl
+          ];
         in
         {
           devShells.default = pkgs.mkShell {
@@ -103,14 +90,9 @@
               jdk17 # Gradle
               pkg-config
               binaryen # wasm-opt, for building hApp/zome wasm
-            ]) ++ (with webkitPkgs; [
               shared-mime-info
               gsettings-desktop-schemas
             ]);
-
-            # GTK app wrapper hook: wires GSETTINGS / GIO / GDK-pixbuf / XDG paths at
-            # shell entry so the webview finds its resources.
-            nativeBuildInputs = [ webkitPkgs.wrapGAppsHook ];
 
             # Libraries to compile/link against (exposed via pkg-config).
             buildInputs = tauriDeps;
@@ -132,16 +114,26 @@
               export HOST_CXX=g++
               export HOST_AR=ar
 
-              # GTK/webkit runtime so `tauri dev` renders (see the webkitnixpkgs input).
-              export GIO_MODULE_DIR=${webkitPkgs.glib-networking}/lib/gio/modules/
-              export GIO_EXTRA_MODULES=${webkitPkgs.glib-networking}/lib/gio/modules
-              # Force software compositing by default so the webview renders on finicky
-              # GPUs/drivers. Set ENABLE_WEBKIT_COMPOSITING=1 before `nix develop` to
-              # keep hardware-accelerated compositing instead.
-              if [ -z "$ENABLE_WEBKIT_COMPOSITING" ]; then
-                export WEBKIT_DISABLE_COMPOSITING_MODE=1
+              # TLS for the nix webkit (glib-networking's GIO module). Additive on
+              # purpose: GIO_MODULE_DIR would override the module search path for
+              # every GLib app launched from this shell.
+              export GIO_EXTRA_MODULES=${pkgs.glib-networking}/lib/gio/modules
+              # webkitgtk >= 2.44 requires a working EGL display in its web process
+              # (DMA-BUF renderer + Skia) and aborts with EGL_BAD_PARAMETER without
+              # one. nixpkgs' libglvnd only searches /run/opengl-driver for EGL
+              # vendor drivers — a NixOS-only path — so on other distros the nix
+              # dev shell finds no GPU driver and the webview dies blank. Supply a
+              # vendor list: the host's native drivers first (host binaries run
+              # from this shell behave exactly as outside it), then nixpkgs Mesa,
+              # which nix-linked binaries fall back to (llvmpipe here on NVIDIA;
+              # can drive AMD/Intel GPUs directly) after failing to dlopen the
+              # host's driver. NixOS hosts skip this and keep /run/opengl-driver.
+              if [ ! -e /run/opengl-driver ] && [ -z "$__EGL_VENDOR_LIBRARY_FILENAMES" ] && [ -z "$__EGL_VENDOR_LIBRARY_DIRS" ]; then
+                export __EGL_VENDOR_LIBRARY_DIRS=/etc/glvnd/egl_vendor.d:/usr/share/glvnd/egl_vendor.d:${pkgs.mesa}/share/glvnd/egl_vendor.d
               fi
-              export XDG_DATA_DIRS=${webkitPkgs.shared-mime-info}/share:${webkitPkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${webkitPkgs.gsettings-desktop-schemas.name}:${webkitPkgs.gtk3}/share/gsettings-schemas/${webkitPkgs.gtk3.name}:$XDG_DATA_DIRS
+              # GTK schema lookup for the nix webkit; GSETTINGS_SCHEMAS_PATH is
+              # filled by the glib setup hook from the schemas in `packages`.
+              export XDG_DATA_DIRS=$GSETTINGS_SCHEMAS_PATH:$XDG_DATA_DIRS
 
               # Visual cue that you are inside the dev shell.
               export PS1='\[\033[1;35m\][asr-dev:\w]\$\[\033[0m\] '

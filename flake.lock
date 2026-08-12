@@ -172,8 +172,7 @@
         "rust-overlay": [
           "holonix",
           "rust-overlay"
-        ],
-        "webkitnixpkgs": "webkitnixpkgs"
+        ]
       }
     },
     "rust-overlay": {
@@ -194,22 +193,6 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
-    "webkitnixpkgs": {
-      "locked": {
-        "lastModified": 1709246466,
-        "narHash": "sha256-jN8Y5Zv2tNUKIGuSqhm8yIMn2x6jhMQvNwKYduvKxjU=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "ed4db9c6c75079ff3570a9e3eb6806c8f692dc26",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "ed4db9c6c75079ff3570a9e3eb6806c8f692dc26",
         "type": "github"
       }
     }
