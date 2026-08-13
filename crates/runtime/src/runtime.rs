@@ -329,13 +329,15 @@ impl Runtime {
     }
 
     pub async fn install_app(&self, payload: InstallAppPayload) -> RuntimeResult<AppInfo> {
-        let response = self
-            .req_admin_api(AdminRequest::InstallApp(Box::new(payload)))
-            .await?;
-        match response {
-            AdminResponse::AppInstalled(app_info) => Ok(app_info),
-            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
-        }
+        // Direct rather than through `AdminInterfaceApi::handle_request`, which
+        // flattens `ConductorError` into a print-only
+        // `ExternalApiWireError::InternalError(String)` (holochain TODO B-01506).
+        // Going direct also skips its `check_running` guard and its `AppInfo`
+        // assembly, so both happen here.
+        self.conductor.check_running()?;
+        let app = self.conductor.clone().install_app_bundle(payload).await?;
+        let dna_definitions = self.conductor.get_dna_definitions(&app).await?;
+        Ok(AppInfo::from_installed_app(&app, &dna_definitions))
     }
 
     pub async fn uninstall_app(&self, installed_app_id: String) -> RuntimeResult<()> {
@@ -851,7 +853,7 @@ impl Runtime {
 
 #[cfg(test)]
 mod test {
-    use crate::RuntimeNetworkConfig;
+    use crate::{ConductorError, RuntimeNetworkConfig};
 
     use super::*;
     use holochain::conductor::api::CellInfo::Provisioned;
@@ -1007,6 +1009,39 @@ mod test {
 
         let apps = runtime.list_apps().await.unwrap();
         assert_eq!(apps.len(), 1);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_install_app_already_installed() {
+        let tmp = TempDir::new().unwrap();
+        let runtime = boot_runtime(&tmp, None).await;
+
+        let original = install_happ_fixture(runtime.clone(), "my-app-1").await;
+
+        let err = runtime
+            .install_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
+                agent_key: None,
+                installed_app_id: Some("my-app-1".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+                restore_from_dht: false,
+            })
+            .await
+            .expect_err("re-installing an existing app id must fail");
+
+        assert!(
+            matches!(&err, RuntimeError::Conductor(ce)
+                if matches!(&**ce, ConductorError::AppAlreadyInstalled(id) if id == "my-app-1")),
+            "expected RuntimeError::Conductor(ConductorError::AppAlreadyInstalled(\"my-app-1\")), got: {err:?}"
+        );
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 1);
+        assert_eq!(apps[0].installed_app_id, original.installed_app_id);
+        assert_eq!(apps[0].agent_pub_key, original.agent_pub_key);
+        assert_eq!(apps[0].cell_info, original.cell_info);
     }
 
     #[tokio::test(flavor = "multi_thread")]
