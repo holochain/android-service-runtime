@@ -1,5 +1,6 @@
 # Unreleased
 
+- `Runtime::install_app` preserves the typed `ConductorError` (as `RuntimeError::Conductor`) instead of flattening it to a string.
 - Bump to holochain 0.6.3.
 - In-place window rebind: `HolochainPlugin::rebind_window` moves a webview window between installed apps (or to app-less) without recreating the OS window, emitting `holochain://rebound` so the injected env re-points `@holochain/client` to the new app. A failed rebind keeps the prior binding (no half-rebind), destroyed windows are pruned (routing + signal forwarder), and a monotonic `seq` keeps the rebound event order-safe.
 - The 'Open Settings' button will first attempt to open the android-service-runtime app via the system settings (i.e. for 'system' builds). If that fails it will fallback to opening the app via the launcher (i.e. for 'user' builds).
