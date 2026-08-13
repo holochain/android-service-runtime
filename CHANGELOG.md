@@ -1,5 +1,6 @@
 # Unreleased
 
+- `Runtime::install_app` preserves the typed `ConductorError` (as `RuntimeError::Conductor`) instead of flattening it to a string.
 - Bump to holochain 0.7.0. New conductor types are carried across the FFI: `AppStatusFfi` gains `AwaitingRestore` and `Unrecoverable` (cell id + rendered reason); `InstallAppPayload.restore_from_dht` and `RoleSettings::Provisioned.init_properties` are not exposed over FFI yet (always `false`/`None`).
 - BREAKING: `RuntimeNetworkConfig` / `RuntimeNetworkConfigFfi` lose `signal_url` and `ice_urls` — holochain 0.7 dropped the tx5/WebRTC transport in favor of iroh, so the conductor `NetworkConfig` no longer carries them. Only `bootstrap_url` and `relay_url` remain.
 - The forum test fixture is repacked with hdk 0.7.0 / hdi 0.8.0 (the 0.7 `Action`/`ActionData` restructure required porting the coordinator zome's signal emission).

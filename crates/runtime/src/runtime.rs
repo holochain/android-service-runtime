@@ -329,13 +329,20 @@ impl Runtime {
     }
 
     pub async fn install_app(&self, payload: InstallAppPayload) -> RuntimeResult<AppInfo> {
-        let response = self
-            .req_admin_api(AdminRequest::InstallApp(Box::new(payload)))
-            .await?;
-        match response {
-            AdminResponse::AppInstalled(app_info) => Ok(app_info),
-            fail => Err(RuntimeError::AdminApiBadResponse(Box::new(fail))),
-        }
+        // Install against the conductor handle directly rather than through
+        // `AdminInterfaceApi::handle_request`, which flattens every error into a
+        // print-only `ExternalApiWireError::InternalError(String)` (holochain TODO
+        // B-01506). Going direct preserves the typed `ConductorError` — surfaced as
+        // `RuntimeError::Conductor` — so callers can match on the actual failure
+        // instead of grepping a Debug string. We lose `handle_request`'s implicit
+        // `check_running` guard, so run it here for fast-fail + parity with the
+        // sibling `req_admin_api` calls.
+        self.conductor.check_running()?;
+        let app = self.conductor.clone().install_app_bundle(payload).await?;
+        // Mirror the conductor's admin `InstallApp` handler: resolve the app's DNA
+        // definitions and build the same `AppInfo` it would have returned.
+        let dna_definitions = self.conductor.get_dna_definitions(&app).await?;
+        Ok(AppInfo::from_installed_app(&app, &dna_definitions))
     }
 
     pub async fn uninstall_app(&self, installed_app_id: String) -> RuntimeResult<()> {
@@ -851,7 +858,7 @@ impl Runtime {
 
 #[cfg(test)]
 mod test {
-    use crate::RuntimeNetworkConfig;
+    use crate::{ConductorError, RuntimeNetworkConfig};
 
     use super::*;
     use holochain::conductor::api::CellInfo::Provisioned;
@@ -1007,6 +1014,57 @@ mod test {
 
         let apps = runtime.list_apps().await.unwrap();
         assert_eq!(apps.len(), 1);
+    }
+
+    /// Re-installing an already-present `installed_app_id` surfaces the conductor's
+    /// own typed `ConductorError::AppAlreadyInstalled` (carrying the app id) through
+    /// `RuntimeError::Conductor` — so a consumer can detect the benign case with a
+    /// `matches!` instead of a `format!("{e:?}").contains(..)` Debug-string grep.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_install_app_already_installed() {
+        let tmp_dir = TempDir::new().unwrap();
+        let runtime = Runtime::new(
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
+            RuntimeConfig {
+                data_root_path: tmp_dir.path().into(),
+                network: RuntimeNetworkConfig::default(),
+            },
+        )
+        .await
+        .unwrap();
+
+        // First install of this id succeeds.
+        let original = install_happ_fixture(runtime.clone(), "my-app-1").await;
+
+        // Re-installing the same id fails with the typed conductor error. A fresh
+        // network_seed proves the conflict is keyed on the app id, not the bundle.
+        let err = runtime
+            .install_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
+                agent_key: None,
+                installed_app_id: Some("my-app-1".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+                restore_from_dht: false,
+            })
+            .await
+            .expect_err("re-installing an existing app id must fail");
+
+        assert!(
+            matches!(&err, RuntimeError::Conductor(ce)
+                if matches!(&**ce, ConductorError::AppAlreadyInstalled(id) if id == "my-app-1")),
+            "expected RuntimeError::Conductor(ConductorError::AppAlreadyInstalled(\"my-app-1\")), got: {err:?}"
+        );
+
+        // The failed re-install left the original app untouched — not just the same
+        // count, but the same agent key and cells. Had the fresh-seed re-install
+        // wrongly replaced it, the surviving app's provisioned DNA hash would differ.
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 1);
+        assert_eq!(apps[0].installed_app_id, original.installed_app_id);
+        assert_eq!(apps[0].agent_pub_key, original.agent_pub_key);
+        assert_eq!(apps[0].cell_info, original.cell_info);
     }
 
     #[tokio::test(flavor = "multi_thread")]

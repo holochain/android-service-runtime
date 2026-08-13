@@ -19,6 +19,11 @@ pub use error::{Error, Result};
 // Re-export the native config type consumers build, and the runtime itself.
 pub use holochain::conductor::config::NetworkConfig;
 pub use holochain_conductor_runtime::Runtime;
+// The runtime's error type — and the conductor error it carries — so consumers
+// can match `Runtime` call results (e.g. `RuntimeError::Conductor(ce)` holding a
+// `ConductorError::AppAlreadyInstalled`) without depending on the runtime crate
+// directly.
+pub use holochain_conductor_runtime::{ConductorError, RuntimeError};
 // hc-auth: re-export the module and its config/status types so consumers can
 // build a `HcAuthConfig` and read `HcAuthStatus` without depending on the
 // runtime crate directly.
