@@ -8,7 +8,6 @@
 //! app (Approach B).
 
 use std::collections::HashMap;
-use std::time::Duration;
 
 use holochain::conductor::api::CellInfo::Provisioned;
 use holochain::conductor::api::{AppRequest, AppResponse, ProvisionedCell};
@@ -17,43 +16,13 @@ use holochain::prelude::{
 };
 use holochain_types::prelude::{AppStatus, Link, Nonce256Bits, Timestamp};
 use tauri::test::{mock_builder, mock_context, noop_assets};
-use tauri_plugin_holochain::{
-    vec_to_locked, Error, HolochainExt, HolochainPluginConfig, NetworkConfig,
-};
+use tauri_plugin_holochain::test_support::{build_app, wait_for_ready};
+use tauri_plugin_holochain::{Error, HolochainExt, HolochainPluginConfig, NetworkConfig};
 use tempfile::TempDir;
 use uuid::Uuid;
 
 const HAPP_FIXTURE: &[u8] = include_bytes!("../../runtime/fixtures/forum.happ");
 const APP_ID: &str = "forum";
-
-/// Build a mock Tauri app with the plugin installed.
-fn build_app(tmp: &TempDir) -> tauri::App<tauri::test::MockRuntime> {
-    mock_builder()
-        .plugin(tauri_plugin_holochain::init(
-            vec_to_locked(vec![]),
-            HolochainPluginConfig::new(tmp.path().to_path_buf(), NetworkConfig::default()),
-        ))
-        .build(mock_context(noop_assets()))
-        .expect("failed to build mock tauri app")
-}
-
-/// Wait until the conductor has booted — i.e. the plugin's runtime is populated
-/// (it emits `holochain://ready` at that point). Gating on `holochain()` alone
-/// is not enough: the plugin handle is managed before the conductor boots (so
-/// `init_deferred` consumers can call `start`), so the readiness signal is the
-/// runtime, not the handle.
-async fn wait_for_ready<R: tauri::Runtime>(app: &tauri::App<R>) {
-    let mut waited = Duration::ZERO;
-    let step = Duration::from_millis(200);
-    while app.holochain().and_then(|p| p.try_runtime()).is_err() {
-        assert!(
-            waited < Duration::from_secs(60),
-            "conductor did not become ready within 60s"
-        );
-        tokio::time::sleep(step).await;
-        waited += step;
-    }
-}
 
 async fn install_and_enable_forum(
     runtime: &tauri_plugin_holochain::Runtime,
@@ -80,7 +49,7 @@ async fn install_and_enable_forum(
 #[test]
 fn plugin_boots_conductor_in_tauri_app() {
     let tmp = TempDir::new().unwrap();
-    let app = build_app(&tmp);
+    let app = build_app(tmp.path());
 
     // Everything runs on Tauri's async runtime (where the plugin spawned the
     // conductor boot), avoiding cross-runtime issues.
@@ -116,7 +85,7 @@ fn plugin_boots_conductor_in_tauri_app() {
 #[test]
 fn app_request_serves_app_api_in_process() {
     let tmp = TempDir::new().unwrap();
-    let app = build_app(&tmp);
+    let app = build_app(tmp.path());
 
     tauri::async_runtime::block_on(async move {
         wait_for_ready(&app).await;
@@ -188,7 +157,7 @@ fn app_request_serves_app_api_in_process() {
 #[test]
 fn rebind_window_reroutes_app_request_in_place() {
     let tmp = TempDir::new().unwrap();
-    let app = build_app(&tmp);
+    let app = build_app(tmp.path());
 
     tauri::async_runtime::block_on(async move {
         wait_for_ready(&app).await;

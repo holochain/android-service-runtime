@@ -9253,6 +9253,7 @@ dependencies = [
 name = "tauri-plugin-holochain"
 version = "0.2.2"
 dependencies = [
+ "base64 0.22.1",
  "holochain",
  "holochain-conductor-runtime",
  "holochain-conductor-runtime-types-ffi",
@@ -9263,6 +9264,7 @@ dependencies = [
  "sodoken",
  "tauri",
  "tauri-plugin",
+ "tauri-plugin-holochain",
  "tempfile",
  "thiserror 2.0.18",
  "tokio",

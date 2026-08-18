@@ -21,6 +21,10 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 log = { workspace = true }
 tokio = { workspace = true }
+base64 = { workspace = true }
+
+[features]
+test-utils = ["tauri/test"]
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
@@ -32,3 +36,5 @@ holochain_types = { workspace = true }
 tokio = { workspace = true }
 tempfile = { workspace = true }
 uuid = { workspace = true }
+# Self-dependency: what turns `test-utils` on for this crate's own test targets.
+tauri-plugin-holochain = { path = ".", features = ["test-utils"] }

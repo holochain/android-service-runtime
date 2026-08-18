@@ -14,6 +14,9 @@
 mod commands;
 mod error;
 
+#[cfg(any(test, feature = "test-utils"))]
+pub mod test_support;
+
 pub use error::{Error, Result};
 
 // Re-export the native config type consumers build, and the runtime itself.
@@ -507,6 +510,7 @@ fn plugin_builder<R: TauriRuntime>(
     Builder::new("holochain")
         .invoke_handler(tauri::generate_handler![
             commands::sign_zome_call,
+            commands::sign_payload,
             commands::app_request
         ])
         .setup(move |app, _api| {
