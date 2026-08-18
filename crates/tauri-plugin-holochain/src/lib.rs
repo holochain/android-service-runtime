@@ -511,6 +511,7 @@ fn plugin_builder<R: TauriRuntime>(
     Builder::new("holochain")
         .invoke_handler(tauri::generate_handler![
             commands::sign_zome_call,
+            commands::sign_payload,
             commands::app_request
         ])
         .setup(move |app, _api| {

@@ -21,6 +21,7 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 log = { workspace = true }
 tokio = { workspace = true }
+base64 = "0.22"
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }

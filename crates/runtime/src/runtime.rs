@@ -662,6 +662,43 @@ impl Runtime {
         })
     }
 
+    /// Sign arbitrary `payload` bytes with `agent_key`, returning the raw
+    /// 64-byte Ed25519 signature.
+    ///
+    /// General-purpose counterpart to [`Runtime::sign_zome_call`] (which signs
+    /// one fixed, structured payload): this signs whatever bytes the caller
+    /// supplies, for any protocol that needs proof of control over a
+    /// Holochain agent key.
+    ///
+    /// `agent_key` selects which identity signs. There is no default. A
+    /// single keystore can hold more than one signable identity at once (for
+    /// example [`Runtime::device_agent_key`] and, once hc-auth has run,
+    /// [`Runtime::hc_auth_agent_key`] are two distinct keys live in the same
+    /// keystore), and they are not interchangeable: a signature from the
+    /// wrong key is still a *valid* signature, just for the wrong identity,
+    /// so a caller that guesses wrong gets a confusing downstream rejection
+    /// rather than an error here. Callers must pass the exact key they mean.
+    ///
+    /// Fails with [`RuntimeError::Lair`] if the keystore does not hold the
+    /// private half of `agent_key` (a foreign key, or one whose public half
+    /// alone was imported) or the keystore is locked.
+    pub async fn sign_payload(
+        &self,
+        agent_key: AgentPubKey,
+        payload: Vec<u8>,
+    ) -> RuntimeResult<[u8; 64]> {
+        let mut pub_key_32 = [0u8; 32];
+        pub_key_32.copy_from_slice(agent_key.get_raw_32());
+        let signature = self
+            .conductor
+            .keystore()
+            .lair_client()
+            .sign_by_pub_key(pub_key_32.into(), None, Arc::from(payload.as_slice()))
+            .await
+            .map_err(RuntimeError::Lair)?;
+        Ok(*signature.0)
+    }
+
     pub async fn ensure_app_websocket(
         &self,
         installed_app_id: InstalledAppId,
@@ -1414,6 +1451,127 @@ mod test {
             })
             .await;
         assert!(res.is_ok())
+    }
+
+    /// A signature `sign_payload` returns must be a genuine Ed25519 signature
+    /// over exactly the given payload and key, not merely "no error". Verified
+    /// independently via `sodoken`'s pure-libsodium `verify_detached`, the same
+    /// primitive lair itself signs with, rather than trusting the signing path
+    /// to also grade its own output.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_payload_returns_a_verifiable_signature() {
+        let tmp_dir = TempDir::new().unwrap();
+        let runtime = Runtime::new(
+            Arc::new(Mutex::new(LockedArray::from(vec![0, 0, 0, 0]))),
+            RuntimeConfig {
+                data_root_path: tmp_dir.path().into(),
+                network: RuntimeNetworkConfig::default(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let agent_key = runtime.device_agent_key();
+        let payload = b"arbitrary payload bytes, not a zome call".to_vec();
+
+        let signature = runtime
+            .sign_payload(agent_key.clone(), payload.clone())
+            .await
+            .expect("signing with a key this keystore holds must succeed");
+
+        let mut pub_key_32 = [0u8; 32];
+        pub_key_32.copy_from_slice(agent_key.get_raw_32());
+        assert!(
+            sodoken::sign::verify_detached(&signature, &payload, &pub_key_32),
+            "returned signature must verify against the signing key and payload"
+        );
+    }
+
+    /// The signing key is exactly what the caller passes in, never a silent
+    /// default. Two distinct keys held by the *same* keystore, signing the
+    /// *same* payload, must produce two distinct signatures, each verifying
+    /// only against its own key. This is the trap the API is designed against:
+    /// a caller that means to sign with one identity must not be able to get a
+    /// signature that quietly verifies against a different one instead.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_payload_binds_the_signature_to_the_requested_key_not_a_default() {
+        let tmp = TempDir::new().unwrap();
+        let runtime = boot_runtime(&tmp, None).await;
+
+        let device_key = runtime.device_agent_key();
+        let other_key = runtime.import_key_seed([5u8; 32]).await.unwrap();
+        assert_ne!(device_key, other_key);
+
+        let payload = b"same payload, two identities".to_vec();
+        let sig_device = runtime
+            .sign_payload(device_key.clone(), payload.clone())
+            .await
+            .unwrap();
+        let sig_other = runtime
+            .sign_payload(other_key.clone(), payload.clone())
+            .await
+            .unwrap();
+
+        assert_ne!(
+            sig_device, sig_other,
+            "different keys signing the same payload must produce different signatures"
+        );
+
+        let mut device_pk = [0u8; 32];
+        device_pk.copy_from_slice(device_key.get_raw_32());
+        let mut other_pk = [0u8; 32];
+        other_pk.copy_from_slice(other_key.get_raw_32());
+
+        assert!(sodoken::sign::verify_detached(
+            &sig_device,
+            &payload,
+            &device_pk
+        ));
+        assert!(sodoken::sign::verify_detached(
+            &sig_other, &payload, &other_pk
+        ));
+        // Cross-check: neither signature verifies against the other identity's key.
+        assert!(!sodoken::sign::verify_detached(
+            &sig_device,
+            &payload,
+            &other_pk
+        ));
+        assert!(!sodoken::sign::verify_detached(
+            &sig_other, &payload, &device_pk
+        ));
+    }
+
+    /// Signing with a key from a *different* keystore (mirrors
+    /// `test_install_with_foreign_key_fails_genesis`) must fail clearly rather
+    /// than silently fabricate a signature: the private half simply is not
+    /// present in this runtime's lair.
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_payload_fails_when_the_key_is_not_in_this_keystore() {
+        let tmp1 = TempDir::new().unwrap();
+        let rt1 = boot_runtime(&tmp1, None).await;
+
+        let tmp2 = TempDir::new().unwrap();
+        let rt2 = boot_runtime(&tmp2, None).await;
+        let foreign_key = rt2.device_agent_key();
+        assert_ne!(foreign_key, rt1.device_agent_key());
+
+        let err = rt1
+            .sign_payload(foreign_key, b"payload".to_vec())
+            .await
+            .expect_err("signing with a key this keystore does not hold must fail");
+        assert!(
+            matches!(err, RuntimeError::Lair(_)),
+            "expected RuntimeError::Lair, got {err:?}"
+        );
+        // The Display must carry lair's own detail, not just the bare variant
+        // label. A caller (including the Tauri command's JSON error body)
+        // reads this string, and "Lair Error" alone can't distinguish a
+        // missing key from a locked keystore from any other lair failure.
+        let message = err.to_string();
+        assert!(
+            message.starts_with("Lair Error: ") && message.len() > "Lair Error: ".len(),
+            "expected the underlying lair error detail in the message, got: {message:?}"
+        );
     }
 
     #[tokio::test(flavor = "multi_thread")]
