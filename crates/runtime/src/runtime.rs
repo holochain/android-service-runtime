@@ -649,6 +649,26 @@ impl Runtime {
         })
     }
 
+    /// There is no default identity: one keystore can hold several signable keys,
+    /// and signing with the wrong one still yields a *valid* signature, just for
+    /// the wrong identity, so the caller must pass the exact key it means.
+    pub async fn sign_payload(
+        &self,
+        agent_key: AgentPubKey,
+        payload: Vec<u8>,
+    ) -> RuntimeResult<[u8; 64]> {
+        let mut pub_key_32 = [0u8; 32];
+        pub_key_32.copy_from_slice(agent_key.get_raw_32());
+        let signature = self
+            .conductor
+            .keystore()
+            .lair_client()
+            .sign_by_pub_key(pub_key_32.into(), None, Arc::from(payload.as_slice()))
+            .await
+            .map_err(RuntimeError::Lair)?;
+        Ok(*signature.0)
+    }
+
     pub async fn ensure_app_websocket(
         &self,
         installed_app_id: InstalledAppId,
@@ -1406,6 +1426,96 @@ mod test {
             })
             .await;
         assert!(res.is_ok())
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_payload_returns_a_verifiable_signature() {
+        let tmp = TempDir::new().unwrap();
+        let runtime = boot_runtime(&tmp, None).await;
+
+        let agent_key = runtime.device_agent_key();
+        let payload = b"arbitrary payload bytes, not a zome call".to_vec();
+
+        let signature = runtime
+            .sign_payload(agent_key.clone(), payload.clone())
+            .await
+            .expect("signing with a key this keystore holds must succeed");
+
+        let pub_key_32: [u8; 32] = agent_key.get_raw_32().try_into().unwrap();
+        assert!(
+            sodoken::sign::verify_detached(&signature, &payload, &pub_key_32),
+            "returned signature must verify against the signing key and payload"
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_payload_binds_the_signature_to_the_requested_key_not_a_default() {
+        let tmp = TempDir::new().unwrap();
+        let runtime = boot_runtime(&tmp, None).await;
+
+        let device_key = runtime.device_agent_key();
+        let other_key = runtime.import_key_seed([5u8; 32]).await.unwrap();
+        assert_ne!(device_key, other_key);
+
+        let payload = b"same payload, two identities".to_vec();
+        let sig_device = runtime
+            .sign_payload(device_key.clone(), payload.clone())
+            .await
+            .unwrap();
+        let sig_other = runtime
+            .sign_payload(other_key.clone(), payload.clone())
+            .await
+            .unwrap();
+
+        assert_ne!(
+            sig_device, sig_other,
+            "different keys signing the same payload must produce different signatures"
+        );
+
+        let device_pk: [u8; 32] = device_key.get_raw_32().try_into().unwrap();
+        let other_pk: [u8; 32] = other_key.get_raw_32().try_into().unwrap();
+
+        assert!(sodoken::sign::verify_detached(
+            &sig_device,
+            &payload,
+            &device_pk
+        ));
+        assert!(sodoken::sign::verify_detached(
+            &sig_other, &payload, &other_pk
+        ));
+        assert!(!sodoken::sign::verify_detached(
+            &sig_device,
+            &payload,
+            &other_pk
+        ));
+        assert!(!sodoken::sign::verify_detached(
+            &sig_other, &payload, &device_pk
+        ));
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_payload_fails_when_the_key_is_not_in_this_keystore() {
+        let tmp1 = TempDir::new().unwrap();
+        let rt1 = boot_runtime(&tmp1, None).await;
+
+        let tmp2 = TempDir::new().unwrap();
+        let rt2 = boot_runtime(&tmp2, None).await;
+        let foreign_key = rt2.device_agent_key();
+        assert_ne!(foreign_key, rt1.device_agent_key());
+
+        let err = rt1
+            .sign_payload(foreign_key, b"payload".to_vec())
+            .await
+            .expect_err("signing with a key this keystore does not hold must fail");
+        assert!(
+            matches!(err, RuntimeError::Lair(_)),
+            "expected RuntimeError::Lair, got {err:?}"
+        );
+        let message = err.to_string();
+        assert!(
+            message.starts_with("Lair Error: ") && message.len() > "Lair Error: ".len(),
+            "expected the underlying lair error detail in the message, got: {message:?}"
+        );
     }
 
     #[tokio::test(flavor = "multi_thread")]
