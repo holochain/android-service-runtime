@@ -8,7 +8,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum RuntimeError {
     #[error(transparent)]
-    Conductor(#[from] ConductorError),
+    Conductor(Box<ConductorError>),
 
     #[error("Conductor was never started")]
     ConductorNotStarted,
@@ -23,7 +23,7 @@ pub enum RuntimeError {
     AdminApiAppEnabled(Vec<(CellId, String)>),
 
     #[error("Admin Api Bad Response: {0:?}")]
-    AdminApiBadResponse(AdminResponse),
+    AdminApiBadResponse(Box<AdminResponse>),
 
     #[error("Move to Locked Memory Error")]
     MoveToLockedMem(OneErr),
@@ -33,6 +33,12 @@ pub enum RuntimeError {
 
     #[error("Lair Error")]
     Lair(OneErr),
+
+    #[error("hc-auth error: {0}")]
+    HcAuth(String),
+
+    #[error("agent seed error: {0}")]
+    AgentSeed(String),
 
     #[error("App Bundle Error")]
     AppBundle(#[from] AppBundleError),
@@ -45,6 +51,15 @@ pub enum RuntimeError {
 
     #[error("Failed to write persisted data to file: {0}")]
     PersistedFileWriteError(String),
+
+    #[error("Invalid Arguments: {0}")]
+    InvalidArguments(String),
+}
+
+impl From<ConductorError> for RuntimeError {
+    fn from(err: ConductorError) -> Self {
+        RuntimeError::Conductor(Box::new(err))
+    }
 }
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;

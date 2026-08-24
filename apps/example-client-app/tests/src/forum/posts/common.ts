@@ -9,7 +9,7 @@ import {
   NewEntryAction,
   Record,
 } from "@holochain/client";
-import { CallableCell } from "@holochain/tryorama";
+import { CallableCell } from "@holochain-open-dev/tryorama";
 
 export async function samplePost(cell: CallableCell, partialPost = {}) {
   return {

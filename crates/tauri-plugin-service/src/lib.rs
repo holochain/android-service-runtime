@@ -36,7 +36,7 @@ impl<R: Runtime, T: Manager<R>> crate::HolochainServiceExt<R> for T {
 
 /// Initialize the plugin, passing in the initial network config to apply to the runtime.
 ///
-/// Note that peers MUST have the same `bootstrap_url` and `signal_url` to communicate
+/// Note that peers MUST have the same `bootstrap_url` to communicate
 /// with each other.
 pub fn init<R: Runtime>(config: RuntimeNetworkConfigFfi) -> TauriPlugin<R> {
     Builder::new("holochain-service")

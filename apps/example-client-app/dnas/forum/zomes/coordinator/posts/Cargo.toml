@@ -10,4 +10,5 @@ name = "posts"
 [dependencies]
 hdk = { workspace = true }
 serde = { workspace = true }
+holochain_serialized_bytes = { workspace = true }
 posts_integrity = { workspace = true }

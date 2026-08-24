@@ -16,3 +16,4 @@ holochain_types = { workspace = true }
 uniffi = { workspace = true, features = ["tokio" ] }
 url2 = { workspace = true }
 serde = { workspace = true }
+bytes = "1.10.1"

@@ -4,6 +4,14 @@ packages:
   - apps/android-service-runtime
   - apps/example-client-app
   - apps/example-client-app/ui
+  - apps/holochain-runtime-example
   - '!**/android/**'
   - '!**/dist-js/**'
   - '!**/permissions/**'
+allowBuilds:
+  bufferutil: true
+  electron: true
+  es5-ext: true
+  esbuild: true
+minimumReleaseAgeExclude:
+  - '@holochain/client@0.21.0'

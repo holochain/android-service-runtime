@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">holochain-runtime-example</string>
+    <string name="main_activity_title">holochain-runtime-example</string>
+</resources>

@@ -8,8 +8,8 @@ import org.holochain.androidserviceruntime.client.AppAuthenticationTokenIssuedFf
 import org.holochain.androidserviceruntime.client.AppAuthenticationTokenIssuedFfiParcel
 import org.holochain.androidserviceruntime.client.AppInfoFfi
 import org.holochain.androidserviceruntime.client.AppInfoFfiParcel
-import org.holochain.androidserviceruntime.client.AppInfoStatusFfi
-import org.holochain.androidserviceruntime.client.AppInfoStatusFfiParcel
+import org.holochain.androidserviceruntime.client.AppStatusFfi
+import org.holochain.androidserviceruntime.client.AppStatusFfiParcel
 import org.holochain.androidserviceruntime.client.CellIdFfi
 import org.holochain.androidserviceruntime.client.CellIdFfiParcel
 import org.holochain.androidserviceruntime.client.CellInfoFfi
@@ -23,8 +23,6 @@ import org.holochain.androidserviceruntime.client.DnaModifiersFfiParcel
 import org.holochain.androidserviceruntime.client.DnaModifiersOptFfi
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfi
 import org.holochain.androidserviceruntime.client.InstallAppPayloadFfiParcel
-import org.holochain.androidserviceruntime.client.PausedAppReasonFfi
-import org.holochain.androidserviceruntime.client.PausedAppReasonFfiParcel
 import org.holochain.androidserviceruntime.client.ProvisionedCellFfi
 import org.holochain.androidserviceruntime.client.ProvisionedCellFfiParcel
 import org.holochain.androidserviceruntime.client.RoleSettingsFfi
@@ -155,7 +153,7 @@ class ParcelablesTest {
                                     ),
                                 ),
                         ),
-                    status = AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted),
+                    status = AppStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted),
                     agentPubKey = ByteArray(32) { Random.nextInt(256).toByte() },
                 ),
             )
@@ -201,7 +199,7 @@ class ParcelablesTest {
                 .properties,
         )
         assert(
-            (readValue.inner.status as AppInfoStatusFfi.Disabled).reason
+            (readValue.inner.status as AppStatusFfi.Disabled).reason
                 is DisabledAppReasonFfi.NeverStarted,
         )
         assertArrayEquals(value.inner.agentPubKey, readValue.inner.agentPubKey)
@@ -300,19 +298,6 @@ class ParcelablesTest {
     }
 
     @Test
-    fun testPausedAppReasonFfiParcel() {
-        val value = PausedAppReasonFfiParcel(PausedAppReasonFfi.Error("my error"))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcelableCreator<PausedAppReasonFfiParcel>().createFromParcel(parcel)
-
-        assert(readValue.inner is PausedAppReasonFfi.Error)
-        assertEquals((readValue.inner as PausedAppReasonFfi.Error).v1, "my error")
-    }
-
-    @Test
     fun testDisabledAppReasonFfiParcelNeverStarted() {
         val value = DisabledAppReasonFfiParcel(DisabledAppReasonFfi.NeverStarted)
 
@@ -338,71 +323,56 @@ class ParcelablesTest {
     }
 
     @Test
-    fun testAppInfoStatusFfiParcelRunning() {
-        val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.Running)
+    fun testAppStatusFfiParcelRunning() {
+        val value = AppStatusFfiParcel(AppStatusFfi.Running)
 
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
-        val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
+        val readValue = parcelableCreator<AppStatusFfiParcel>().createFromParcel(parcel)
 
-        assert(readValue.inner is AppInfoStatusFfi.Running)
+        assert(readValue.inner is AppStatusFfi.Running)
     }
 
     @Test
-    fun testAppInfoStatusFfiParcelAwaitingMemproofs() {
-        val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.AwaitingMemproofs)
+    fun testAppStatusFfiParcelAwaitingMemproofs() {
+        val value = AppStatusFfiParcel(AppStatusFfi.AwaitingMemproofs)
 
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
-        val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
+        val readValue = parcelableCreator<AppStatusFfiParcel>().createFromParcel(parcel)
 
-        assert(readValue.inner is AppInfoStatusFfi.AwaitingMemproofs)
+        assert(readValue.inner is AppStatusFfi.AwaitingMemproofs)
     }
 
     @Test
-    fun testAppInfoStatusFfiParcelPaused() {
-        val value =
-            AppInfoStatusFfiParcel(AppInfoStatusFfi.Paused(PausedAppReasonFfi.Error("my error")))
+    fun testAppStatusFfiParcelDisabledNeverStarted() {
+        val value = AppStatusFfiParcel(AppStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted))
 
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
-        val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
+        val readValue = parcelableCreator<AppStatusFfiParcel>().createFromParcel(parcel)
 
-        assert(readValue.inner is AppInfoStatusFfi.Paused)
-        assert((readValue.inner as AppInfoStatusFfi.Paused).reason is PausedAppReasonFfi.Error)
-        assertEquals((readValue.inner.reason as PausedAppReasonFfi.Error).v1, "my error")
-    }
-
-    @Test
-    fun testAppInfoStatusFfiParcelDisabledNeverStarted() {
-        val value = AppInfoStatusFfiParcel(AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted))
-
-        val parcel = Parcel.obtain()
-        value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
-        parcel.setDataPosition(0)
-        val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
-
-        assert(readValue.inner is AppInfoStatusFfi.Disabled)
+        assert(readValue.inner is AppStatusFfi.Disabled)
         assert(
-            (readValue.inner as AppInfoStatusFfi.Disabled).reason is DisabledAppReasonFfi.NeverStarted,
+            (readValue.inner as AppStatusFfi.Disabled).reason is DisabledAppReasonFfi.NeverStarted,
         )
     }
 
     @Test
-    fun testAppInfoStatusFfiParcelDisabledError() {
+    fun testAppStatusFfiParcelDisabledError() {
         val value =
-            AppInfoStatusFfiParcel(AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.Error("my error")))
+            AppStatusFfiParcel(AppStatusFfi.Disabled(DisabledAppReasonFfi.Error("my error")))
 
         val parcel = Parcel.obtain()
         value.writeToParcel(parcel, PARCELABLE_WRITE_RETURN_VALUE)
         parcel.setDataPosition(0)
-        val readValue = parcelableCreator<AppInfoStatusFfiParcel>().createFromParcel(parcel)
+        val readValue = parcelableCreator<AppStatusFfiParcel>().createFromParcel(parcel)
 
-        assert(readValue.inner is AppInfoStatusFfi.Disabled)
-        assert((readValue.inner as AppInfoStatusFfi.Disabled).reason is DisabledAppReasonFfi.Error)
+        assert(readValue.inner is AppStatusFfi.Disabled)
+        assert((readValue.inner as AppStatusFfi.Disabled).reason is DisabledAppReasonFfi.Error)
         assertEquals((readValue.inner.reason as DisabledAppReasonFfi.Error).v1, "my error")
     }
 

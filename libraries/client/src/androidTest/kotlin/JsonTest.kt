@@ -1,11 +1,10 @@
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.holochain.androidserviceruntime.client.AppInfoStatusFfi
+import org.holochain.androidserviceruntime.client.AppStatusFfi
 import org.holochain.androidserviceruntime.client.CellIdFfi
 import org.holochain.androidserviceruntime.client.CellInfoFfi
 import org.holochain.androidserviceruntime.client.DisabledAppReasonFfi
 import org.holochain.androidserviceruntime.client.DnaModifiersFfi
 import org.holochain.androidserviceruntime.client.DnaModifiersOptFfi
-import org.holochain.androidserviceruntime.client.PausedAppReasonFfi
 import org.holochain.androidserviceruntime.client.ProvisionedCellFfi
 import org.holochain.androidserviceruntime.client.RoleSettingsFfi
 import org.holochain.androidserviceruntime.client.toJSONArray
@@ -28,12 +27,12 @@ class JsonTest {
     }
 
     @Test
-    fun testAppInfoStatusFfiDisabled() {
+    fun testAppStatusFfiDisabled() {
         data class MyObj(
-            var status: AppInfoStatusFfi,
+            var status: AppStatusFfi,
         )
 
-        val value = MyObj(status = AppInfoStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted))
+        val value = MyObj(status = AppStatusFfi.Disabled(DisabledAppReasonFfi.NeverStarted))
         val res = JSONObject(value.toJSONObject().toString())
 
         assertEquals(res.getJSONObject("status").getString("type"), "Disabled")
@@ -41,20 +40,6 @@ class JsonTest {
             res.getJSONObject("status").getJSONObject("reason").getString("type"),
             "NeverStarted",
         )
-    }
-
-    @Test
-    fun testAppInfoStatusFfiPaused() {
-        data class MyObj(
-            var status: AppInfoStatusFfi,
-        )
-
-        val value = MyObj(status = AppInfoStatusFfi.Paused(PausedAppReasonFfi.Error("my error")))
-        val res = JSONObject(value.toJSONObject().toString())
-
-        assertEquals(res.getJSONObject("status").getString("type"), "Paused")
-        assertEquals(res.getJSONObject("status").getJSONObject("reason").getString("type"), "Error")
-        assertEquals(res.getJSONObject("status").getJSONObject("reason").getString("v1"), "my error")
     }
 
     @Test

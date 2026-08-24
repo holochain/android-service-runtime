@@ -21,6 +21,10 @@ keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 android {
     buildToolsVersion = "34.0.0"
     compileSdk = 34
+    // Must match the flake's ndkVersion — AGP 8.6's default NDK (26.1) is no
+    // longer in the nix SDK, and without a resolvable NDK AGP can't find
+    // llvm-strip and silently packages jniLibs unstripped.
+    ndkVersion = "28.2.13676358"
     namespace = "org.holochain.androidserviceruntime.example_client_app"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "true"

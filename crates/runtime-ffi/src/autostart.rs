@@ -1,7 +1,7 @@
 use crate::error::RuntimeResultFfi;
 use holochain_conductor_runtime::{AutostartConfigManager, RuntimeNetworkConfig};
 use holochain_conductor_runtime_types_ffi::RuntimeNetworkConfigFfi;
-use url2::{Url2, Url2Result};
+use url2::Url2;
 
 #[derive(uniffi::Object, Clone)]
 pub struct AutostartConfigManagerFfi(AutostartConfigManager);
@@ -16,12 +16,7 @@ impl AutostartConfigManagerFfi {
     pub fn enable(&self, config: RuntimeNetworkConfigFfi) -> RuntimeResultFfi<()> {
         Ok(self.0.enable(RuntimeNetworkConfig {
             bootstrap_url: Url2::try_parse(config.bootstrap_url)?,
-            signal_url: Url2::try_parse(config.signal_url)?,
-            ice_urls: config
-                .ice_urls
-                .into_iter()
-                .map(Url2::try_parse)
-                .collect::<Url2Result<Vec<Url2>>>()?,
+            relay_url: Url2::try_parse(config.relay_url)?,
         })?)
     }
 
@@ -35,8 +30,7 @@ impl AutostartConfigManagerFfi {
             .get_enabled_config()?
             .map(|c| RuntimeNetworkConfigFfi {
                 bootstrap_url: c.bootstrap_url.into(),
-                signal_url: c.signal_url.into(),
-                ice_urls: c.ice_urls.into_iter().map(|u| u.into()).collect(),
+                relay_url: c.relay_url.into(),
             }))
     }
 }

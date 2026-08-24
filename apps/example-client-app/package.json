@@ -11,11 +11,11 @@
     "test": "pnpm run build:zomes && hc app pack workdir --recursive && pnpm run test --workspace tests",
     "package": "pnpm run build:happ && pnpm run package --workspace ui && hc web-app pack workdir --recursive",
     "build:happ": "pnpm run build:zomes && hc app pack workdir --recursive",
-    "build:zomes": "cargo build --release --target wasm32-unknown-unknown --workspace --exclude forum-tauri",
+    "build:zomes": "RUSTFLAGS='--cfg getrandom_backend=\"custom\"' cargo build --release --target wasm32-unknown-unknown --workspace --exclude forum-tauri",
     "tauri": "tauri"
   },
   "devDependencies": {
-    "@holochain/hc-spin": "^0.500.1",
+    "@holochain/hc-spin": "^0.600.0-rc.0",
     "concurrently": "^6.5.1",
     "@tauri-apps/cli": "^2.5.0"
   },

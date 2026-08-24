@@ -10,7 +10,7 @@ import {
   NewEntryAction,
   Record,
 } from "@holochain/client";
-import { CallableCell, dhtSync, runScenario } from "@holochain/tryorama";
+import { CallableCell, dhtSync, runScenario } from "@holochain-open-dev/tryorama";
 import { decode } from "@msgpack/msgpack";
 
 import { createPost } from "./common.js";

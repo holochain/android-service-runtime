@@ -1,0 +1,14 @@
+{
+	"name": "holochain-runtime-example",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"tauri": "tauri",
+		"start:android": "tauri android dev",
+		"build:android": "tauri android build"
+	},
+	"devDependencies": {
+		"@tauri-apps/cli": "^2.5.0"
+	}
+}

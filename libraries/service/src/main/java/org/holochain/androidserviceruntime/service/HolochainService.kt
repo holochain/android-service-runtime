@@ -533,6 +533,26 @@ class HolochainService : Service() {
             }
         }
 
+        override fun importKeySeed(
+            callback: IHolochainServiceCallback,
+            seed: ByteArray,
+        ) {
+            Log.d(logTag, "importKeySeed")
+            if (!this.isAuthorized()) {
+                callbackUnauthorized(callback)
+                return
+            }
+
+            serviceScope.launch(Dispatchers.IO) {
+                try {
+                    val agentPubKey = runtime!!.importKeySeed(seed)
+                    callback.importKeySeed(agentPubKey)
+                } catch (e: Exception) {
+                    callback.onFailure(e.toString())
+                }
+            }
+        }
+
         // We cannot call Binder.getCallingUid() within the onBind callback,
         // so instead we check the authorization within each IPC call
         private fun loadClientPackageName() {
@@ -583,6 +603,13 @@ class HolochainService : Service() {
         private val logTag = "IHolochainServiceApp installedAppId=$installedAppId"
         private var authorized = false
         private var clientPackageName: String? = null
+
+        // Is the conductor started and ready to receive calls
+        // No authorization needed
+        override fun isReady(): Boolean {
+            Log.d(logTag, "isReady")
+            return runtime != null
+        }
 
         // / Setup an app
         override fun setupApp(
@@ -645,7 +672,31 @@ class HolochainService : Service() {
             }
 
             serviceScope.launch(Dispatchers.IO) {
-                callback.signZomeCall(ZomeCallParamsSignedFfiParcel(runtime!!.signZomeCall(req.inner)))
+                try {
+                    callback.signZomeCall(ZomeCallParamsSignedFfiParcel(runtime!!.signZomeCall(req.inner)))
+                } catch (e: Exception) {
+                    callback.onFailure(e.toString())
+                }
+            }
+        }
+
+        override fun importKeySeed(
+            callback: IHolochainServiceCallback,
+            seed: ByteArray,
+        ) {
+            Log.d(logTag, "importKeySeed")
+            if (!this.isAuthorized()) {
+                requestUserAuthorization(callback)
+                return
+            }
+
+            serviceScope.launch(Dispatchers.IO) {
+                try {
+                    val agentPubKey = runtime!!.importKeySeed(seed)
+                    callback.importKeySeed(agentPubKey)
+                } catch (e: Exception) {
+                    callback.onFailure(e.toString())
+                }
             }
         }
 

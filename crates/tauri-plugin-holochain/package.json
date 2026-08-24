@@ -1,0 +1,26 @@
+{
+  "name": "tauri-plugin-holochain-api",
+  "version": "0.1.0",
+  "description": "Webview env-injection script for tauri-plugin-holochain",
+  "type": "module",
+  "files": [
+    "dist-js",
+    "README.md"
+  ],
+  "scripts": {
+    "build:js": "tsc guest-js/holochain-env/*.ts --outDir dist-js-tmp/holochain-env/ --target es2021 --moduleResolution bundler --module esnext --skipLibCheck true && rollup -c",
+    "build": "npm run build:js"
+  },
+  "dependencies": {
+    "@holochain/client": "^0.21.0",
+    "@msgpack/msgpack": "^3.1.2",
+    "@tauri-apps/api": "^2.5.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.9.6",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  }
+}

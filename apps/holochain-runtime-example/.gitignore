@@ -1,0 +1,4 @@
+src-tauri/target/
+src-tauri/gen/schemas/
+ui/dist/
+ui/node_modules/

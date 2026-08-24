@@ -1,5 +1,10 @@
 # Unreleased
 
+- Bump to holochain 0.7.0. New conductor types are carried across the FFI: `AppStatusFfi` gains `AwaitingRestore` and `Unrecoverable` (cell id + rendered reason); `InstallAppPayload.restore_from_dht` and `RoleSettings::Provisioned.init_properties` are not exposed over FFI yet (always `false`/`None`).
+- BREAKING: `RuntimeNetworkConfig` / `RuntimeNetworkConfigFfi` lose `signal_url` and `ice_urls` — holochain 0.7 dropped the tx5/WebRTC transport in favor of iroh, so the conductor `NetworkConfig` no longer carries them. Only `bootstrap_url` and `relay_url` remain.
+- The forum test fixture is repacked with hdk 0.7.0 / hdi 0.8.0 (the 0.7 `Action`/`ActionData` restructure required porting the coordinator zome's signal emission).
+- Bump to holochain 0.6.3.
+- In-place window rebind: `HolochainPlugin::rebind_window` moves a webview window between installed apps (or to app-less) without recreating the OS window, emitting `holochain://rebound` so the injected env re-points `@holochain/client` to the new app. A failed rebind keeps the prior binding (no half-rebind), destroyed windows are pruned (routing + signal forwarder), and a monotonic `seq` keeps the rebound event order-safe.
 - The 'Open Settings' button will first attempt to open the android-service-runtime app via the system settings (i.e. for 'system' builds). If that fails it will fallback to opening the app via the launcher (i.e. for 'user' builds).
 
 # 0.2.2

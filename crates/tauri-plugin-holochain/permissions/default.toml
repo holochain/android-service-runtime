@@ -1,0 +1,3 @@
+[default]
+description = "Default permissions for the in-process Holochain plugin"
+permissions = ["allow-sign-zome-call", "allow-app-request"]

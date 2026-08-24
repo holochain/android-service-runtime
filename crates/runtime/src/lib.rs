@@ -10,6 +10,9 @@
 mod runtime;
 pub use runtime::*;
 
+pub mod hc_auth;
+pub use hc_auth::{HcAuthConfig, HcAuthStatus};
+
 mod error;
 pub use error::*;
 
