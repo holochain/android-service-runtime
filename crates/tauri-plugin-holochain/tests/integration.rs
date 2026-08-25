@@ -8,6 +8,8 @@
 //! app (Approach B).
 
 use std::collections::HashMap;
+use std::panic::AssertUnwindSafe;
+use std::time::Instant;
 
 use holochain::conductor::api::CellInfo::Provisioned;
 use holochain::conductor::api::{AppRequest, AppResponse, ProvisionedCell};
@@ -16,7 +18,7 @@ use holochain::prelude::{
 };
 use holochain_types::prelude::{AppStatus, Link, Nonce256Bits, Timestamp};
 use tauri::test::{mock_builder, mock_context, noop_assets};
-use tauri_plugin_holochain::test_support::{build_app, wait_for_ready};
+use tauri_plugin_holochain::test_support::{build_app, wait_for_ready, BOOT_TIMEOUT};
 use tauri_plugin_holochain::{Error, HolochainExt, HolochainPluginConfig, NetworkConfig};
 use tempfile::TempDir;
 use uuid::Uuid;
@@ -296,5 +298,40 @@ fn shipped_bundle_matches_rebound_payload_shape() {
     assert!(
         bundle.contains("payload.app_id") && bundle.contains("payload.seq"),
         "dist-js/holochain-env/index.min.js is stale — run `npm run build` in crates/tauri-plugin-holochain"
+    );
+}
+
+/// A conductor that fails to boot has to say why: the plugin holds the setup
+/// error, so a waiter fails on the cause at once instead of sitting out
+/// `BOOT_TIMEOUT` and reporting only that nothing became ready.
+#[test]
+fn failed_boot_reports_its_cause_instead_of_timing_out() {
+    let tmp = TempDir::new().unwrap();
+    // A regular file cannot hold the conductor's data root, so lair fails to
+    // spawn and the boot errors within moments of the app being built.
+    let data_root = tmp.path().join("data-root");
+    std::fs::write(&data_root, b"").unwrap();
+    let app = build_app(&data_root);
+
+    let started = Instant::now();
+    let panic = std::panic::catch_unwind(AssertUnwindSafe(|| {
+        tauri::async_runtime::block_on(wait_for_ready(&app));
+    }))
+    .expect_err("waiting on a conductor that cannot boot must fail the test");
+    let elapsed = started.elapsed();
+
+    let Err(Error::SetupFailed(cause)) = app.holochain().unwrap().try_runtime() else {
+        panic!("a failed boot must be reported as SetupFailed, not NotReady");
+    };
+    let message = panic
+        .downcast_ref::<String>()
+        .expect("the panic message is formatted, so it is a String");
+    assert!(
+        message.contains(&cause),
+        "the waiter must fail on the boot error, got: {message}"
+    );
+    assert!(
+        elapsed < BOOT_TIMEOUT / 2,
+        "the boot error must surface without waiting out {BOOT_TIMEOUT:?}, took {elapsed:?}"
     );
 }

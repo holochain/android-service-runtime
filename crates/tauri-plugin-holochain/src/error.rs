@@ -4,10 +4,16 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    /// The conductor has not finished starting yet. Wait for the
-    /// `holochain://ready` event before calling `holochain()`.
+    /// No conductor boot has finished: none was started, or one is in flight.
+    /// Also returned by [`crate::HolochainExt::holochain`] when the plugin is
+    /// not registered at all.
     #[error("the holochain conductor is not ready yet")]
     NotReady,
+
+    /// The conductor was started and failed to come up, carrying the same cause
+    /// `holochain://setup-failed` reports.
+    #[error("the holochain conductor failed to start: {0}")]
+    SetupFailed(String),
 
     /// [`crate::HolochainPlugin::start`] was called while the conductor is
     /// already running.
