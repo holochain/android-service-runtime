@@ -55,7 +55,7 @@ pub(crate) async fn sign_zome_call<R: Runtime>(
 
     let signed = app
         .holochain()?
-        .runtime()
+        .try_runtime()?
         .sign_zome_call(params.into())
         .await?;
 
