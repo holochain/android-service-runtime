@@ -2,6 +2,7 @@
 
 - BREAKING: `HolochainPlugin::try_runtime` reports a failed conductor boot as the new `Error::SetupFailed`, carrying the cause, instead of `Error::NotReady` forever. `holochain://setup-failed` still fires with the same payload.
 - `Runtime::sign_payload` signs an arbitrary payload with a caller-chosen agent key via the keystore, for protocols beyond zome calls that need proof of control over an identity. Exposed through the in-process plugin as the `sign_payload` command, returning a base64-encoded signature. It is outside `holochain:default`, so a capability has to grant `holochain:allow-sign-payload` itself.
+- `RuntimeError::Lair` renders the underlying lair error instead of the bare string "Lair Error".
 - `Runtime::install_app` preserves the typed `ConductorError` (as `RuntimeError::Conductor`) instead of flattening it to a string.
 - Bump to holochain 0.6.3.
 - In-place window rebind: `HolochainPlugin::rebind_window` moves a webview window between installed apps (or to app-less) without recreating the OS window, emitting `holochain://rebound` so the injected env re-points `@holochain/client` to the new app. A failed rebind keeps the prior binding (no half-rebind), destroyed windows are pruned (routing + signal forwarder), and a monotonic `seq` keeps the rebound event order-safe.

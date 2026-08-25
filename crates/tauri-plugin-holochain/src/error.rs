@@ -31,7 +31,8 @@ pub enum Error {
     #[error("no holochain app is bound to this window")]
     WindowNotBound,
 
-    /// Failed to (de)serialize an App API request or response.
+    /// A value crossing the IPC boundary could not be decoded: an App API
+    /// request or response, or a command argument such as an agent key.
     #[error("serialization error: {0}")]
     Serialization(String),
 }
