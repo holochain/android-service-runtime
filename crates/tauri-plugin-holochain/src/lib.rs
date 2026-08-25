@@ -256,11 +256,23 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
 
         let result = self.boot(passphrase, config).await;
         if let Err(e) = &result {
-            let mut state = self.boot_state.write().unwrap();
-            // `swap_runtime` may have installed a live runtime while this attempt
-            // was in flight, and failing it must not drop that runtime.
-            if !matches!(*state, BootState::Ready(_)) {
-                *state = BootState::Failed(e.to_string());
+            let cause = e.to_string();
+            let recorded = {
+                let mut state = self.boot_state.write().unwrap();
+                // `swap_runtime` may have installed a live runtime while this attempt
+                // was in flight, and failing it must not drop that runtime.
+                if matches!(*state, BootState::Ready(_)) {
+                    false
+                } else {
+                    *state = BootState::Failed(cause.clone());
+                    true
+                }
+            };
+            // Emitted here rather than at the call site so a deferred `start` reports
+            // the failure too, and outside the lock so a listener may call back in.
+            if recorded {
+                log::error!("Holochain conductor setup failed: {e:?}");
+                let _ = self.app_handle.emit(EVENT_SETUP_FAILED, cause);
             }
         }
         result
@@ -603,13 +615,15 @@ pub fn init<R: TauriRuntime>(
         tauri::async_runtime::spawn(async move {
             // `holochain()` borrows manager-lifetime state, so the reference is
             // valid across the await (app_handle outlives the task).
-            let result = match app_handle.holochain() {
-                Ok(plugin) => plugin.start(passphrase).await,
-                Err(e) => Err(e),
-            };
-            if let Err(e) = result {
-                log::error!("Holochain conductor setup failed: {e:?}");
-                let _ = app_handle.emit(EVENT_SETUP_FAILED, e.to_string());
+            match app_handle.holochain() {
+                // `start` reports its own failure, event included.
+                Ok(plugin) => {
+                    let _ = plugin.start(passphrase).await;
+                }
+                Err(e) => {
+                    log::error!("Holochain conductor setup failed: {e:?}");
+                    let _ = app_handle.emit(EVENT_SETUP_FAILED, e.to_string());
+                }
             }
         });
     })
