@@ -31,7 +31,7 @@ pub enum RuntimeError {
     #[error("Failed to sign zome call {0}")]
     ZomeCallParamsInvalid(String),
 
-    #[error("Lair Error")]
+    #[error("Lair Error: {0}")]
     Lair(OneErr),
 
     #[error("hc-auth error: {0}")]

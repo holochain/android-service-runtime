@@ -14,11 +14,15 @@
 mod commands;
 mod error;
 
+#[cfg(any(test, feature = "test-utils"))]
+pub mod test_support;
+
 pub use error::{Error, Result};
 
 // Re-export the native config type consumers build, and the runtime itself.
 pub use holochain::conductor::config::NetworkConfig;
 pub use holochain_conductor_runtime::Runtime;
+pub use holochain_conductor_runtime::{ConductorError, RuntimeError};
 // hc-auth: re-export the module and its config/status types so consumers can
 // build a `HcAuthConfig` and read `HcAuthStatus` without depending on the
 // runtime crate directly.
@@ -132,17 +136,30 @@ pub struct WindowOptions {
     pub use_app_websocket: bool,
 }
 
+/// Outcome of the conductor boot, held in place of a bare `Option<Runtime>` so a
+/// failure is remembered rather than looking the same as a boot still in flight.
+enum BootState {
+    /// No boot has finished: either none was started ([`init_deferred`]) or one
+    /// is still running.
+    NotStarted,
+    Ready(Runtime),
+    /// The last boot attempt failed with this cause. Kept even though
+    /// [`EVENT_SETUP_FAILED`] carries the same string: that event is transient,
+    /// so anything not already listening when it fires cannot recover the cause.
+    Failed(String),
+}
+
 /// Access to the running in-process Holochain conductor from the Tauri app.
 ///
 /// The plugin may be registered before the conductor boots ([`init_deferred`]),
 /// so the runtime is populated late by [`HolochainPlugin::start`]. Until then
-/// [`HolochainPlugin::runtime`] panics and the internal accessors return
-/// [`Error::NotReady`].
+/// [`HolochainPlugin::runtime`] panics and [`HolochainPlugin::try_runtime`]
+/// reports [`Error::NotReady`], or [`Error::SetupFailed`] once a boot has failed.
 pub struct HolochainPlugin<R: TauriRuntime> {
-    /// The conductor runtime, populated once [`HolochainPlugin::start`] succeeds.
-    /// Behind an `RwLock` so a hot restart can swap in a new runtime on the same
-    /// lair without re-registering the plugin (see `swap_runtime`).
-    runtime: RwLock<Option<Runtime>>,
+    /// What the conductor boot has produced so far. Behind an `RwLock` so a hot
+    /// restart can swap in a new runtime on the same lair without re-registering
+    /// the plugin (see `swap_runtime`).
+    boot_state: RwLock<BootState>,
     /// Boot config, consumed by [`HolochainPlugin::start`]. Kept (not taken) so a
     /// failed unlock can be retried with a different passphrase.
     pending_config: Mutex<Option<HolochainPluginConfig>>,
@@ -180,10 +197,15 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
         )
     }
 
-    /// Like [`HolochainPlugin::runtime`] but returns [`Error::NotReady`] instead
-    /// of panicking when the conductor has not started.
+    /// Like [`HolochainPlugin::runtime`] but returns an error instead of
+    /// panicking: [`Error::NotReady`] while no boot has completed, or
+    /// [`Error::SetupFailed`] carrying the cause once one has failed.
     pub fn try_runtime(&self) -> Result<Runtime> {
-        self.runtime.read().unwrap().clone().ok_or(Error::NotReady)
+        match &*self.boot_state.read().unwrap() {
+            BootState::Ready(runtime) => Ok(runtime.clone()),
+            BootState::Failed(cause) => Err(Error::SetupFailed(cause.clone())),
+            BootState::NotStarted => Err(Error::NotReady),
+        }
     }
 
     /// Boot the conductor with `passphrase` using the config supplied at
@@ -211,9 +233,11 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     /// [`EVENT_LAIR_READY`] once the keystore is available and [`EVENT_READY`]
     /// once the conductor is up.
     ///
-    /// Retryable: a failed unlock leaves the plugin un-started so a subsequent
-    /// call with a corrected passphrase/config can succeed. Returns
-    /// [`Error::AlreadyStarted`] if the conductor is already running.
+    /// Retryable: a failed boot records its cause (reported by
+    /// [`HolochainPlugin::try_runtime`] as [`Error::SetupFailed`]) and leaves the
+    /// conductor unstarted, so a subsequent call with a corrected
+    /// passphrase/config can succeed. Returns [`Error::AlreadyStarted`] if the
+    /// conductor is already running.
     pub async fn start_with_config(
         &self,
         passphrase: SharedLockedArray,
@@ -221,10 +245,45 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     ) -> Result<()> {
         // Serialize concurrent unlock attempts and re-check under the lock.
         let _guard = self.start_lock.lock().await;
-        if self.runtime.read().unwrap().is_some() {
-            return Err(Error::AlreadyStarted);
+        {
+            let mut state = self.boot_state.write().unwrap();
+            if matches!(*state, BootState::Ready(_)) {
+                return Err(Error::AlreadyStarted);
+            }
+            // This attempt supersedes the last one's cause: while it is in flight
+            // the plugin is not-started, not still-failed.
+            *state = BootState::NotStarted;
         }
 
+        let result = self.boot(passphrase, config).await;
+        if let Err(e) = &result {
+            let cause = e.to_string();
+            let recorded = {
+                let mut state = self.boot_state.write().unwrap();
+                // `swap_runtime` may have installed a live runtime while this attempt
+                // was in flight, and failing it must not drop that runtime.
+                if matches!(*state, BootState::Ready(_)) {
+                    false
+                } else {
+                    *state = BootState::Failed(cause.clone());
+                    true
+                }
+            };
+            // Emitted here rather than at the call site so a deferred `start` reports
+            // the failure too, and outside the lock so a listener may call back in.
+            if recorded {
+                log::error!("Holochain conductor setup failed: {e:?}");
+                let _ = self.app_handle.emit(EVENT_SETUP_FAILED, cause);
+            }
+        }
+        result
+    }
+
+    async fn boot(
+        &self,
+        passphrase: SharedLockedArray,
+        config: HolochainPluginConfig,
+    ) -> Result<()> {
         // Spawn lair, (optionally) run the hc-auth flow, then bring the conductor
         // up against that lair — see `Runtime::new_with_boot_config`. The
         // controllable boot collapses to a single conductor start; the keystore
@@ -244,7 +303,7 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
             log::error!("Failed to emit {EVENT_LAIR_READY}: {e:?}");
         }
 
-        *self.runtime.write().unwrap() = Some(runtime);
+        *self.boot_state.write().unwrap() = BootState::Ready(runtime);
 
         if let Err(e) = self.app_handle.emit(EVENT_READY, ()) {
             log::error!("Failed to emit {EVENT_READY}: {e:?}");
@@ -260,7 +319,7 @@ impl<R: TauriRuntime> HolochainPlugin<R> {
     /// runtime — signal subscriptions are per-runtime and the old conductor's
     /// channels are gone after the restart.
     pub async fn swap_runtime(&self, new: Runtime) -> Result<()> {
-        *self.runtime.write().unwrap() = Some(new);
+        *self.boot_state.write().unwrap() = BootState::Ready(new);
 
         let bindings: Vec<(String, InstalledAppId)> = self
             .window_apps
@@ -506,11 +565,12 @@ fn plugin_builder<R: TauriRuntime>(
     Builder::new("holochain")
         .invoke_handler(tauri::generate_handler![
             commands::sign_zome_call,
+            commands::sign_payload,
             commands::app_request
         ])
         .setup(move |app, _api| {
             app.manage(HolochainPlugin {
-                runtime: RwLock::new(None),
+                boot_state: RwLock::new(BootState::NotStarted),
                 pending_config: Mutex::new(Some(config.clone())),
                 start_lock: tokio::sync::Mutex::new(()),
                 app_handle: app.clone(),
@@ -556,13 +616,15 @@ pub fn init<R: TauriRuntime>(
         tauri::async_runtime::spawn(async move {
             // `holochain()` borrows manager-lifetime state, so the reference is
             // valid across the await (app_handle outlives the task).
-            let result = match app_handle.holochain() {
-                Ok(plugin) => plugin.start(passphrase).await,
-                Err(e) => Err(e),
-            };
-            if let Err(e) = result {
-                log::error!("Holochain conductor setup failed: {e:?}");
-                let _ = app_handle.emit(EVENT_SETUP_FAILED, e.to_string());
+            match app_handle.holochain() {
+                // `start` reports its own failure, event included.
+                Ok(plugin) => {
+                    let _ = plugin.start(passphrase).await;
+                }
+                Err(e) => {
+                    log::error!("Holochain conductor setup failed: {e:?}");
+                    let _ = app_handle.emit(EVENT_SETUP_FAILED, e.to_string());
+                }
             }
         });
     })
