@@ -325,13 +325,15 @@ impl Runtime {
     }
 
     pub async fn install_app(&self, payload: InstallAppPayload) -> RuntimeResult<AppInfo> {
-        let response = self
-            .req_admin_api(AdminRequest::InstallApp(Box::new(payload)))
-            .await?;
-        match response {
-            AdminResponse::AppInstalled(app_info) => Ok(app_info),
-            fail => Err(RuntimeError::AdminApiBadResponse(fail)),
-        }
+        // Direct rather than through `AdminInterfaceApi::handle_request`, which
+        // flattens `ConductorError` into a print-only
+        // `ExternalApiWireError::InternalError(String)` (holochain TODO B-01506).
+        // Going direct also skips its `check_running` guard and its `AppInfo`
+        // assembly, so both happen here.
+        self.conductor.check_running()?;
+        let app = self.conductor.clone().install_app_bundle(payload).await?;
+        let dna_definitions = self.conductor.get_dna_definitions(&app)?;
+        Ok(AppInfo::from_installed_app(&app, &dna_definitions))
     }
 
     pub async fn uninstall_app(&self, installed_app_id: String) -> RuntimeResult<()> {
@@ -647,6 +649,26 @@ impl Runtime {
         })
     }
 
+    /// There is no default identity: one keystore can hold several signable keys,
+    /// and signing with the wrong one still yields a *valid* signature, just for
+    /// the wrong identity, so the caller must pass the exact key it means.
+    pub async fn sign_payload(
+        &self,
+        agent_key: AgentPubKey,
+        payload: Vec<u8>,
+    ) -> RuntimeResult<[u8; 64]> {
+        let mut pub_key_32 = [0u8; 32];
+        pub_key_32.copy_from_slice(agent_key.get_raw_32());
+        let signature = self
+            .conductor
+            .keystore()
+            .lair_client()
+            .sign_by_pub_key(pub_key_32.into(), None, Arc::from(payload.as_slice()))
+            .await
+            .map_err(RuntimeError::Lair)?;
+        Ok(*signature.0)
+    }
+
     pub async fn ensure_app_websocket(
         &self,
         installed_app_id: InstalledAppId,
@@ -843,7 +865,7 @@ impl Runtime {
 
 #[cfg(test)]
 mod test {
-    use crate::RuntimeNetworkConfig;
+    use crate::{ConductorError, RuntimeNetworkConfig};
 
     use super::*;
     use holochain::conductor::api::CellInfo::Provisioned;
@@ -1021,6 +1043,38 @@ mod test {
 
         let apps = runtime.list_apps().await.unwrap();
         assert_eq!(apps.len(), 1);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_install_app_already_installed() {
+        let tmp = TempDir::new().unwrap();
+        let runtime = boot_runtime(&tmp, None).await;
+
+        let original = install_happ_fixture(runtime.clone(), "my-app-1").await;
+
+        let err = runtime
+            .install_app(InstallAppPayload {
+                source: AppBundleSource::Bytes(HAPP_FIXTURE.to_vec().into()),
+                agent_key: None,
+                installed_app_id: Some("my-app-1".into()),
+                network_seed: Some(Uuid::new_v4().to_string()),
+                roles_settings: Some(HashMap::new()),
+                ignore_genesis_failure: false,
+            })
+            .await
+            .expect_err("re-installing an existing app id must fail");
+
+        assert!(
+            matches!(&err, RuntimeError::Conductor(ConductorError::AppAlreadyInstalled(id))
+                if id == "my-app-1"),
+            "expected RuntimeError::Conductor(ConductorError::AppAlreadyInstalled(\"my-app-1\")), got: {err:?}"
+        );
+
+        let apps = runtime.list_apps().await.unwrap();
+        assert_eq!(apps.len(), 1);
+        assert_eq!(apps[0].installed_app_id, original.installed_app_id);
+        assert_eq!(apps[0].agent_pub_key, original.agent_pub_key);
+        assert_eq!(apps[0].cell_info, original.cell_info);
     }
 
     #[tokio::test(flavor = "multi_thread")]
@@ -1372,6 +1426,96 @@ mod test {
             })
             .await;
         assert!(res.is_ok())
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_payload_returns_a_verifiable_signature() {
+        let tmp = TempDir::new().unwrap();
+        let runtime = boot_runtime(&tmp, None).await;
+
+        let agent_key = runtime.device_agent_key();
+        let payload = b"arbitrary payload bytes, not a zome call".to_vec();
+
+        let signature = runtime
+            .sign_payload(agent_key.clone(), payload.clone())
+            .await
+            .expect("signing with a key this keystore holds must succeed");
+
+        let pub_key_32: [u8; 32] = agent_key.get_raw_32().try_into().unwrap();
+        assert!(
+            sodoken::sign::verify_detached(&signature, &payload, &pub_key_32),
+            "returned signature must verify against the signing key and payload"
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_payload_binds_the_signature_to_the_requested_key_not_a_default() {
+        let tmp = TempDir::new().unwrap();
+        let runtime = boot_runtime(&tmp, None).await;
+
+        let device_key = runtime.device_agent_key();
+        let other_key = runtime.import_key_seed([5u8; 32]).await.unwrap();
+        assert_ne!(device_key, other_key);
+
+        let payload = b"same payload, two identities".to_vec();
+        let sig_device = runtime
+            .sign_payload(device_key.clone(), payload.clone())
+            .await
+            .unwrap();
+        let sig_other = runtime
+            .sign_payload(other_key.clone(), payload.clone())
+            .await
+            .unwrap();
+
+        assert_ne!(
+            sig_device, sig_other,
+            "different keys signing the same payload must produce different signatures"
+        );
+
+        let device_pk: [u8; 32] = device_key.get_raw_32().try_into().unwrap();
+        let other_pk: [u8; 32] = other_key.get_raw_32().try_into().unwrap();
+
+        assert!(sodoken::sign::verify_detached(
+            &sig_device,
+            &payload,
+            &device_pk
+        ));
+        assert!(sodoken::sign::verify_detached(
+            &sig_other, &payload, &other_pk
+        ));
+        assert!(!sodoken::sign::verify_detached(
+            &sig_device,
+            &payload,
+            &other_pk
+        ));
+        assert!(!sodoken::sign::verify_detached(
+            &sig_other, &payload, &device_pk
+        ));
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn sign_payload_fails_when_the_key_is_not_in_this_keystore() {
+        let tmp1 = TempDir::new().unwrap();
+        let rt1 = boot_runtime(&tmp1, None).await;
+
+        let tmp2 = TempDir::new().unwrap();
+        let rt2 = boot_runtime(&tmp2, None).await;
+        let foreign_key = rt2.device_agent_key();
+        assert_ne!(foreign_key, rt1.device_agent_key());
+
+        let err = rt1
+            .sign_payload(foreign_key, b"payload".to_vec())
+            .await
+            .expect_err("signing with a key this keystore does not hold must fail");
+        assert!(
+            matches!(err, RuntimeError::Lair(_)),
+            "expected RuntimeError::Lair, got {err:?}"
+        );
+        let message = err.to_string();
+        assert!(
+            message.starts_with("Lair Error: ") && message.len() > "Lair Error: ".len(),
+            "expected the underlying lair error detail in the message, got: {message:?}"
+        );
     }
 
     #[tokio::test(flavor = "multi_thread")]
