@@ -125,7 +125,7 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
 name = "android-service-runtime"
-version = "0.1.5"
+version = "0.2.0"
 dependencies = [
  "log",
  "simple_logger",
@@ -3437,7 +3437,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "base64 0.22.1",
  "holochain",
@@ -3461,7 +3461,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime-ffi"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "android_logger 0.14.1",
  "hc_uniffi",
@@ -3480,7 +3480,7 @@ dependencies = [
 
 [[package]]
 name = "holochain-conductor-runtime-types-ffi"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "bytes",
  "hc_uniffi",
@@ -9251,7 +9251,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-holochain"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "base64 0.22.1",
  "holochain",
@@ -9273,7 +9273,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-holochain-service"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "holochain-conductor-runtime-types-ffi",
  "serde",
@@ -9284,7 +9284,7 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-holochain-service-client"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "bytes",
  "holochain-conductor-runtime-types-ffi",

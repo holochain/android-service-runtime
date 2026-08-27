@@ -1,5 +1,7 @@
 # Unreleased
 
+# 0.3.0
+
 - BREAKING: `HolochainPlugin::try_runtime` reports a failed conductor boot as the new `Error::SetupFailed`, carrying the cause, instead of `Error::NotReady` forever. `holochain://setup-failed` still fires with the same payload.
 - `Runtime::sign_payload` signs an arbitrary payload with a caller-chosen agent key via the keystore, for protocols beyond zome calls that need proof of control over an identity. Exposed through the in-process plugin as the `sign_payload` command, returning a base64-encoded signature. It is outside `holochain:default`, so a capability has to grant `holochain:allow-sign-payload` itself.
 - `Runtime::install_app` preserves the typed `ConductorError` (as `RuntimeError::Conductor`) instead of flattening it to a string.

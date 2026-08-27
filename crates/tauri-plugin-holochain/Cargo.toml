@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin-holochain"
-version = "0.2.2"
+version = "0.3.0"
 exclude = ["/examples", "/node_modules"]
 links = "tauri-plugin-holochain"
 description = "Tauri plugin that runs an in-process Holochain conductor (FFI-free, desktop + mobile)"
@@ -11,8 +11,8 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-holochain-conductor-runtime = { path = "../runtime", version = "0.2.2" }
-holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi", version = "0.2.2" }
+holochain-conductor-runtime = { path = "../runtime", version = "0.3.0" }
+holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi", version = "0.3.0" }
 holochain = { workspace = true }
 lair_keystore_api = { workspace = true }
 sodoken = { workspace = true }
