@@ -5,12 +5,20 @@ unified in-process `tauri-plugin-holochain` app) builds and runs on the iOS
 simulator, and ideally on a device. This is a test build — proving the stack
 compiles, the conductor boots, and zome calls execute — not a shippable app.
 
-## Status: done on the simulator (2026-08-05)
+## Status: running on a physical device (2026-08-28)
 
-Phases 1–4.1 are complete (simulator only; no device run yet). `holochain-runtime-example` builds for
-`aarch64-apple-ios-sim` and `aarch64-apple-ios`, and on an iPhone 17 Pro
-simulator (iOS 26.5) the conductor boots, the forum fixture installs, and the
-webview makes a zome call over direct Tauri IPC:
+Phases 1–4.2 are complete. `holochain-runtime-example` builds for
+`aarch64-apple-ios-sim` and `aarch64-apple-ios`, and runs on **both** an
+iPhone 17 Pro simulator (iOS 26.5) and a physical **iPhone 12 mini
+(iOS 18.7.8)** — conductor boot, hApp install, zome call + signing, and an app
+signal, with data persisting across restarts on device (§4.2).
+
+The original blocker — lair's keystore socket exceeding the AF_UNIX path limit
+— was fixed rather than worked around: holochain's in-process keystore no
+longer binds a socket (§4.0 and "Upstream issues to file → A"). Both iOS path
+hacks were deleted as a result.
+
+Simulator log excerpt (device excerpt in §4.2):
 
 ```
 [ui] env:    OK — direct Tauri IPC — INSTALLED_APP_ID=forum, hasSigner=true
@@ -371,22 +379,47 @@ xcrun simctl spawn "iPhone 17 Pro" log stream --level debug \
   --predicate 'subsystem == "org.holochain.runtimeexample"' --style compact
 ```
 
-### 4.2. Device build — prepared but UNTESTED
+### 4.2. Device build — DONE (iPhone 12 mini, iOS 18.7.8)
 
-No device run has happened: this machine has no signing identity
-(`security find-identity -v -p codesigning` → "0 valid identities found"), no
-provisioning profiles, and no Xcode account. Two changes were made in advance
-so a device build is a signing exercise and not a code change — **both are
-untested on hardware**:
+The stack runs on real hardware. Full chain, captured from device syslog:
 
-- `data_dir()` needs no device-specific arm at all any more. The socket is
-  gone (§4.0), so a device uses the same `app_data_dir()` as Android and the
-  simulator, with no path-length constraint to satisfy. This removed the whole
-  `target_abi = "sim"` split and the ~10-byte headroom risk that came with it.
-- `NSLocalNetworkUsageDescription` added to `project.yml`'s Info.plist
-  properties — iOS kills rather than prompts an app that touches the local
-  network without a usage string. Like the `SystemConfiguration` line, it is
-  lost if `tauri ios init` regenerates the file.
+```
+holochain conductor ready; installing app + opening window
+main window opened
+[ui] env:    OK — direct Tauri IPC — INSTALLED_APP_ID=forum, hasSigner=true
+[ui] conn:   OK — connected — appInfo.installed_app_id = forum
+[ui] zome:   OK — get_all_posts returned 3 record(s) — zome call + signing OK
+[ui] create: OK — create_post OK
+[ui] signal: OK — received — type=app zome=posts
+```
+
+**`3 record(s)` is the headline.** The simulator always returned 0 on a fresh
+data dir; three records means posts written by *earlier launches* were still
+there. So the conductor databases and the lair keystore persist across restarts
+in the real app container — at `app_data_dir()`, the path that was impossible
+before the §4.0 keystore fix. That is a stronger result than the simulator
+could give, since a device sandbox is genuinely enforced.
+
+Measurements and observations:
+
+- **Cold-ish boot: 34.0 s** (process start 11:08:13.8 → conductor ready
+  11:08:47.9) versus 18.9 s on an M-series Mac — roughly 1.8× slower, as
+  expected for an A14 running an interpreter with no serialized module cache.
+  Zome call landed 0.85 s after the window opened.
+- **No jetsam kill.** Memory limit was 2098 MB and the app held foreground
+  priority throughout, despite the 467 MB debug IPA. Worth re-checking with a
+  release build, but the debug binary size is not fatal on device.
+- **`data_dir()` needed no device-specific arm.** With the socket gone the
+  device uses the same `app_data_dir()` as Android and the simulator; the
+  `target_abi = "sim"` split and its ~10-byte headroom risk were deleted, and
+  the device run confirms that was right.
+- **`NSLocalNetworkUsageDescription`** is in the Info.plist, but no
+  local-network TCC request was logged — the only TCC traffic was a
+  `kTCCServiceMicrophone` request from WKWebView. So either iroh never
+  attempted LAN discovery in this session or it does not need the permission
+  for what it did. Unresolved, and worth revisiting when testing peer-to-peer.
+
+Networking — partly answered, see §4.2.1 below.
 
 Signing setup (the team ID is **not** committed):
 
@@ -420,11 +453,73 @@ xcrun devicectl device install app --device <udid> <path-to>.app
 xcrun devicectl device process launch --device <udid> org.holochain.runtimeexample
 ```
 
-What a device proves that the simulator cannot: iroh QUIC to the relay, and
-whether LAN peer discovery trips the local-network prompt. The simulator
-already shows iroh failing to reach the dev relay (`sendmsg error: …
-HostUnreachable` to the iroh-canary relay), the same open risk carried over
-from the 0.7 plan. Backgrounding behaviour is also worth checking (§4.3).
+Gotchas hit on the way, all of which cost time:
+
+- **Xcode's Run button can never work on this project.** It fails with
+  `failed to read CLI options: Error when opening the TCP socket: Connection
+  refused` — Tauri's "Build Rust Code" phase expects to be launched *by* the
+  `tauri` CLI, which runs a local socket to pass it build options. Running
+  `xcodebuild` directly hits the same wall. Xcode is only needed once, to
+  register the device; all builds go through `pnpm tauri ios build`. (A failed
+  Run also makes Xcode silently revert the run destination, which looks like
+  "selecting the iPhone won't stick".)
+- **`-allowProvisioningUpdates` will not register a new device.** The first
+  build failed with "Your team has no devices from which to generate a
+  provisioning profile". Registration needs the Xcode GUI once, or adding the
+  UDID by hand at developer.apple.com ▸ Devices. After that the CLI is
+  self-sufficient.
+- **First launch is refused** with "invalid code signature, inadequate
+  entitlements or its profile has not been explicitly trusted by the user" —
+  that last clause is the real one. On a personal/free team you must trust the
+  cert on the phone: Settings ▸ General ▸ VPN & Device Management ▸ Developer
+  App ▸ Trust. A free-tier profile also expires in **7 days**.
+- **App logs do not reach `devicectl --console`.** `tauri-plugin-log` output
+  goes to the unified log, so use `idevicesyslog` (or Console.app). Note
+  `devicectl device process launch` on an already-running app just foregrounds
+  it — terminate by PID first (`devicectl device info processes` →
+  `devicectl device process terminate --pid`) or you will capture nothing.
+- **A device build writes your Team ID into `project.pbxproj`.** Reproducible:
+  `xcodegen generate` leaves 0 occurrences of `DEVELOPMENT_TEAM`, and a
+  subsequent `tauri ios build --target aarch64` leaves 2. Opening the project
+  in Xcode does the same, and additionally rewrites the scheme (downgrades its
+  `version` and renames `BuildableName`). Since `project.pbxproj` is generated
+  from `project.yml`, the fix is to regenerate before committing:
+
+  ```
+  cd apps/holochain-runtime-example/src-tauri/gen/apple && xcodegen generate
+  ```
+
+  A Team ID is not a secret — it ships inside every distributed app's
+  `embedded.mobileprovision` — but committing it couples the repo to one
+  developer and guarantees a spurious diff every time anyone else builds. The
+  build works fine with the ID supplied only via `APPLE_DEVELOPMENT_TEAM`
+  (verified: clean `project.pbxproj` + env var → `** BUILD SUCCEEDED **`), so
+  there is no reason to carry it in git.
+
+### 4.2.1. Networking on device — partly answered
+
+The device does real network I/O, which the simulator never managed:
+
+```
+TrackedFlow  WiFi udp4  org.holochain.runtimeexample  rx pkts 102  tx pkts 130
+TrackedFlow  WiFi tcp4  org.holochain.runtimeexample  rx pkts 38   tx pkts 33
+Data Usage   WiFi in/out: 123472/79793 bytes
+```
+
+Sustained bidirectional UDP is consistent with iroh QUIC actually moving
+traffic. But the same IPv6 relay failure the simulator showed is still present:
+
+```
+[noq_udp] sendmsg error: HostUnreachable "No route to host",
+          Transmit: { destination: [2a01:4ff:f0:febe::1]:7842, ... }
+```
+
+That destination is IPv6, and the test network has no IPv6 route — so this
+looks like an environment limitation rather than an iOS one, with IPv4 traffic
+succeeding alongside it. **Not conclusive**: the plugin logs non-app crates at
+`Warn`, so a successful relay handshake would not be logged, only the failure.
+Confirming relay connectivity needs a run at `Info`, and actual peer-to-peer
+sync needs two devices. Both still open, along with backgrounding (§4.3).
 
 ### 4.3. Known limitations (recorded, not fixed)
 
@@ -600,11 +695,15 @@ names the problem, and/or document the split-config escape hatch.
    it lands and ships in a release, **this branch cannot merge to `main`** —
    the `[patch.crates-io]` block makes the workspace unbuildable without a
    sibling `../holochain` checkout.
-2. **Device build (§4.2)** — signing setup is documented; nothing has run on
-   hardware. The only way to test iroh QUIC and LAN discovery.
+2. **Finish the networking question (§4.2.1).** The device moves real UDP
+   traffic, but a successful relay handshake is not logged at the current
+   level. Re-run with non-app crates at `Info` to confirm relay connectivity,
+   then test actual sync between two devices (or device ↔ desktop).
 3. **File (B) and (C)** against lair. Secondary now that (A) is solved: (C)
    becomes cosmetic and (B) stops mattering for this use case.
-4. **CI job (Phase 5)** to protect what now works.
+4. **Backgrounding (§4.3)** — never exercised. iOS suspends the app; what the
+   conductor does on resume is unknown.
+5. **CI job (Phase 5)** to protect what now works.
 
 ## Open questions
 
