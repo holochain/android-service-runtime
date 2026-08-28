@@ -74,6 +74,82 @@ pub struct RuntimeBootConfig {
     pub pending_import_seed: Option<Vec<u8>>,
 }
 
+/// Also carry the relay auth material in `network.advanced`, where kitsune2 reads it
+/// per space.
+///
+/// `base64_auth_material_relay` only seeds the transport at startup. The config
+/// `NetworkConfig::to_k2_config` builds carries `irohTransport.relayUrl` but no material,
+/// and kitsune2 re-inserts the relay from it when a space is created — tokenless, which an
+/// authenticated relay refuses. The node keeps authenticating and keeps its allowlist entry
+/// alive, so the only symptom is that it reaches no peers.
+///
+/// `to_k2_config` merges into `advanced` rather than replacing it, so a value set here
+/// survives alongside the URL it writes.
+fn set_per_space_relay_material(network: &mut NetworkConfig, material: &str) {
+    let advanced = network
+        .advanced
+        .get_or_insert_with(|| serde_json::json!({}));
+    let Some(root) = advanced.as_object_mut() else {
+        log::warn!("network.advanced is not an object; relay auth material not set per space");
+        return;
+    };
+    let iroh = root
+        .entry("irohTransport")
+        .or_insert_with(|| serde_json::json!({}));
+    let Some(iroh) = iroh.as_object_mut() else {
+        log::warn!(
+            "network.advanced.irohTransport is not an object; relay auth material not set per space"
+        );
+        return;
+    };
+    iroh.insert(
+        "authMaterialRelayBase64".to_string(),
+        serde_json::Value::String(material.to_string()),
+    );
+}
+
+#[cfg(test)]
+mod per_space_relay_material {
+    use super::*;
+
+    #[test]
+    fn lands_where_kitsune2_reads_it() {
+        let mut network = NetworkConfig::default();
+        set_per_space_relay_material(&mut network, "bWF0ZXJpYWw=");
+        assert_eq!(
+            network.advanced.expect("advanced set")["irohTransport"]["authMaterialRelayBase64"],
+            serde_json::json!("bWF0ZXJpYWw=")
+        );
+    }
+
+    /// `advanced` is caller-owned - a testnet build sets `relayAllowPlainText` here - so the
+    /// material has to be added to it rather than replace it.
+    #[test]
+    fn leaves_other_advanced_settings_alone() {
+        let mut network = NetworkConfig::default();
+        network.advanced = Some(serde_json::json!({
+            "irohTransport": { "relayAllowPlainText": true },
+            "coreBootstrap": { "serverUrl": "https://bootstrap.example" },
+        }));
+
+        set_per_space_relay_material(&mut network, "bWF0ZXJpYWw=");
+
+        let advanced = network.advanced.expect("advanced set");
+        assert_eq!(
+            advanced["irohTransport"]["relayAllowPlainText"],
+            serde_json::json!(true)
+        );
+        assert_eq!(
+            advanced["coreBootstrap"]["serverUrl"],
+            serde_json::json!("https://bootstrap.example")
+        );
+        assert_eq!(
+            advanced["irohTransport"]["authMaterialRelayBase64"],
+            serde_json::json!("bWF0ZXJpYWw=")
+        );
+    }
+}
+
 impl Runtime {
     /// Initialize and start a new Conductor from a [`RuntimeConfig`].
     ///
@@ -196,6 +272,7 @@ impl Runtime {
                         }
                         if cfg.auth_relay {
                             network.base64_auth_material_relay = Some(material.clone());
+                            set_per_space_relay_material(&mut network, material);
                         }
                         log::info!(
                             "hc-auth: material injected (bootstrap={}, relay={})",
@@ -597,6 +674,7 @@ impl Runtime {
             }
             if add_auth_material_to_relay {
                 network.base64_auth_material_relay = Some(material.clone());
+                set_per_space_relay_material(&mut network, material);
             }
         }
 
