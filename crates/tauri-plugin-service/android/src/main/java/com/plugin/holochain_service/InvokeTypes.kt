@@ -57,15 +57,17 @@ fun ZomeCallParamsFfiInvokeArg.toFfi(): ZomeCallParamsFfi =
 @InvokeArg
 class RuntimeNetworkConfigFfiInvokeArg {
     lateinit var bootstrapUrl: String
-    lateinit var signalUrl: String
+
+    // Holochain 0.7 replaced WebRTC (signal + ICE) with iroh, which only needs a relay URL.
+    // lateinit var signalUrl: String
+    // lateinit var iceUrls: List<String>
     lateinit var relayUrl: String
-    lateinit var iceUrls: List<String>
 }
 
 fun RuntimeNetworkConfigFfiInvokeArg.toFfi(): RuntimeNetworkConfigFfi =
     RuntimeNetworkConfigFfi(
         this.bootstrapUrl,
-        this.signalUrl,
+        // this.signalUrl,
         this.relayUrl,
-        this.iceUrls,
+        // this.iceUrls,
     )

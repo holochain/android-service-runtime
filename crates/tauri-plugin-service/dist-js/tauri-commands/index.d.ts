@@ -20,8 +20,7 @@ export interface AppInfo {
 }
 export type RuntimeNetworkConfig = {
     bootstrapUrl: string;
-    signalUrl: string;
-    iceUrls: string[];
+    relayUrl: string;
 };
 export declare function setConfig(request: RuntimeNetworkConfig): Promise<null>;
 export declare function start(): Promise<string | null>;
