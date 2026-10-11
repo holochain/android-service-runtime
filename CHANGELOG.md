@@ -1,5 +1,7 @@
 # Unreleased
 
+- Kotlin client: `AppStatusFfiParceler` handles the `AwaitingRestore` and `Unrecoverable` statuses added in 0.3.0, and `RuntimeNetworkConfigFfiParceler` no longer reads/writes the removed `signalUrl`/`iceUrls` fields, so the client library matches the 0.3.0 FFI types.
+
 # 0.3.0
 
 - BREAKING: `HolochainPlugin::try_runtime` reports a failed conductor boot as the new `Error::SetupFailed`, carrying the cause, instead of `Error::NotReady` forever. `holochain://setup-failed` still fires with the same payload.
