@@ -29,8 +29,10 @@ export interface AppInfo {
 
 export type RuntimeNetworkConfig = {
   bootstrapUrl: string;
-  signalUrl: string;
-  iceUrls: string[];
+  // Holochain 0.7 replaced WebRTC (signal + ICE) with iroh, which only needs a relay URL.
+  // signalUrl: string;
+  // iceUrls: string[];
+  relayUrl: string;
 }
 
 export async function setConfig(request: RuntimeNetworkConfig): Promise<null> {
