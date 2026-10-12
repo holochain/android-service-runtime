@@ -147,6 +147,10 @@ impl Runtime {
         // Phase (a): spawn lair in-proc at `<data_root>/lair-keystore-config.yaml`
         // (the location holochain uses when `lair_root` is `None`).
         let keystore_config_path = data_root_path.join("lair-keystore-config.yaml");
+        #[cfg(target_os = "ios")]
+        crate::ios_lair::ensure_short_lair_socket(&keystore_config_path, passphrase.clone())
+            .await
+            .map_err(|e| RuntimeError::Lair(e.into()))?;
         let lair_client = holochain_keystore::lair_keystore::spawn_lair_keystore_in_proc(
             &keystore_config_path,
             passphrase.clone(),

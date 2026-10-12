@@ -23,7 +23,10 @@ keywords = ["holochain", "android", "tauri", "p2p"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-holochain = "0.7.0"
+# holochain = "0.7.0"
+# Defaults off so each crate picks its WASM engine: the Cranelift JIT (Android, desktop) or the
+# wasmi interpreter (iOS, which forbids JIT). Crates re-enable the old defaults explicitly.
+holochain = { version = "0.7.0", default-features = false }
 holochain_conductor_api = "0.7.0"
 holochain_types = "0.7.0"
 holochain_serialized_bytes = "0.0.57"

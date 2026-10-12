@@ -13,7 +13,7 @@ license.workspace = true
 [dependencies]
 holochain-conductor-runtime = { path = "../runtime", version = "0.3.0" }
 holochain-conductor-runtime-types-ffi = { path = "../runtime-types-ffi", version = "0.3.0" }
-holochain = { workspace = true }
+holochain = { workspace = true, features = ["encryption", "schema", "wasmer-sys-cranelift"] }
 lair_keystore_api = { workspace = true }
 sodoken = { workspace = true }
 tauri = { workspace = true }
@@ -31,7 +31,7 @@ tauri-plugin = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 tauri = { workspace = true, features = ["test"] }
-holochain = { workspace = true }
+holochain = { workspace = true, features = ["encryption", "schema", "wasmer-sys-cranelift"] }
 holochain_types = { workspace = true }
 tokio = { workspace = true }
 tempfile = { workspace = true }

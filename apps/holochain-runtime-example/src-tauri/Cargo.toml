@@ -16,5 +16,5 @@ tauri-build = { workspace = true }
 tauri = { workspace = true }
 tauri-plugin-holochain = { path = "../../../crates/tauri-plugin-holochain" }
 tauri-plugin-log = "2"
-holochain = { workspace = true }
+holochain = { workspace = true, features = ["encryption", "schema", "wasmer-sys-cranelift"] }
 log = { workspace = true }
