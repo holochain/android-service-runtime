@@ -1,0 +1,126 @@
+name: "ios-conductor"
+
+# Builds the Holochain 0.7 conductor runtime FFI for iOS (device + Apple-silicon simulator) and packages it
+# as HolochainConductor.xcframework with UniFFI Swift bindings, and runs the simulator tests in ios/HolochainConductor.
+#
+# iOS forbids JIT, so the conductor is built with the wasmi interpreter (`wasm-interpreter` feature)
+# instead of holochain's default Cranelift JIT.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'ios-conductor-v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 240
+    env:
+      CRATE: holochain-conductor-runtime-ffi
+      LIB: libholochain_conductor_runtime_ffi
+      FEATURES: --no-default-features --features wasm-interpreter
+      # One minimum iOS for rustc and the C deps (cc/aws-lc-sys); without it C objects target the
+      # SDK's iOS 18.5 while Rust links for an older minimum, and ___chkstk_darwin goes missing.
+      IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust toolchain (rust-toolchain.toml) + iOS targets
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustup target add aarch64-apple-ios aarch64-apple-ios-sim
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ios-wasmi
+
+      - name: Build for iOS devices (aarch64-apple-ios)
+        run: cargo build -p $CRATE --release $FEATURES --target aarch64-apple-ios
+
+      - name: Build for the iOS simulator (aarch64-apple-ios-sim)
+        run: cargo build -p $CRATE --release $FEATURES --target aarch64-apple-ios-sim
+
+      - name: Generate Swift bindings
+        run: |
+          cargo run -p uniffi-bindgen-cli --release -- generate \
+            --library target/aarch64-apple-ios-sim/release/$LIB.dylib \
+            --language swift \
+            --out-dir out/swift
+          ls -la out/swift
+
+      - name: Package HolochainConductor.xcframework
+        run: |
+          mkdir -p out/headers
+          cp out/swift/*.h out/headers/
+          # One module map for every generated FFI module, named as Xcode expects.
+          cat out/swift/*.modulemap > out/headers/module.modulemap
+          xcodebuild -create-xcframework \
+            -library target/aarch64-apple-ios/release/$LIB.a -headers out/headers \
+            -library target/aarch64-apple-ios-sim/release/$LIB.a -headers out/headers \
+            -output out/HolochainConductor.xcframework
+          (cd out && zip -qry HolochainConductor.xcframework.zip HolochainConductor.xcframework)
+          (cd out/swift && zip -qr ../HolochainConductorSwift.zip *.swift)
+          ls -la out target/aarch64-apple-ios/release/$LIB.a target/aarch64-apple-ios-sim/release/$LIB.a
+
+      - name: Simulator smoke test (start, install forum.happ, signed zome call)
+        run: |
+          P=ios/HolochainConductor
+          cp -R out/HolochainConductor.xcframework $P/
+          cp out/swift/*.swift $P/Sources/HolochainConductor/
+          cd $P
+          # Use whichever iPhone simulator this runner image has (device names/OS versions vary by image).
+          SIM=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print(next(x['udid'] for r,ds in sorted(d.items(), reverse=True) if 'iOS' in r for x in ds if x['name'].startswith('iPhone')))")
+          echo "Simulator: $SIM"
+          xcodebuild test \
+            -scheme HolochainConductor \
+            -destination "id=$SIM" \
+            -resultBundlePath ../../out/smoke-test.xcresult \
+            | tee ../../out/smoke-test.log | grep -E "Test Case|error:|passed|failed|TEST (SUCCEEDED|FAILED)"
+          test ${PIPESTATUS[0]} -eq 0
+
+      - name: Build manifest
+        run: |
+          cat > out/build-manifest.json <<EOF
+          {
+            "repository": "https://github.com/${{ github.repository }}",
+            "commit": "${{ github.sha }}",
+            "ref": "${{ github.ref_name }}",
+            "holochainCompatibility": "0.7",
+            "wasmEngine": "wasmi (interpreter, no JIT)",
+            "targets": ["aarch64-apple-ios", "aarch64-apple-ios-sim"],
+            "xcframeworkSha256": "$(shasum -a 256 out/HolochainConductor.xcframework.zip | cut -d' ' -f1)",
+            "swiftBindingsSha256": "$(shasum -a 256 out/HolochainConductorSwift.zip | cut -d' ' -f1)"
+          }
+          EOF
+          cat out/build-manifest.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-test-log
+          path: out/smoke-test.log
+          if-no-files-found: ignore
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HolochainConductor-ios
+          path: |
+            out/HolochainConductor.xcframework.zip
+            out/HolochainConductorSwift.zip
+            out/build-manifest.json
+
+      - name: Attach to the release (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${{ github.ref_name }}" >/dev/null 2>&1 || \
+            gh release create "${{ github.ref_name }}" --prerelease \
+              --title "Holochain 0.7 conductor for iOS (${{ github.ref_name }})" \
+              --notes "HolochainConductor.xcframework (device + Apple-silicon simulator) with UniFFI Swift bindings, built with the wasmi interpreter (no JIT)."
+          gh release upload "${{ github.ref_name }}" --clobber \
+            out/HolochainConductor.xcframework.zip out/HolochainConductorSwift.zip out/build-manifest.json

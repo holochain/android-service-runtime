@@ -9,8 +9,16 @@ crate-type = ["lib"]
 name = "holochain_conductor_runtime"
 
 
+[features]
+default = ["wasm-jit"]
+# Cranelift JIT: holochain's default engine (Android, desktop).
+wasm-jit = ["holochain/wasmer-sys-cranelift"]
+# wasmi interpreter: for iOS, where App Store apps can't map writable+executable memory.
+wasm-interpreter = ["holochain/wasmer-wasmi"]
+
 [dependencies]
-holochain = { workspace = true }
+# holochain = { workspace = true }
+holochain = { workspace = true, features = ["encryption", "schema"] }
 holochain_types = { workspace = true }
 holochain_keystore = "0.7.0"
 kitsune2_api = { workspace = true }

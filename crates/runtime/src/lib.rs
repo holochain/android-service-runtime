@@ -7,6 +7,8 @@
 //! - Autostart management: tracking if the runtime should be started on system launch. This logic is located in ['autostart.rs']('./src/autostart.rs').
 //! - App Client Authorization: tracking which end-user android apps (specified by a package identifier) are allowed to call specified holochain apps. This logic is located in ['authorization.rs'](./src/authorization.rs).
 
+#[cfg(target_os = "ios")]
+mod ios_lair;
 mod runtime;
 pub use runtime::*;
 
